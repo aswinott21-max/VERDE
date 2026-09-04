@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERDÉ - Login</title>
+</head>
+<body>
+
+    <h1>Login</h1>
+
+    <form id="loginForm">
+
+        <label for="email">Email</label>
+        <input type="email" id="email" required>
+
+        <br><br>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" required>
+
+        <br><br>
+
+        <button type="submit">Login</button>
+
+    </form>
+    <script>
+    // Handle login form submission
+    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+
+        // Prevent the browser from refreshing the page
+        event.preventDefault();
+
+        // Get email and password from the form
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        // Send login data to the Django login API
+        const response = await fetch("/login/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+
+        // Convert the response into JSON
+        const result = await response.json();
+
+        // Handle the login response
+        if (response.ok) {
+        // Redirect the user to the dashboard after successful login
+             window.location.href = "/dashboard/";
+        } else {
+        // Show the error message if login fails
+             alert(result.error);
+        }
+    });
+</script>
+
+</body>
+</html>

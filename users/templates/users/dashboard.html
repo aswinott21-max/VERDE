@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERDÉ - Dashboard</title>
+</head>
+<body>
+
+    <h1>Dashboard</h1>
+
+    <!-- Button used to log the user out -->
+    <button id="logoutBtn">Logout</button>
+
+</body>
+<script>
+    // Handle logout button click
+    document.getElementById("logoutBtn").addEventListener("click", async function() {
+
+        // Send logout request to Django
+        const response = await fetch("/logout/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        // Convert the response into JSON
+        const result = await response.json();
+
+        // Check whether logout was successful
+        if (response.ok) {
+            // Redirect the user to the login page
+            window.location.href = "/login-page/";
+        } else {
+            // Show the error message
+            alert(result.error);
+        }
+    });
+</script>
+
+
+</html>

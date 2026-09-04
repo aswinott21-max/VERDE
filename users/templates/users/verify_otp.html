@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERDÉ - Verify OTP</title>
+</head>
+<body>
+
+    <h1>Verify Your Email</h1>
+
+    <p>Enter the OTP sent to your email.</p>
+
+    <form id="otpForm">
+
+        <label for="otp">OTP</label>
+        <input
+            type="text"
+            id="otp"
+            name="otp"
+            maxlength="6"
+            required
+        >
+
+        <br><br>
+
+        <button type="submit">Verify OTP</button>
+
+    </form>
+
+    <br>
+
+    <button id="createAccountBtn" style="display: none;">
+        Create Account
+    </button>
+
+    <p>OTP expires in: <span id="timer">05:00</span></p>
+
+    <button id="resendBtn" disabled>Resend OTP</button>
+
+
+    <script>
+
+        // =========================
+        // OTP VERIFICATION
+        // =========================
+
+        document.getElementById("otpForm").addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const otp = document.getElementById("otp").value;
+
+            const response = await fetch("/verify-otp/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    otp: otp
+                })
+            });
+
+            const result = await response.json();
+
+            alert(result.message || result.error);
+
+            if (response.ok) {
+                document.getElementById("createAccountBtn").style.display = "inline-block";
+            }
+        });
+
+
+      
+        // OTP TIMER
+        
+
+        let timeLeft = 5 * 60;
+
+        const timer = document.getElementById("timer");
+        const resendBtn = document.getElementById("resendBtn");
+
+        let countdown;
+
+        function startTimer() {
+
+            clearInterval(countdown);
+
+            timeLeft = 5 * 60;
+
+            resendBtn.disabled = true;
+
+            countdown = setInterval(() => {
+
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+
+                timer.textContent =
+                    String(minutes).padStart(2, "0") + ":" +
+                    String(seconds).padStart(2, "0");
+
+                if (timeLeft <= 0) {
+
+                    clearInterval(countdown);
+
+                    timer.textContent = "00:00";
+
+                    resendBtn.disabled = false;
+                }
+
+                timeLeft--;
+
+            }, 1000);
+        }
+
+        startTimer();
+
+
+       
+        // RESEND OTP
+
+
+        resendBtn.addEventListener("click", async function() {
+
+            const response = await fetch("/resend-otp/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({})
+            });
+
+            const result = await response.json();
+
+            alert(result.message || result.error);
+
+            if (response.ok) {
+                startTimer();
+            }
+        });
+
+
+// CREATE ACCOUNT
+
+const createAccountBtn = document.getElementById("createAccountBtn");
+
+createAccountBtn.addEventListener("click", async function() {
+
+    const response = await fetch("/create-account/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+    });
+
+    const result = await response.json();
+
+    alert(result.message || result.error);
+
+    // Redirect to login page after successful account creation
+    if (response.ok) {
+        window.location.href = "/login-page/";
+    }
+});
+
+    </script>
+
+</body>
+</html>
