@@ -364,6 +364,7 @@ def forgot_password(request): #API
     }, status=200)
 
 #Reset password OTP page 
+@never_cache
 def reset_password_otp_page(request):
     return render(request, "users/reset_password_otp.html")
 
@@ -411,6 +412,7 @@ def verify_reset_password_otp(request):
         "message":"OTP verified successfully"
     }, status=200)
 
+@never_cache
 def reset_password_page(request):
     return render(request, "users/reset_password.html")
 
