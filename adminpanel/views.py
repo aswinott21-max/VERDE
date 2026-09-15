@@ -9,6 +9,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
+from django.views.decorators.cache import never_cache
 
 # User authentication and validation services
 from users.services.otp_service import (generate_otp,get_otp_expiry,send_otp_email,)
@@ -18,8 +19,12 @@ from users.services.validation_service import validate_user_password
 
 # Create your views here.
 
-
+@never_cache
 def admin_login_page(request):
+    # Prevent an already logged-in admin from seeing the login page
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect("/adminpanel/admin-dashboard/")
+
     return render(request, "adminpanel/admin_login.html")
 
 
@@ -251,6 +256,7 @@ def admin_reset_password(request):
         "message": "Admin password reset successfully"
     }, status=200)
 
+@never_cache
 @login_required(login_url="/admin-login/")
 def admin_dashboard_page(request):
 
@@ -312,13 +318,7 @@ def toggle_user_status(request, user_id):
     return JsonResponse({"message" : f"User {status} successfully", "status":status},status=200)
 
 
-
-
-
-
-
-
-
+@never_cache
 @login_required(login_url= "/admin-login/")
 def admin_users_page(request):
 

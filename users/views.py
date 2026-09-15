@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from .services.auth_service import hash_user_password
 from django.core.paginator import Paginator
+from django.views.decorators.cache import never_cache
 
 #Google OAuth
 from authlib.integrations.django_client import OAuth
@@ -258,7 +259,11 @@ def signup_page(request):
 def verify_otp_page(request):
     return render(request, "users/verify_otp.html")
 
+@never_cache
 def login_page(request): # load login page
+    # If the user is already logged in, don't show the login page
+    if request.user.is_authenticated:
+        return redirect("/")
     return render(request, "users/login.html")
 
 #Login API
@@ -568,7 +573,7 @@ def change_password(request):
     return JsonResponse({"message" : "Password changed succefully"},status=200)
 
     
-
+@never_cache
 def home_page(request):
 
     return render (request, "users/home.html")
@@ -615,6 +620,7 @@ def google_callback(request):
 
 
 @ensure_csrf_cookie
+@never_cache
 @login_required
 def profile_page(request):
 
@@ -623,7 +629,7 @@ def profile_page(request):
 
     return render(request, "users/profile.html",{"user" : user},)
 
-
+@never_cache
 @login_required
 def edit_profile_page(request):
 
@@ -798,6 +804,7 @@ def add_address(request):
 
     return JsonResponse({"message" : "Address added successfully", "address_id" : address.id,}, status=201)
 
+@never_cache
 @login_required
 def address_page(request):
     #Show all addresses

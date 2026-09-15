@@ -251,6 +251,12 @@
           loginError.textContent = "Unable to connect. Please try again.";
         }
       });
+      // Reload the page if the browser restores it from Back/Forward cache
+      window.addEventListener("pageshow", function (event) {
+          if (event.persisted) {
+              window.location.reload();
+          }
+      });
     </script>
   </body>
 </html>
