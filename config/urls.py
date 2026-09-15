@@ -16,8 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from adminpanel.views import admin_login_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include("users.urls")),
+
+    path("admin-login/", admin_login_page, name="admin_login_page"),
+    path("adminpanel/", include("adminpanel.urls")),
 ]
+# Serve uploaded media files during development
+urlpatterns += static(
+    settings.MEDIA_URL,
+    document_root=settings.MEDIA_ROOT
+)

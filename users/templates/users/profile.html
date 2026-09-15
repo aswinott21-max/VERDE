@@ -1,0 +1,1237 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | My Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+      .profile-page {
+        background: var(--color-bg-subtle);
+        color: #151a17;
+      }
+
+      .header-actions .action-btn:disabled {
+        color: var(--color-text-main);
+        opacity: 1;
+      }
+
+      .profile-main {
+        width: min(100% - 56px, 1240px);
+        margin: 48px auto 72px;
+      }
+
+      .profile-heading {
+        margin-bottom: 18px;
+      }
+
+      .profile-tabs {
+        width: min(100%, 1200px);
+        margin: 0 auto 18px;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid #dfe5df;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .profile-tab {
+        min-height: 62px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid #dfe5df;
+        border-radius: 10px;
+        background: #eceae7;
+        color: #2b312d;
+        font-size: 11px;
+        font-weight: 500;
+        text-align: center;
+        transition:
+          border-color var(--transition-fast),
+          box-shadow var(--transition-fast),
+          color var(--transition-fast),
+          transform var(--transition-fast),
+          background-color var(--transition-fast);
+      }
+
+      .profile-tab:hover {
+        border-color: #c6d2c8;
+        color: #1d3127;
+        background: #f2f6f2;
+        transform: translateY(-1px);
+      }
+
+      .profile-tab svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 1.7;
+      }
+
+      .profile-tab.active {
+        color: #1d2c24;
+        border-color: #dfe6df;
+        background: #dfeee6;
+        box-shadow: inset 0 0 0 1px rgba(25, 40, 30, 0.04);
+      }
+
+      .profile-card {
+        width: min(100%, 900px);
+        margin: 0 auto;
+        padding: 0;
+        border: 1px solid #e2e8e3;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 7px 24px rgba(22, 28, 24, 0.04);
+        overflow: hidden;
+      }
+
+      .profile-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 26px 32px 20px;
+        border-bottom: 1px solid #eaecea;
+        background: #fff;
+      }
+
+      .profile-title {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: 34px;
+        font-weight: 600;
+        line-height: 1.2;
+        color: #1b1b1b;
+      }
+
+      .profile-title-row p {
+        margin: 0;
+        color: #7d7d7d;
+        font-size: 12px;
+        padding-right: 8px;
+      }
+
+      .profile-section {
+        padding: 22px 28px 18px;
+        background: #fff;
+      }
+
+      .profile-section + .profile-section {
+        border-top: 1px solid #eaecea;
+      }
+
+      .profile-section-title {
+        margin: 0 0 18px;
+        color: #1b1b1b;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .profile-details {
+        display: grid;
+        grid-template-columns: 88px minmax(0, 1.4fr);
+        gap: 22px;
+        align-items: start;
+      }
+
+      .profile-avatar-wrap {
+        display: flex;
+        justify-content: center;
+        padding-top: 8px;
+      }
+
+      .profile-avatar {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        border: 1px solid #dfe7e1;
+        border-radius: 50%;
+        background: #e4ece6;
+        color: #7b8a80;
+        overflow: hidden;
+      }
+
+      .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+      }
+
+      .profile-avatar svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 1.2;
+      }
+
+      .profile-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px 24px;
+      }
+
+      .profile-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .profile-field label {
+        color: #7f847f;
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      .profile-field p {
+        margin: 0;
+        color: #1d1d1d;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.45;
+      }
+
+      .profile-field.email-field {
+        align-self: center;
+        padding-left: 6px;
+      }
+
+      .profile-field input {
+        width: 100%;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        outline: 0;
+        color: #313b34;
+        background: #fbfcfb;
+        font: 400 12px var(--font-sans);
+      }
+
+      .profile-field input:focus {
+        border-color: #73917a;
+        box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+      }
+
+      .profile-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .profile-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 18px;
+        border: 1px solid #1f2623;
+        border-radius: 999px;
+        color: #1f2623;
+        background: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        transition:
+          background-color var(--transition-fast),
+          border-color var(--transition-fast),
+          transform var(--transition-fast);
+      }
+
+      .profile-button:hover {
+        border-color: #1f2623;
+        transform: translateY(-1px);
+      }
+
+      .profile-button.primary {
+        border-color: #1f2623;
+        color: #fff;
+        background: #1f2623;
+      }
+
+      .profile-button.primary:hover {
+        background: #2b3b35;
+      }
+
+      .security-copy {
+        margin: 0 0 14px;
+        color: #6f7a74;
+        font-size: 12px;
+      }
+
+      .security-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 18px;
+        width: min(100%, 560px);
+      }
+
+      .security-row .profile-field {
+        width: 100%;
+      }
+
+      .security-row .profile-button {
+        margin-bottom: 0;
+      }
+
+      #password-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(10, 23, 15, 0.58);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-fast);
+      }
+
+      #password-modal-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .password-modal {
+        position: relative;
+        width: min(100%, 470px);
+        padding: 34px;
+        border: 1px solid #dce6de;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 20px 60px rgba(10, 23, 15, 0.2);
+      }
+
+      .password-modal-close {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 0;
+        color: #6f7a74;
+        background: transparent;
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .password-modal h2 {
+        margin: 0 32px 10px 0;
+        color: #1d3127;
+        font: 600 28px/1.2 var(--font-serif);
+      }
+
+      .password-modal p {
+        color: #6f7a74;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .password-modal .password-field {
+        display: block;
+        margin-top: 18px;
+        color: #59665d;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .password-modal input {
+        width: 100%;
+        height: 42px;
+        margin-top: 8px;
+        padding: 0 13px;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        outline: 0;
+        color: #313b34;
+        background: #fbfcfb;
+        font: 400 13px var(--font-sans);
+      }
+
+      .password-modal input:focus {
+        border-color: #73917a;
+        box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+      }
+
+      .password-input-wrap {
+        position: relative;
+        display: block;
+        margin-top: 8px;
+      }
+
+      .password-input-wrap input {
+        display: block;
+        margin-top: 0;
+        padding-right: 62px;
+      }
+
+      .password-visibility-toggle {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        min-height: 26px;
+        margin: 0;
+        padding: 0 7px;
+        border: 0;
+        border-radius: 6px;
+        color: #52665a;
+        background: transparent;
+        font: 600 10px var(--font-sans);
+        cursor: pointer;
+        transform: translateY(-50%);
+      }
+
+      .password-visibility-toggle:hover {
+        background: #edf3ee;
+      }
+
+      .password-modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .password-modal-actions .profile-button {
+        flex: 1;
+      }
+
+      .password-modal-message {
+        min-height: 18px;
+        margin: 12px 0 0;
+        font-size: 11px;
+      }
+
+      .password-modal-message.error {
+        color: #a33f3f;
+      }
+
+      .password-modal-message.success {
+        color: #39714b;
+      }
+
+      #password-otp-timer {
+        margin: 10px 0 0;
+        color: #6f7a74;
+        font-size: 12px;
+      }
+
+      .password-modal button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 700px) {
+        .password-modal {
+          padding: 28px 22px 24px;
+        }
+
+        .password-modal h2 {
+          font-size: 24px;
+        }
+      }
+
+      .profile-footer {
+        display: none;
+      }
+
+        .profile-main {
+          width: min(100% - 32px, 900px);
+          margin: 32px auto 44px;
+        }
+
+        .profile-tabs {
+          grid-template-columns: repeat(7, 1fr);
+        }
+
+        .profile-tab {
+          min-height: 44px;
+          gap: 3px;
+          font-size: 7px;
+        }
+
+        .profile-tab svg {
+          width: 12px;
+          height: 12px;
+        }
+
+        .profile-title-row {
+          padding: 24px 0 22px;
+        }
+
+        .profile-title {
+          font-size: 21px;
+        }
+
+        .profile-title-row p {
+          font-size: 9px;
+        }
+
+        .profile-section {
+          padding: 26px 18px 30px;
+        }
+
+        .profile-section-title {
+          margin-bottom: 20px;
+          font-size: 11px;
+        }
+
+        .profile-details {
+          grid-template-columns: 64px 1fr;
+          gap: 20px;
+        }
+
+        .profile-avatar {
+          width: 52px;
+          height: 52px;
+          margin-bottom: 6px;
+        }
+
+        .profile-avatar svg {
+          width: 26px;
+          height: 26px;
+        }
+
+        .profile-avatar-wrap p {
+          font-size: 8px;
+        }
+
+        .profile-fields,
+        .security-row {
+          gap: 16px 20px;
+        }
+
+        .profile-field {
+          gap: 4px;
+        }
+
+        .profile-field label {
+          font-size: 9px;
+        }
+
+        .profile-field input {
+          height: 30px;
+          font-size: 10px;
+        }
+
+        .email-control {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .change-email-button {
+          align-self: flex-start;
+          min-height: 32px;
+          font-size: 9px;
+        }
+
+        .email-otp-note {
+          font-size: 8px;
+        }
+
+        .phone-input-row {
+          grid-template-columns: 104px minmax(0, 1fr);
+          gap: 10px;
+        }
+
+        .phone-input-row select {
+          height: 30px;
+          font-size: 10px;
+        }
+
+        .profile-field small {
+          font-size: 8px;
+        }
+
+        .security-row .profile-field {
+          width: 100%;
+        }
+
+        .security-row .profile-button {
+          justify-self: end;
+        }
+
+        .profile-actions {
+          gap: 8px;
+          margin-top: 18px;
+        }
+
+        .profile-button {
+          min-width: 76px;
+          min-height: 32px;
+          padding: 7px 10px;
+          font-size: 9px;
+        }
+
+        .security-copy {
+          margin-bottom: 16px;
+          font-size: 9px;
+        }
+
+        .security-row {
+          display: flex;
+          gap: 16px;
+        }
+
+        .security-row .profile-field {
+          width: 220px;
+        }
+
+        .profile-footer .footer-container {
+          padding: 40px 14px;
+          gap: 24px;
+        }
+
+        .profile-footer .footer-logo {
+          font-size: 20px;
+        }
+
+        .profile-footer .footer-tagline,
+        .profile-footer .footer-link,
+        .profile-footer .footer-heading {
+          font-size: 8px;
+        }
+      </style>
+  </head>
+  <body class="profile-page">
+    <header class="site-header profile-header" role="banner">
+      <div class="header-container">
+        <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+          <svg
+            class="logo-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2"
+            />
+          </svg>
+          <span class="logo-text">VERDÉ</span>
+        </a>
+        <nav class="main-nav" aria-label="Primary Navigation">
+          <ul class="nav-list">
+            <li><a href="/" class="nav-link">Home</a></li>
+            <li><a href="#shop" class="nav-link">Shop</a></li>
+            <li><a href="#offers" class="nav-link">Offers</a></li>
+            <li><a href="#about" class="nav-link">About</a></li>
+          </ul>
+        </nav>
+        <div class="header-actions">
+          <button class="action-btn" aria-label="Search">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+
+          <button class="action-btn" aria-label="Wishlist">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              ></path>
+            </svg>
+            <span class="badge-count">3</span>
+          </button>
+
+          <button
+            class="action-btn"
+            type="button"
+            aria-label="Cart"
+            title="Cart"
+            disabled
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path
+                d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
+              ></path>
+            </svg>
+          </button>
+
+        </div>
+      </div>
+    </header>
+
+    <main class="profile-main">
+      <nav class="profile-tabs" aria-label="Account navigation">
+        <a class="profile-tab active" href="/profile/"
+          ><svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+          >
+            <circle cx="12" cy="8" r="3" />
+            <path d="M5 21a7 7 0 0 1 14 0" /></svg
+          >Profile</a
+        >
+        <a class="profile-tab" href="#orders"
+          ><svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+          >
+            <path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h4" /></svg
+          >Orders</a
+        >
+        <a class="profile-tab" href="#coupons"
+          ><svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+          >
+            <path d="M4 7h16M6 4h12v16H6zM9 11h6M9 15h4" /></svg
+          >Coupons</a
+        >
+        <a class="profile-tab" href="#wallet"
+          ><svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+          >
+            <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M15 13h3" /></svg
+          >Wallet</a
+        >
+        <a class="profile-tab" href="#referrals"
+          ><svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+          >
+            <circle cx="9" cy="8" r="3" />
+            <circle cx="17" cy="9" r="2.5" />
+            <path d="M3 20a6 6 0 0 1 12 0M15 15a5 5 0 0 1 6 5" /></svg
+          >Referrals</a
+        >
+        <a class="profile-tab" href="/profile/addresses/"
+          ><svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+          >
+            <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" />
+            <circle cx="12" cy="9" r="2.5" /></svg
+          >Addresses</a
+        >
+        <button class="profile-tab profile-logout" type="button">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+          >
+            <path d="M10 17l5-5-5-5M15 12H3M21 3v18" /></svg
+          >Logout
+        </button>
+      </nav>
+
+      <div class="profile-card">
+        <div class="profile-title-row">
+          <h1 class="profile-title">My Profile</h1>
+          <p>Manage your personal information and account preferences</p>
+        </div>
+
+        <section class="profile-section" aria-labelledby="personal-information-title">
+          <h2 class="profile-section-title" id="personal-information-title">
+            Personal Information
+          </h2>
+
+          <div class="profile-details">
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar" aria-hidden="true">
+                {% if user.profile_picture %}
+                  <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" />
+                {% else %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="8" r="3" />
+                    <path d="M5 21a7 7 0 0 1 14 0" />
+                  </svg>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="profile-fields">
+              <div class="profile-field">
+                <label>Full Name</label>
+                <p>{{ user.full_name }}</p>
+              </div>
+
+              <div class="profile-field">
+                <label>Phone Number</label>
+                <p>{{ user.phone|default:"Not added" }}</p>
+              </div>
+
+              <div class="profile-field email-field">
+                <label>Email Address</label>
+                <p>{{ user.email }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-actions">
+            <a href="/profile/edit/" class="profile-button primary">
+              Edit Profile
+            </a>
+          </div>
+        </section>
+
+        <section class="profile-section" aria-labelledby="security-title">
+          <h2 class="profile-section-title" id="security-title">Security</h2>
+          <p class="security-copy">
+            Update your account password to keep your profile secure.
+          </p>
+          <div class="security-row">
+            <div class="profile-field">
+              <label for="current-password">Current Password</label>
+              <input
+                id="current-password"
+                type="password"
+                value="••••••••"
+                readonly
+              />
+            </div>
+            <button
+              id="change-password-button"
+              class="profile-button primary"
+              type="button"
+            >
+              Update Password
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div id="password-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="password-modal-title" aria-hidden="true">
+      <div class="password-modal">
+        <button id="close-password-modal" class="password-modal-close" type="button" aria-label="Close change password dialog">&times;</button>
+
+        <div id="password-otp-step">
+          <h2 id="password-modal-title">Change Password</h2>
+          <p>We will send a one-time password to your registered email address to verify your identity.</p>
+          <div class="password-modal-actions">
+            <button id="send-password-otp" class="profile-button primary" type="button">Send OTP</button>
+          </div>
+          <p id="password-otp-message" class="password-modal-message" role="status"></p>
+        </div>
+
+        <div id="password-verify-step" hidden>
+          <h2>Verify OTP</h2>
+          <p>Enter the 6-digit OTP sent to your registered email address.</p>
+          <label class="password-field" for="password-otp">One-time password
+            <input id="password-otp" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" />
+            <span class="field-error" id="passwordOtpError" role="alert" aria-live="polite"></span>
+          </label>
+          <p id="password-otp-timer" role="timer">OTP expires in 01:00</p>
+          <div class="password-modal-actions">
+            <button id="verify-password-otp" class="profile-button primary" type="button">Verify OTP</button>
+            <button id="resend-password-otp" class="profile-button" type="button" disabled>Resend OTP</button>
+          </div>
+          <p id="password-verify-message" class="password-modal-message" role="alert"></p>
+        </div>
+
+        <div id="password-new-step" hidden>
+          <h2>Set New Password</h2>
+          <p>Choose a new password for your VERDÉ account.</p>
+          <label class="password-field" for="new-password">New Password
+            <span class="password-input-wrap">
+              <input id="new-password" type="password" autocomplete="new-password" />
+              <button class="password-visibility-toggle" type="button" data-password-target="new-password" aria-label="Show new password">Show</button>
+            </span>
+            <span class="field-error" id="newPasswordError" role="alert" aria-live="polite"></span>
+          </label>
+          <label class="password-field" for="confirm-password">Confirm Password
+            <span class="password-input-wrap">
+              <input id="confirm-password" type="password" autocomplete="new-password" />
+              <button class="password-visibility-toggle" type="button" data-password-target="confirm-password" aria-label="Show confirmed password">Show</button>
+            </span>
+            <span class="field-error" id="confirmPasswordError" role="alert" aria-live="polite"></span>
+          </label>
+          <div class="password-modal-actions">
+            <button id="save-new-password" class="profile-button primary" type="button">Save Password</button>
+          </div>
+          <p id="password-save-message" class="password-modal-message" role="alert"></p>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    <footer class="site-footer profile-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <div class="footer-logo">VERDÉ</div>
+          <p class="footer-tagline">
+            &copy; 2024 VERDÉ. Curating botanical elegance for<br />your
+            domestic spaces.
+          </p>
+        </div>
+        <div class="footer-nav-groups">
+          <div class="footer-group">
+            <strong class="footer-heading">Shop</strong
+            ><a class="footer-link" href="#">Indoor</a
+            ><a class="footer-link" href="#">Outdoor</a
+            ><a class="footer-link" href="#">Accessories</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Help</strong
+            ><a class="footer-link" href="#">Contact</a
+            ><a class="footer-link" href="#">FAQ</a
+            ><a class="footer-link" href="#">Shipping</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Follow</strong
+            ><a class="footer-link" href="https://instagram.com">Instagram</a
+            ><a class="footer-link" href="https://pinterest.com">Pinterest</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script>
+      document.querySelectorAll(".profile-logout").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const response = await fetch("/logout/", { method: "POST" });
+          if (response.ok) window.location.href = "/login-page/";
+        });
+      });
+
+      const changePasswordButton = document.getElementById("change-password-button");
+      const passwordModalBackdrop = document.getElementById("password-modal-backdrop");
+      const closePasswordModal = document.getElementById("close-password-modal");
+      const passwordOtpStep = document.getElementById("password-otp-step");
+      const passwordVerifyStep = document.getElementById("password-verify-step");
+      const passwordNewStep = document.getElementById("password-new-step");
+      const sendPasswordOtp = document.getElementById("send-password-otp");
+      const passwordOtp = document.getElementById("password-otp");
+      const passwordOtpError = document.getElementById("passwordOtpError");
+      const passwordOtpTimer = document.getElementById("password-otp-timer");
+      const verifyPasswordOtp = document.getElementById("verify-password-otp");
+      const resendPasswordOtp = document.getElementById("resend-password-otp");
+      const newPassword = document.getElementById("new-password");
+      const confirmPassword = document.getElementById("confirm-password");
+      const newPasswordError = document.getElementById("newPasswordError");
+      const confirmPasswordError = document.getElementById("confirmPasswordError");
+      const saveNewPassword = document.getElementById("save-new-password");
+      const passwordVisibilityToggles = document.querySelectorAll(".password-visibility-toggle");
+      const messages = {
+        otp: document.getElementById("password-otp-message"),
+        verify: document.getElementById("password-verify-message"),
+        save: document.getElementById("password-save-message"),
+      };
+      let countdownInterval;
+
+      function clearModalFieldErrors() {
+        if (passwordOtpError) passwordOtpError.textContent = "";
+        if (newPasswordError) newPasswordError.textContent = "";
+        if (confirmPasswordError) confirmPasswordError.textContent = "";
+        if (passwordOtp) passwordOtp.classList.remove("is-invalid");
+        if (newPassword) newPassword.classList.remove("is-invalid");
+        if (confirmPassword) confirmPassword.classList.remove("is-invalid");
+      }
+
+      if (passwordOtp) {
+        passwordOtp.addEventListener("input", () => {
+          if (passwordOtpError) passwordOtpError.textContent = "";
+          passwordOtp.classList.remove("is-invalid");
+          if (messages.verify) messages.verify.textContent = "";
+        });
+      }
+
+      if (newPassword) {
+        newPassword.addEventListener("input", () => {
+          if (newPasswordError) newPasswordError.textContent = "";
+          newPassword.classList.remove("is-invalid");
+          if (messages.save) messages.save.textContent = "";
+        });
+      }
+
+      if (confirmPassword) {
+        confirmPassword.addEventListener("input", () => {
+          if (confirmPasswordError) confirmPasswordError.textContent = "";
+          confirmPassword.classList.remove("is-invalid");
+          if (messages.save) messages.save.textContent = "";
+        });
+      }
+
+      const showMessage = (element, message, type = "error") => {
+        element.textContent = message;
+        element.className = `password-modal-message ${type}`;
+      };
+
+      const resetModal = () => {
+        clearInterval(countdownInterval);
+        passwordOtpStep.hidden = false;
+        passwordVerifyStep.hidden = true;
+        passwordNewStep.hidden = true;
+        passwordOtp.value = "";
+        newPassword.value = "";
+        confirmPassword.value = "";
+        clearModalFieldErrors();
+        passwordVisibilityToggles.forEach((toggle) => {
+          const passwordInput = document.getElementById(toggle.dataset.passwordTarget);
+          passwordInput.type = "password";
+          toggle.textContent = "Show";
+          toggle.setAttribute("aria-label", `Show ${passwordInput.id === "new-password" ? "new" : "confirmed"} password`);
+        });
+        resendPasswordOtp.disabled = true;
+        Object.values(messages).forEach((message) => {
+          message.textContent = "";
+          message.className = "password-modal-message";
+        });
+      };
+
+      passwordVisibilityToggles.forEach((toggle) => {
+        toggle.addEventListener("click", () => {
+          const passwordInput = document.getElementById(toggle.dataset.passwordTarget);
+          const isVisible = passwordInput.type === "text";
+          passwordInput.type = isVisible ? "password" : "text";
+          toggle.textContent = isVisible ? "Show" : "Hide";
+          toggle.setAttribute(
+            "aria-label",
+            `${isVisible ? "Show" : "Hide"} ${passwordInput.id === "new-password" ? "new" : "confirmed"} password`,
+          );
+        });
+      });
+
+      const closeModal = () => {
+        passwordModalBackdrop.classList.remove("is-open");
+        passwordModalBackdrop.setAttribute("aria-hidden", "true");
+        resetModal();
+      };
+
+      const startOtpTimer = () => {
+        let remainingSeconds = 60;
+        resendPasswordOtp.disabled = true;
+        clearInterval(countdownInterval);
+        const updateTimer = () => {
+          const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, "0");
+          const seconds = String(remainingSeconds % 60).padStart(2, "0");
+          passwordOtpTimer.textContent = remainingSeconds
+            ? `OTP expires in ${minutes}:${seconds}`
+            : "OTP expired. You can request a new OTP.";
+          if (remainingSeconds <= 0) {
+            clearInterval(countdownInterval);
+            resendPasswordOtp.disabled = false;
+          }
+          remainingSeconds -= 1;
+        };
+        updateTimer();
+        countdownInterval = setInterval(updateTimer, 1000);
+      };
+
+      function getCookie(name) {
+        const cookies = document.cookie.split(";");
+        for (const cookie of cookies) {
+          const [key, value] = cookie.trim().split("=");
+          if (key === name) {
+            return decodeURIComponent(value);
+          }
+        }
+        return null;
+      }
+
+      const requestOtp = async () => {
+        sendPasswordOtp.disabled = true;
+        resendPasswordOtp.disabled = true;
+        clearModalFieldErrors();
+
+        try {
+          const response = await fetch("/profile/change-password/send-otp/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+          });
+
+          const responseText = await response.text();
+          const data = JSON.parse(responseText);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to send OTP.");
+          }
+
+          passwordOtpStep.hidden = true;
+          passwordVerifyStep.hidden = false;
+
+          showMessage(
+            messages.verify,
+            data.message || "OTP sent successfully.",
+            "success"
+          );
+
+          startOtpTimer();
+          passwordOtp.focus();
+
+        } catch (error) {
+          showMessage(messages.otp, error.message);
+          sendPasswordOtp.disabled = false;
+          resendPasswordOtp.disabled = false;
+        }
+      };
+
+      changePasswordButton.addEventListener("click", () => {
+        resetModal();
+        passwordModalBackdrop.classList.add("is-open");
+        passwordModalBackdrop.setAttribute("aria-hidden", "false");
+        sendPasswordOtp.focus();
+      });
+      closePasswordModal.addEventListener("click", closeModal);
+      passwordModalBackdrop.addEventListener("click", (event) => {
+        if (event.target === passwordModalBackdrop) closeModal();
+      });
+      sendPasswordOtp.addEventListener("click", requestOtp);
+
+      verifyPasswordOtp.addEventListener("click", async () => {
+        clearModalFieldErrors();
+        if (messages.verify) messages.verify.textContent = "";
+
+        const otpVal = passwordOtp.value.trim();
+        if (!/^\d{6}$/.test(otpVal)) {
+          if (passwordOtpError) passwordOtpError.textContent = "Enter a valid 6-digit OTP.";
+          passwordOtp.classList.add("is-invalid");
+          passwordOtp.focus();
+          return;
+        }
+        verifyPasswordOtp.disabled = true;
+        try {
+          const response = await fetch("/profile/change-password/verify-otp/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+            body: JSON.stringify({ otp: otpVal }),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            const err = data.error || "Unable to verify OTP.";
+            if (passwordOtpError) passwordOtpError.textContent = err;
+            passwordOtp.classList.add("is-invalid");
+            passwordOtp.focus();
+            return;
+          }
+          clearInterval(countdownInterval);
+          passwordVerifyStep.hidden = true;
+          passwordNewStep.hidden = false;
+          showMessage(messages.save, "OTP verified. Set your new password.", "success");
+          newPassword.focus();
+        } catch (error) {
+          if (passwordOtpError) passwordOtpError.textContent = error.message;
+        } finally {
+          verifyPasswordOtp.disabled = false;
+        }
+      });
+
+      resendPasswordOtp.addEventListener("click", requestOtp);
+
+      saveNewPassword.addEventListener("click", async () => {
+        clearModalFieldErrors();
+        if (messages.save) messages.save.textContent = "";
+
+        const newPassVal = newPassword.value;
+        const confirmPassVal = confirmPassword.value;
+
+        if (!newPassVal || !confirmPassVal) {
+          if (!newPassVal) {
+            if (newPasswordError) newPasswordError.textContent = "New password is required.";
+            newPassword.classList.add("is-invalid");
+          }
+          if (!confirmPassVal) {
+            if (confirmPasswordError) confirmPasswordError.textContent = "Please confirm your password.";
+            confirmPassword.classList.add("is-invalid");
+          }
+          return;
+        }
+        if (newPassVal !== confirmPassVal) {
+          if (confirmPasswordError) confirmPasswordError.textContent = "Passwords do not match.";
+          confirmPassword.classList.add("is-invalid");
+          confirmPassword.focus();
+          return;
+        }
+        saveNewPassword.disabled = true;
+        try {
+          const response = await fetch("/profile/change-password/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+            body: JSON.stringify({
+              password: newPassVal,
+              confirm_password: confirmPassVal,
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            const err = data.error || "Unable to change password.";
+            const lowerErr = err.toLowerCase();
+            if (lowerErr.includes("passwords do not match") || lowerErr.includes("password do not match")) {
+              if (confirmPasswordError) confirmPasswordError.textContent = err;
+              confirmPassword.classList.add("is-invalid");
+              confirmPassword.focus();
+            } else if (lowerErr.includes("password must contain")) {
+              if (newPasswordError) newPasswordError.textContent = err;
+              newPassword.classList.add("is-invalid");
+              newPassword.focus();
+            } else {
+              showMessage(messages.save, err);
+            }
+            return;
+          }
+          showMessage(messages.save, "Password changed successfully", "success");
+          setTimeout(closeModal, 1200);
+        } catch (error) {
+          showMessage(messages.save, error.message);
+        } finally {
+          saveNewPassword.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

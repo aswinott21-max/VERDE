@@ -1,170 +1,261 @@
-<!DOCTYPE html>
+{% load static %}
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERDÉ - Verify OTP</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | Verify Email</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+      .verify-submit:disabled {
+        background: #e2e8e4;
+        color: #8c9e92;
+        cursor: not-allowed;
+        opacity: 0.65;
+        box-shadow: none;
+        pointer-events: none;
+      }
+      .verify-create {
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body class="verify-page">
+    <header class="verify-header">
+      <a href="/" class="verify-brand" aria-label="VERDÉ home">
+        <span class="verify-brand-mark">✣</span><span>VERDÉ</span>
+      </a>
+    </header>
 
-    <h1>Verify Your Email</h1>
+    <main class="verify-main">
+      <section class="verify-card" aria-labelledby="verify-title">
+        <div class="verify-icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 21V10"></path>
+            <path d="M12 14c-3.5-1.2-5-3.8-4.4-6.5 3 .1 5 1.8 4.4 6.5Z"></path>
+            <path d="M12 17c3.5-1.2 5-3.8 4.4-6.5-3 .1-5 1.8-4.4 6.5Z"></path>
+          </svg>
+        </div>
+        <h1 id="verify-title">Verify Your Email</h1>
+        <p class="verify-description">
+          Enter the six-digit code we sent to your email to verify your account
+          and continue.
+        </p>
 
-    <p>Enter the OTP sent to your email.</p>
+        <form class="verify-form" id="otpForm">
+          <div class="verify-field">
+            <label for="otp">Verification Code</label>
+            <input
+              type="tel"
+              id="otp"
+              name="otp"
+              inputmode="numeric"
+              maxlength="6"
+              placeholder="000000"
+              autocomplete="one-time-code"
+              aria-label="Six-digit verification code"
+            />
+            <span class="field-error" id="otpError" role="alert" aria-live="polite"></span>
+          </div>
+          <p class="verify-timer" id="timer" role="status">
+            Code expires in 01:00
+          </p>
+          <p
+            class="verify-status"
+            id="verifyStatus"
+            role="alert"
+            aria-live="polite"
+          ></p>
+          <button class="verify-submit" id="verifySubmitBtn" type="submit">
+            Verify OTP <span aria-hidden="true">→</span>
+          </button>
+        </form>
 
-    <form id="otpForm">
-
-        <label for="otp">OTP</label>
-        <input
-            type="text"
-            id="otp"
-            name="otp"
-            maxlength="6"
-            required
+        <button
+          class="verify-create"
+          id="createAccountBtn"
+          type="button"
+          hidden
         >
+          Create Account
+        </button>
+        <button class="verify-resend" id="resendBtn" type="button" disabled>
+          Resend OTP
+        </button>
+        <a class="verify-back" href="/signup-page/">← &nbsp;Back to Sign Up</a>
+      </section>
+    </main>
 
-        <br><br>
-
-        <button type="submit">Verify OTP</button>
-
-    </form>
-
-    <br>
-
-    <button id="createAccountBtn" style="display: none;">
-        Create Account
-    </button>
-
-    <p>OTP expires in: <span id="timer">05:00</span></p>
-
-    <button id="resendBtn" disabled>Resend OTP</button>
-
+    <footer class="verify-footer">
+      © 2024 VERDÉ Botanical. All rights reserved.
+    </footer>
 
     <script>
+      const otpForm = document.getElementById("otpForm");
+      const otpInput = document.getElementById("otp");
+      const otpError = document.getElementById("otpError");
+      const timer = document.getElementById("timer");
+      const verifySubmitBtn = document.getElementById("verifySubmitBtn");
+      const resendButton = document.getElementById("resendBtn");
+      const createAccountButton = document.getElementById("createAccountBtn");
+      const verifyStatus = document.getElementById("verifyStatus");
+      let timeLeft = 60;
+      let countdown;
 
-        // =========================
-        // OTP VERIFICATION
-        // =========================
+      function clearOtpError() {
+        if (otpError) otpError.textContent = "";
+        if (otpInput) otpInput.classList.remove("is-invalid");
+      }
 
-        document.getElementById("otpForm").addEventListener("submit", async function(event) {
+      function setOtpError(msg) {
+        if (otpError) otpError.textContent = msg;
+        if (otpInput) otpInput.classList.add("is-invalid");
+      }
 
-            event.preventDefault();
+      otpInput.addEventListener("input", function () {
+        otpInput.value = otpInput.value.replace(/\D/g, "").slice(0, 6);
+        clearOtpError();
+        if (verifyStatus && verifyStatus.classList.contains("error")) {
+          verifyStatus.textContent = "";
+          verifyStatus.className = "verify-status";
+        }
+      });
 
-            const otp = document.getElementById("otp").value;
+      function startTimer() {
+        clearInterval(countdown);
+        timeLeft = 60;
+        resendButton.disabled = true;
+        resendButton.hidden = false;
+        timer.style.display = "";
+        timer.classList.remove("expired");
+        verifySubmitBtn.disabled = false;
+        otpInput.disabled = false;
+        createAccountButton.hidden = true;
+        clearOtpError();
 
-            const response = await fetch("/verify-otp/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    otp: otp
-                })
-            });
+        countdown = setInterval(() => {
+          const minutes = Math.floor(timeLeft / 60);
+          const seconds = String(timeLeft % 60).padStart(2, "0");
+          timer.textContent = `Code expires in ${minutes}:${seconds}`;
+          timeLeft -= 1;
 
-            const result = await response.json();
-
-            alert(result.message || result.error);
-
-            if (response.ok) {
-                document.getElementById("createAccountBtn").style.display = "inline-block";
-            }
-        });
-
-
-      
-        // OTP TIMER
-        
-
-        let timeLeft = 5 * 60;
-
-        const timer = document.getElementById("timer");
-        const resendBtn = document.getElementById("resendBtn");
-
-        let countdown;
-
-        function startTimer() {
-
+          if (timeLeft < 0) {
             clearInterval(countdown);
+            timer.textContent = "This code has expired.";
+            timer.classList.add("expired");
+            resendButton.disabled = false;
+          }
+        }, 1000);
+      }
 
-            timeLeft = 5 * 60;
+      otpForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        clearOtpError();
+        verifyStatus.textContent = "";
+        verifyStatus.className = "verify-status";
+        const otp = otpInput.value.trim();
 
-            resendBtn.disabled = true;
-
-            countdown = setInterval(() => {
-
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-
-                timer.textContent =
-                    String(minutes).padStart(2, "0") + ":" +
-                    String(seconds).padStart(2, "0");
-
-                if (timeLeft <= 0) {
-
-                    clearInterval(countdown);
-
-                    timer.textContent = "00:00";
-
-                    resendBtn.disabled = false;
-                }
-
-                timeLeft--;
-
-            }, 1000);
+        if (otp.length !== 6) {
+          setOtpError("Enter all six digits of your verification code.");
+          otpInput.focus();
+          return;
         }
 
-        startTimer();
+        try {
+          const response = await fetch("/verify-otp/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ otp: otp }),
+          });
+          const result = await response.json();
 
+          if (response.ok) {
+            verifyStatus.textContent =
+              result.message || "Email verified successfully.";
+            verifyStatus.className = "verify-status success";
 
-       
-        // RESEND OTP
+            // 1. Remove/hide timer
+            clearInterval(countdown);
+            timer.style.display = "none";
 
+            // 2. Disable verify button and input
+            verifySubmitBtn.disabled = true;
+            otpInput.disabled = true;
 
-        resendBtn.addEventListener("click", async function() {
+            // 3. Highlight only Create Account button
+            createAccountButton.hidden = false;
+            resendButton.hidden = true;
+          } else {
+            setOtpError(result.error || "Unable to verify code.");
+            otpInput.focus();
+          }
+        } catch (error) {
+          setOtpError("Unable to connect. Please try again.");
+        }
+      });
 
-            const response = await fetch("/resend-otp/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({})
-            });
+      resendButton.addEventListener("click", async function () {
+        clearOtpError();
+        verifyStatus.textContent = "";
+        try {
+          const response = await fetch("/resend-otp/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
+          });
+          const result = await response.json();
+          if (response.ok) {
+            verifyStatus.textContent =
+              result.message || "New OTP generated successfully.";
+            verifyStatus.className = "verify-status success";
+            startTimer();
+          } else {
+            setOtpError(result.error || "Unable to resend code.");
+          }
+        } catch (error) {
+          setOtpError("Unable to connect. Please try again.");
+        }
+      });
 
-            const result = await response.json();
+      createAccountButton.addEventListener("click", async function () {
+        clearOtpError();
+        verifyStatus.textContent = "";
+        try {
+          const response = await fetch("/create-account/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
+          });
+          const result = await response.json();
+          if (response.ok) {
+            verifyStatus.textContent =
+              result.message || "Account created successfully.";
+            verifyStatus.className = "verify-status success";
+            window.location.href = "/login-page/";
+          } else {
+            verifyStatus.textContent =
+              result.error || "Unable to create account.";
+            verifyStatus.className = "verify-status error";
+          }
+        } catch (error) {
+          verifyStatus.textContent = "Unable to connect. Please try again.";
+          verifyStatus.className = "verify-status error";
+        }
+      });
 
-            alert(result.message || result.error);
-
-            if (response.ok) {
-                startTimer();
-            }
-        });
-
-
-// CREATE ACCOUNT
-
-const createAccountBtn = document.getElementById("createAccountBtn");
-
-createAccountBtn.addEventListener("click", async function() {
-
-    const response = await fetch("/create-account/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({})
-    });
-
-    const result = await response.json();
-
-    alert(result.message || result.error);
-
-    // Redirect to login page after successful account creation
-    if (response.ok) {
-        window.location.href = "/login-page/";
-    }
-});
-
+      startTimer();
     </script>
-
-</body>
+  </body>
 </html>

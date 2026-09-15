@@ -1,0 +1,832 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | Admin Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --admin-green: #0b2a1c;
+        --admin-green-dark: #061b12;
+        --admin-ink: #162019;
+        --admin-muted: #778078;
+        --admin-line: #dce2dd;
+        --admin-paper: #fbfaf7;
+        --admin-sans: "Plus Jakarta Sans", Arial, sans-serif;
+        --admin-serif: "Playfair Display", Georgia, serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        color: var(--admin-ink);
+        background: var(--admin-paper);
+        font-family: var(--admin-sans);
+      }
+
+      .admin-shell {
+        display: grid;
+        grid-template-columns: 45% 55%;
+        min-height: 100vh;
+      }
+
+      .admin-visual {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 100vh;
+        padding: clamp(28px, 6vw, 70px) clamp(28px, 6vw, 72px);
+        overflow: hidden;
+        color: #fff;
+        background:
+          linear-gradient(135deg, rgba(10, 43, 29, 0.8), rgba(3, 27, 17, 0.94)),
+          url("{% static 'assets/images/hero-botanical.jpg' %}") center/cover;
+      }
+
+      .admin-visual::after {
+        position: absolute;
+        inset: 0;
+        content: "";
+        opacity: 0.13;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 25% 25%, transparent 0 16%, #b5d0ba 16.2% 16.5%, transparent 16.7%),
+          linear-gradient(90deg, transparent 49%, #b5d0ba 49.2% 49.5%, transparent 49.7%);
+        background-size: 290px 290px, 130px 100%;
+      }
+
+      .admin-brand,
+      .admin-visual-copy,
+      .admin-secure {
+        position: relative;
+        z-index: 1;
+      }
+
+      .admin-brand {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 3px;
+        width: fit-content;
+        color: #fff;
+        text-decoration: none;
+      }
+
+      .admin-brand-name {
+        font: 600 clamp(24px, 2.5vw, 34px)/1 var(--admin-serif);
+        letter-spacing: -0.04em;
+      }
+
+      .admin-brand-subtitle {
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+      }
+
+      .admin-visual-copy {
+        max-width: 260px;
+        margin-top: auto;
+        margin-bottom: 56px;
+      }
+
+      .admin-visual-copy h1 {
+        max-width: 180px;
+        margin: 0 0 18px;
+        font: 500 clamp(25px, 3vw, 38px)/1.12 var(--admin-serif);
+      }
+
+      .admin-visual-copy p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 10px;
+        line-height: 1.65;
+      }
+
+      .admin-secure {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.58);
+        font-size: 8px;
+      }
+
+      .admin-secure svg { width: 12px; height: 12px; }
+
+      .admin-panel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px clamp(28px, 8vw, 130px);
+        background: #f2f5f1;
+      }
+
+      .admin-panel-inner {
+        width: min(100%, 500px);
+        padding: clamp(30px, 4vw, 52px);
+        border: 1px solid #d7e0d9;
+        background: var(--admin-paper);
+        box-shadow: 0 16px 40px rgba(11, 42, 28, 0.08);
+      }
+
+      .admin-kicker {
+        margin: 0 0 12px;
+        color: var(--admin-green);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+      }
+
+      .admin-panel h2 {
+        margin: 0 0 7px;
+        font: 500 clamp(28px, 3vw, 39px)/1.15 var(--admin-serif);
+      }
+
+      .admin-intro {
+        margin: 0 0 42px;
+        color: var(--admin-muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .admin-form { display: grid; gap: 19px; }
+
+      .admin-field { display: grid; gap: 8px; }
+
+      .admin-field label {
+        color: #253128;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      .admin-field input {
+        width: 100%;
+        height: 38px;
+        padding: 0 12px;
+        border: 1px solid var(--admin-line);
+        border-radius: 0;
+        outline: 0;
+        color: var(--admin-ink);
+        background: transparent;
+        font: 400 14px var(--admin-sans);
+      }
+
+      .admin-field input:focus {
+        border-color: var(--admin-green);
+        box-shadow: 0 0 0 2px rgba(11, 42, 28, 0.08);
+      }
+
+      .admin-password-field { position: relative; }
+      .admin-password-field input { padding-right: 38px; }
+
+      .admin-password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 9px;
+        display: grid;
+        place-items: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: 0;
+        color: var(--admin-muted);
+        background: transparent;
+        cursor: pointer;
+        transform: translateY(-50%);
+      }
+
+      .admin-password-toggle svg { width: 13px; height: 13px; }
+
+      .admin-options {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: -5px;
+      }
+
+      .admin-options button {
+        padding: 0;
+        border: 0;
+        color: var(--admin-muted);
+        background: transparent;
+        font: 400 12px var(--admin-sans);
+        cursor: pointer;
+      }
+
+      .admin-submit,
+      .admin-modal-submit {
+        width: 100%;
+        height: 38px;
+        border: 0;
+        color: #fff;
+        background: var(--admin-green);
+        font: 700 12px var(--admin-sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .admin-submit:hover,
+      .admin-modal-submit:hover { background: var(--admin-green-dark); }
+
+      .admin-message {
+        min-height: 16px;
+        margin: -5px 0 0;
+        color: #a32929;
+        font-size: 12px;
+      }
+
+      .admin-message.success { color: #28633d; }
+
+      .admin-modal-message {
+        min-height: 18px;
+        margin: 12px 0 0;
+        font-size: 12px;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .field-error {
+        display: block;
+        font-size: 11px;
+        font-weight: 500;
+        color: #a53c32;
+        margin-top: 4px;
+        min-height: 14px;
+        line-height: 1.3;
+        animation: fieldErrorFadeIn 0.2s ease forwards;
+      }
+
+      .field-error:empty {
+        display: none;
+      }
+
+      @keyframes fieldErrorFadeIn {
+        from { opacity: 0; transform: translateY(-2px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .admin-field input.is-invalid,
+      .admin-password-field input.is-invalid {
+        border-color: #d97770 !important;
+        background-color: #fdfaf9 !important;
+        box-shadow: 0 0 0 2px rgba(165, 60, 50, 0.12) !important;
+      }
+
+      .admin-footer-note {
+        display: flex;
+        justify-content: center;
+        margin-top: 48px;
+        color: var(--admin-muted);
+        font-size: 11px;
+      }
+
+      .admin-footer-note::before {
+        margin-right: 6px;
+        content: "©";
+      }
+
+      .admin-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(5, 24, 15, 0.54);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      .admin-modal-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .admin-modal {
+        position: relative;
+        width: min(100%, 430px);
+        padding: 36px;
+        background: var(--admin-paper);
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.2);
+        transform: translateY(10px);
+        transition: transform 0.2s ease;
+      }
+
+      .admin-modal-backdrop.is-open .admin-modal { transform: translateY(0); }
+
+      .admin-modal-close {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        border: 0;
+        color: var(--admin-muted);
+        background: transparent;
+        font-size: 22px;
+        cursor: pointer;
+      }
+
+      .admin-modal h3 {
+        margin: 0 0 8px;
+        font: 500 30px/1.2 var(--admin-serif);
+      }
+
+      .admin-modal-intro {
+        margin: 0 0 24px;
+        color: var(--admin-muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .admin-modal-step { display: none; }
+      .admin-modal-step.is-active { display: block; }
+      .admin-modal-actions { display: grid; gap: 10px; margin-top: 20px; }
+
+      .admin-modal-secondary {
+        width: 100%;
+        height: 34px;
+        border: 1px solid var(--admin-line);
+        color: var(--admin-muted);
+        background: transparent;
+        font: 700 11px var(--admin-sans);
+        letter-spacing: 0.1em;
+        cursor: pointer;
+      }
+
+      .admin-modal-secondary:hover { border-color: var(--admin-green); color: var(--admin-green); }
+      .admin-modal .admin-field + .admin-field { margin-top: 16px; }
+
+      #resendAdminOtpBtn {
+        color: #a1aaa3;
+        background: #eef1ee;
+        border-color: #dce2dd;
+        cursor: not-allowed;
+      }
+
+      #resendAdminOtpBtn:not(:disabled) {
+        border-color: var(--admin-green);
+        color: #fff;
+        background: var(--admin-green);
+        box-shadow: 0 5px 14px rgba(11, 42, 28, 0.18);
+        cursor: pointer;
+      }
+
+      #resendAdminOtpBtn:not(:disabled):hover,
+      #resendAdminOtpBtn:not(:disabled):focus-visible {
+        border-color: var(--admin-green-dark);
+        background: var(--admin-green-dark);
+      }
+
+      .admin-otp-timer {
+        margin: 0;
+        color: var(--admin-muted);
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .admin-otp-feedback {
+        display: grid;
+        gap: 6px;
+        min-height: 48px;
+        margin-top: 12px;
+        align-content: start;
+      }
+
+      .admin-otp-status {
+        min-height: 18px;
+        margin: 0;
+        color: #28633d;
+        font-size: 12px;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      @media (max-width: 780px) {
+        .admin-shell { grid-template-columns: 1fr; }
+        .admin-visual { min-height: 270px; padding: 30px; }
+        .admin-visual-copy { margin: 50px 0 0; }
+        .admin-visual-copy h1 { margin-bottom: 10px; }
+        .admin-secure { display: none; }
+        .admin-panel { min-height: calc(100vh - 270px); padding: 44px 24px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="admin-shell">
+      <section class="admin-visual" aria-label="VERDÉ administration">
+        <a class="admin-brand" href="/" aria-label="VERDÉ home">
+          <span class="admin-brand-name">VERDÉ</span>
+          <span class="admin-brand-subtitle">Admin Portal</span>
+        </a>
+        <div class="admin-visual-copy">
+          <h1>Grow.<br />Manage.<br />Thrive.</h1>
+          <p>
+            Secure access to the central botanical management system. Oversee
+            inventory, manage client profiles, and coordinate the collections
+            from a single, unified interface.
+          </p>
+        </div>
+        <div class="admin-secure">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="10" width="16" height="11" rx="2"></rect>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+          </svg>
+          Secure encrypted &amp; secured.
+        </div>
+      </section>
+
+      <section class="admin-panel" aria-labelledby="admin-login-title">
+        <div class="admin-panel-inner">
+          <p class="admin-kicker">VERDÉ Administration</p>
+          <h2 id="admin-login-title">Welcome Back</h2>
+          <p class="admin-intro">Please enter your credentials to access the portal.</p>
+
+          <form class="admin-form" id="adminLoginForm" novalidate>
+            <div class="admin-field">
+              <label for="email">Email / Username</label>
+              <input type="email" id="email" name="email" placeholder="admin@verdeville.com" autocomplete="username" required />
+              <span class="field-error" id="emailError"></span>
+            </div>
+            <div class="admin-field">
+              <label for="password">Password</label>
+              <div class="admin-password-field">
+                <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
+                <button class="admin-password-toggle" type="button" id="passwordToggle" aria-label="Show password">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+                    <circle cx="12" cy="12" r="2.5"></circle>
+                  </svg>
+                </button>
+              </div>
+              <span class="field-error" id="passwordError"></span>
+            </div>
+            <div class="admin-options">
+              <button type="button" id="forgotPasswordLink">Forgot Password?</button>
+            </div>
+            <p class="admin-message" id="loginMessage" role="alert" aria-live="polite"></p>
+            <button class="admin-submit" type="submit">Sign In ↗</button>
+          </form>
+          <p class="admin-footer-note">Authorized personnel only. All activities are logged.</p>
+        </div>
+      </section>
+    </main>
+
+    <div class="admin-modal-backdrop" id="forgotPasswordModal" aria-hidden="true">
+      <section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="forgotModalTitle">
+        <button class="admin-modal-close" id="closeForgotModal" type="button" aria-label="Close">&times;</button>
+        <div class="admin-modal-step is-active" data-step="email">
+          <h3 id="forgotModalTitle">Forgot Password?</h3>
+          <p class="admin-modal-intro">Enter your admin email and we will send a one-time verification code.</p>
+          <div class="admin-field">
+            <label for="forgotEmail">Admin Email</label>
+            <input type="email" id="forgotEmail" placeholder="admin@verdeville.com" autocomplete="email" />
+            <span class="field-error" id="forgotEmailError"></span>
+          </div>
+          <div class="admin-modal-actions">
+            <button class="admin-modal-submit" id="sendAdminOtpBtn" type="button">Send OTP</button>
+            <button class="admin-modal-secondary" type="button" data-close-modal>Cancel</button>
+          </div>
+        </div>
+
+        <div class="admin-modal-step" data-step="otp">
+          <h3>Verify OTP</h3>
+          <p class="admin-modal-intro">Enter the six-digit code sent to your registered admin email.</p>
+          <div class="admin-field">
+            <label for="adminResetOtp">Verification Code</label>
+            <input type="text" id="adminResetOtp" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+            <span class="field-error" id="adminResetOtpError"></span>
+          </div>
+          <div class="admin-modal-actions">
+            <button class="admin-modal-submit" id="verifyAdminOtpBtn" type="button">Verify OTP</button>
+            <button class="admin-modal-secondary" id="resendAdminOtpBtn" type="button" disabled>Resend OTP</button>
+          </div>
+          <div class="admin-otp-feedback">
+            <p class="admin-otp-status" id="adminOtpStatus" role="status" aria-live="polite"></p>
+            <p class="admin-otp-timer" id="adminOtpTimer" role="timer">Resend available in 01:00</p>
+          </div>
+        </div>
+
+        <div class="admin-modal-step" data-step="password">
+          <h3>Set New Password</h3>
+          <p class="admin-modal-intro">Create a new password to secure your administration account.</p>
+          <div class="admin-field">
+            <label for="adminNewPassword">New Password</label>
+            <div class="admin-password-field">
+              <input type="password" id="adminNewPassword" autocomplete="new-password" />
+              <button class="admin-password-toggle" type="button" data-target="adminNewPassword" aria-label="Show new password">◉</button>
+            </div>
+            <span class="field-error" id="adminNewPasswordError"></span>
+          </div>
+          <div class="admin-field">
+            <label for="adminConfirmPassword">Confirm Password</label>
+            <div class="admin-password-field">
+              <input type="password" id="adminConfirmPassword" autocomplete="new-password" />
+              <button class="admin-password-toggle" type="button" data-target="adminConfirmPassword" aria-label="Show confirmed password">◉</button>
+            </div>
+            <span class="field-error" id="adminConfirmPasswordError"></span>
+          </div>
+          <div class="admin-modal-actions">
+            <button class="admin-modal-submit" id="resetAdminPasswordBtn" type="button">Reset Password</button>
+          </div>
+          <p class="admin-message admin-modal-message" id="forgotMessage" role="alert" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const adminLoginForm = document.getElementById("adminLoginForm");
+      const loginMessage = document.getElementById("loginMessage");
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const forgotModal = document.getElementById("forgotPasswordModal");
+      const forgotMessage = document.getElementById("forgotMessage");
+      const adminOtpTimer = document.getElementById("adminOtpTimer");
+      const adminOtpStatus = document.getElementById("adminOtpStatus");
+      const resendAdminOtpBtn = document.getElementById("resendAdminOtpBtn");
+      const steps = document.querySelectorAll(".admin-modal-step");
+      let otpCountdown;
+
+      // Field error helpers
+      function setFieldError(fieldId, errorId, message) {
+        const field = document.getElementById(fieldId);
+        const errSpan = document.getElementById(errorId);
+        if (field) field.classList.add("is-invalid");
+        if (errSpan) errSpan.textContent = message;
+      }
+
+      function clearFieldError(fieldId, errorId) {
+        const field = document.getElementById(fieldId);
+        const errSpan = document.getElementById(errorId);
+        if (field) field.classList.remove("is-invalid");
+        if (errSpan) errSpan.textContent = "";
+      }
+
+      // Live error clearing on typing
+      [
+        ["email", "emailError"],
+        ["password", "passwordError"],
+        ["forgotEmail", "forgotEmailError"],
+        ["adminResetOtp", "adminResetOtpError"],
+        ["adminNewPassword", "adminNewPasswordError"],
+        ["adminConfirmPassword", "adminConfirmPasswordError"],
+      ].forEach(([fId, eId]) => {
+        const el = document.getElementById(fId);
+        if (el) {
+          el.addEventListener("input", () => {
+            clearFieldError(fId, eId);
+            setMessage(loginMessage, "");
+            setMessage(forgotMessage, "");
+          });
+        }
+      });
+
+      function setMessage(element, message, success = false) {
+        if (!element) return;
+        element.textContent = message || "";
+        element.classList.toggle("success", success);
+      }
+
+      function showStep(step) {
+        steps.forEach((item) => item.classList.toggle("is-active", item.dataset.step === step));
+      }
+
+      function closeForgotModal() {
+        clearInterval(otpCountdown);
+        forgotModal.classList.remove("is-open");
+        forgotModal.setAttribute("aria-hidden", "true");
+        showStep("email");
+        setMessage(forgotMessage);
+        clearFieldError("forgotEmail", "forgotEmailError");
+        clearFieldError("adminResetOtp", "adminResetOtpError");
+        clearFieldError("adminNewPassword", "adminNewPasswordError");
+        clearFieldError("adminConfirmPassword", "adminConfirmPasswordError");
+        adminOtpStatus.textContent = "";
+        resendAdminOtpBtn.disabled = true;
+        document.body.style.overflow = "";
+      }
+
+      function openForgotModal() {
+        forgotModal.classList.add("is-open");
+        forgotModal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        clearFieldError("forgotEmail", "forgotEmailError");
+        setMessage(forgotMessage);
+        document.getElementById("forgotEmail").focus();
+      }
+
+      async function postJson(url, body) {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Request could not be completed.");
+        return data;
+      }
+
+      function startOtpCountdown() {
+        clearInterval(otpCountdown);
+        let secondsLeft = 60;
+        resendAdminOtpBtn.disabled = true;
+        const updateTimer = () => {
+          const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+          const seconds = String(secondsLeft % 60).padStart(2, "0");
+          adminOtpTimer.textContent = `Resend available in ${minutes}:${seconds}`;
+          if (secondsLeft <= 0) {
+            clearInterval(otpCountdown);
+            resendAdminOtpBtn.disabled = false;
+            adminOtpTimer.textContent = "You can request a new OTP.";
+            return;
+          }
+          secondsLeft -= 1;
+        };
+        updateTimer();
+        otpCountdown = setInterval(updateTimer, 1000);
+      }
+
+      async function sendAdminOtp() {
+        clearFieldError("forgotEmail", "forgotEmailError");
+        setMessage(forgotMessage, "");
+        const email = document.getElementById("forgotEmail").value.trim();
+        if (!email) {
+          setFieldError("forgotEmail", "forgotEmailError", "Enter your admin email.");
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          setFieldError("forgotEmail", "forgotEmailError", "Please enter a valid email address.");
+          return;
+        }
+        try {
+          const data = await postJson("/adminpanel/admin-forgot-password/", { email });
+          showStep("otp");
+          adminOtpStatus.textContent = data.message;
+          startOtpCountdown();
+          document.getElementById("adminResetOtp").focus();
+        } catch (error) {
+          setFieldError("forgotEmail", "forgotEmailError", error.message);
+        }
+      }
+
+      document.getElementById("passwordToggle").addEventListener("click", () => {
+        const showing = passwordInput.type === "text";
+        passwordInput.type = showing ? "password" : "text";
+        document.getElementById("passwordToggle").setAttribute("aria-label", showing ? "Show password" : "Hide password");
+      });
+
+      document.querySelectorAll(".admin-password-toggle[data-target]").forEach((toggle) => {
+        toggle.addEventListener("click", () => {
+          const input = document.getElementById(toggle.dataset.target);
+          const showing = input.type === "text";
+          input.type = showing ? "password" : "text";
+          toggle.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+        });
+      });
+
+      adminLoginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearFieldError("email", "emailError");
+        clearFieldError("password", "passwordError");
+        setMessage(loginMessage, "");
+
+        const emailVal = emailInput.value.trim();
+        const passVal = passwordInput.value;
+
+        let hasError = false;
+        if (!emailVal) {
+          setFieldError("email", "emailError", "Please enter your email or username.");
+          hasError = true;
+        }
+        if (!passVal) {
+          setFieldError("password", "passwordError", "Please enter your password.");
+          hasError = true;
+        }
+
+        if (hasError) return;
+
+        try {
+          await postJson("/adminpanel/admin-login/process/", {
+            email: emailVal,
+            password: passVal,
+          });
+          window.location.href = "/adminpanel/admin-dashboard/";
+        } catch (error) {
+          const errMsg = error.message || "Invalid credentials.";
+          const lower = errMsg.toLowerCase();
+          if (lower.includes("invalid email or password")) {
+            setFieldError("email", "emailError", "Invalid email or password.");
+            setFieldError("password", "passwordError", "Invalid email or password.");
+          } else if (lower.includes("email") || lower.includes("authorized") || lower.includes("account")) {
+            setFieldError("email", "emailError", errMsg);
+          } else if (lower.includes("password")) {
+            setFieldError("password", "passwordError", errMsg);
+          } else {
+            setMessage(loginMessage, errMsg);
+          }
+        }
+      });
+
+      document.getElementById("forgotPasswordLink").addEventListener("click", openForgotModal);
+      document.getElementById("closeForgotModal").addEventListener("click", closeForgotModal);
+      document.querySelectorAll("[data-close-modal]").forEach((button) => button.addEventListener("click", closeForgotModal));
+      forgotModal.addEventListener("click", (event) => {
+        if (event.target === forgotModal) closeForgotModal();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && forgotModal.classList.contains("is-open")) closeForgotModal();
+      });
+
+      document.getElementById("sendAdminOtpBtn").addEventListener("click", async () => {
+        await sendAdminOtp();
+      });
+
+      // Resend OTP using the dedicated Django backend endpoint
+      document.getElementById("resendAdminOtpBtn").addEventListener("click", async () => {
+        if (resendAdminOtpBtn.disabled) return;
+        resendAdminOtpBtn.disabled = true;
+        clearFieldError("adminResetOtp", "adminResetOtpError");
+        const email = document.getElementById("forgotEmail").value.trim();
+
+        try {
+          // Resend the admin password-reset OTP
+          const data = await postJson("/adminpanel/admin-resend-otp/", { email: email });
+          adminOtpStatus.textContent = data.message;
+          startOtpCountdown();
+        } catch (error) {
+          resendAdminOtpBtn.disabled = false;
+          setFieldError("adminResetOtp", "adminResetOtpError", error.message);
+        }
+      });
+
+      document.getElementById("verifyAdminOtpBtn").addEventListener("click", async () => {
+        clearFieldError("adminResetOtp", "adminResetOtpError");
+        const otp = document.getElementById("adminResetOtp").value.trim();
+        if (!/^\d{6}$/.test(otp)) {
+          setFieldError("adminResetOtp", "adminResetOtpError", "Enter a valid six-digit OTP.");
+          return;
+        }
+        try {
+          const data = await postJson("/adminpanel/admin-verify-reset-password-otp/", { otp });
+          adminOtpStatus.textContent = data.message;
+          showStep("password");
+          clearFieldError("adminNewPassword", "adminNewPasswordError");
+          clearFieldError("adminConfirmPassword", "adminConfirmPasswordError");
+          document.getElementById("adminNewPassword").focus();
+        } catch (error) {
+          setFieldError("adminResetOtp", "adminResetOtpError", error.message);
+        }
+      });
+
+      document.getElementById("resetAdminPasswordBtn").addEventListener("click", async () => {
+        clearFieldError("adminNewPassword", "adminNewPasswordError");
+        clearFieldError("adminConfirmPassword", "adminConfirmPasswordError");
+        setMessage(forgotMessage, "");
+
+        const password = document.getElementById("adminNewPassword").value;
+        const confirmPassword = document.getElementById("adminConfirmPassword").value;
+
+        let hasError = false;
+        if (!password) {
+          setFieldError("adminNewPassword", "adminNewPasswordError", "New password is required.");
+          hasError = true;
+        }
+        if (!confirmPassword) {
+          setFieldError("adminConfirmPassword", "adminConfirmPasswordError", "Please confirm your password.");
+          hasError = true;
+        }
+        if (password && confirmPassword && password !== confirmPassword) {
+          setFieldError("adminConfirmPassword", "adminConfirmPasswordError", "Passwords do not match.");
+          hasError = true;
+        }
+
+        if (hasError) return;
+
+        try {
+          // Reset the admin password through the adminpanel endpoint
+          await postJson("/adminpanel/admin-reset-password/", {password,confirm_password: confirmPassword});
+          setMessage(forgotMessage, "Password reset successfully.", true);
+          setTimeout(closeForgotModal, 900);
+        } catch (error) {
+          const errMsg = error.message;
+          const lower = errMsg.toLowerCase();
+          if (lower.includes("match")) {
+            setFieldError("adminConfirmPassword", "adminConfirmPasswordError", errMsg);
+          } else {
+            setFieldError("adminNewPassword", "adminNewPasswordError", errMsg);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

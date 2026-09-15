@@ -1,0 +1,675 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | Premium Botanical Lifestyle</title>
+
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/components.css' %}" />
+    <style>
+      #cartBtn:disabled {
+        color: var(--color-text-main);
+        opacity: 1;
+        pointer-events: none;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .btn-signin {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 38px;
+        padding: 0 20px;
+        border-radius: var(--radius-sm, 6px);
+        font-size: 13.5px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        white-space: nowrap;
+        text-decoration: none;
+        vertical-align: middle;
+        box-sizing: border-box;
+      }
+
+      .profile-avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        text-decoration: none;
+        vertical-align: middle;
+      }
+    </style>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23102518'><path d='M12 2C6.5 2 2 6.5 2 12c0 4.2 2.6 7.8 6.4 9.3-.1-.9-.1-1.8.1-2.6l1.2-4.9c-.3-.6-.5-1.4-.5-2.2 0-2.1 1.2-3.6 2.7-3.6 1.3 0 1.9 1 1.9 2.1 0 1.3-.8 3.2-1.2 5-.4 1.5.8 2.8 2.3 2.8 2.7 0 4.6-3.5 4.6-7.6 0-3.1-2.1-5.5-6-5.5z'/></svg>"
+    />
+  </head>
+  <body>
+    <!-- ========================================================================
+       Top Navigation Bar
+       ======================================================================== -->
+    <header class="site-header" role="banner">
+      <div class="header-container">
+        <!-- Left: Botanical Brand Logo -->
+        <a href="#" class="brand-logo" aria-label="VERDÉ Home">
+          <svg
+            class="logo-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 2L12 22"></path>
+            <path
+              d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"
+            ></path>
+            <path
+              d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"
+            ></path>
+            <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+          </svg>
+          <span class="logo-text">VERDÉ</span>
+        </a>
+
+        <!-- Center: Main Navigation -->
+        <nav class="main-nav" aria-label="Primary Navigation">
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#home" class="nav-link active">Home</a>
+            </li>
+            <li class="nav-item">
+              <a href="#shop" class="nav-link">Shop</a>
+            </li>
+            <li class="nav-item">
+              <a href="#offers" class="nav-link">Offers</a>
+            </li>
+            <li class="nav-item">
+              <a href="#about" class="nav-link">About</a>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Right: Utility Actions & Sign In -->
+        <div class="header-actions">
+          <!-- Search Button -->
+          <button
+            class="action-btn"
+            id="searchBtn"
+            aria-label="Search botanicals"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+
+          <!-- Wishlist Button -->
+          <button class="action-btn" id="wishlistBtn" aria-label="Wishlist">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              ></path>
+            </svg>
+            <span class="badge-count" id="wishlistCountBadge">3</span>
+          </button>
+
+          <!-- Cart Button -->
+          <button
+            class="action-btn"
+            id="cartBtn"
+            type="button"
+            aria-label="Cart"
+            title="Cart"
+            disabled
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path
+                d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
+              ></path>
+            </svg>
+          </button>
+
+          <!-- Sign In Button -->
+            {% if user.is_authenticated %}
+              <!-- Show profile picture for logged-in user -->
+              <a href="/profile/" class="profile-avatar" aria-label="Profile">
+                {% if user.profile_picture %}
+                  <img
+                    src="{{ user.profile_picture.url }}"
+                    alt="{{ user.full_name }}"
+                  >
+                {% else %}
+                <!-- Show generic profile icon when no picture exists -->
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="8" r="4"></circle>
+                  <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+                </svg>
+              {% endif %}
+              </a>
+            {% else %}
+              <!-- Show Sign In for guests -->
+              <a href="/login-page/" class="btn-signin">Sign In</a>
+            {% endif %}
+
+          <!-- Mobile Menu Toggle Button -->
+          <button
+            class="mobile-menu-toggle"
+            id="mobileMenuToggle"
+            aria-label="Toggle navigation menu"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========================================================================
+       Main Content
+       ======================================================================== -->
+    <main id="main-content">
+      <section class="hero-section" aria-label="Botanical introduction">
+        <div class="hero-card">
+          <!-- Repeated botanical room images -->
+          <div class="hero-image-grid" aria-hidden="true">
+            {% for tile in "123456" %}
+            <img
+              src="{% static 'assets/images/hero-botanical.jpg' %}"
+              alt=""
+              class="hero-bg-img"
+              loading="eager"
+              {%
+              if
+              forloop.first
+              %}fetchpriority="high"
+              {%
+              endif
+              %}
+            />
+            {% endfor %}
+          </div>
+          <div class="hero-overlay" aria-hidden="true"></div>
+
+          <div class="hero-content">
+            <span class="hero-kicker">Bring Nature Home</span>
+            <h1 class="hero-title">Grow Something<br />Beautiful.</h1>
+            <p class="hero-description">
+              Transform your space with our curated collection of premium
+              botanical specimens, designed for the modern sanctuary.
+            </p>
+            <a href="#collections" class="hero-btn" role="button"
+              >Shop Plants</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- "Find Your Green" Botanical Collections Section -->
+      <section
+        class="collections-section"
+        id="collections"
+        aria-label="Botanical Collections"
+      >
+        <div class="section-header">
+          <h2 class="section-title">Find Your Green</h2>
+          <p class="section-subtitle">Explore our botanical collections</p>
+        </div>
+
+        <div class="cards-grid">
+          <!-- Card 1: Indoor Plants -->
+          <article
+            class="collection-card"
+            data-category="Indoor Plants"
+            tabindex="0"
+            role="button"
+            aria-label="Explore Indoor Plants"
+          >
+            <div class="card-img-wrapper">
+              <img
+                src="{% static 'assets/images/indoor-plants.jpg' %}"
+                alt="Lush green trailing indoor plant in a minimalist white pot"
+                class="card-img"
+                loading="lazy"
+              />
+            </div>
+            <span class="card-badge">Indoor Plants</span>
+          </article>
+
+          <!-- Card 2: Outdoor Plants -->
+          <article
+            class="collection-card"
+            data-category="Outdoor Plants"
+            tabindex="0"
+            role="button"
+            aria-label="Explore Outdoor Plants"
+          >
+            <div class="card-img-wrapper">
+              <img
+                src="{% static 'assets/images/outdoor-plants.jpg' %}"
+                alt="Lush Boston fern in a weathered rustic terracotta pot outdoors"
+                class="card-img"
+                loading="lazy"
+              />
+            </div>
+            <span class="card-badge">Outdoor Plants</span>
+          </article>
+
+          <!-- Card 3: Flowering Plants -->
+          <article
+            class="collection-card"
+            data-category="Flowering Plants"
+            tabindex="0"
+            role="button"
+            aria-label="Explore Flowering Plants"
+          >
+            <div class="card-img-wrapper">
+              <img
+                src="{% static 'assets/images/flowering-plants.jpg' %}"
+                alt="Blooming Peace Lily in a clean neutral ceramic pot"
+                class="card-img"
+                loading="lazy"
+              />
+            </div>
+            <span class="card-badge">Flowering Plants</span>
+          </article>
+
+          <!-- Card 4: Succulents -->
+          <article
+            class="collection-card"
+            data-category="Succulents"
+            tabindex="0"
+            role="button"
+            aria-label="Explore Succulents"
+          >
+            <div class="card-img-wrapper">
+              <img
+                src="{% static 'assets/images/succulents.jpg' %}"
+                alt="Artistic assortment of colorful succulents in a low charcoal dish"
+                class="card-img"
+                loading="lazy"
+              />
+            </div>
+            <span class="card-badge">Succulents</span>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <!-- ========================================================================
+       Footer
+       ======================================================================== -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer-container">
+        <!-- Left Column: Brand & Tagline -->
+        <div class="footer-brand">
+          <h2 class="footer-logo">VERDÉ</h2>
+          <p class="footer-tagline">
+            &copy; 2024 VERDÉ. Curating botanical elegance for your domestic
+            spaces.
+          </p>
+        </div>
+
+        <!-- Right Column: Navigation Groups -->
+        <div class="footer-nav-groups">
+          <div class="footer-group">
+            <h3 class="footer-heading">Shop</h3>
+            <ul class="footer-links">
+              <li><a href="#indoor" class="footer-link">Indoor</a></li>
+              <li><a href="#outdoor" class="footer-link">Outdoor</a></li>
+              <li>
+                <a href="#accessories" class="footer-link">Accessories</a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Help</h3>
+            <ul class="footer-links">
+              <li><a href="#contact" class="footer-link">Contact</a></li>
+              <li><a href="#faq" class="footer-link">FAQ</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Follow</h3>
+            <ul class="footer-links">
+              <li>
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="footer-link"
+                  >Instagram</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://pinterest.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="footer-link"
+                  >Pinterest</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ========================================================================
+       Interactive Overlays, Drawers & Modals (Ready for Backend Hooks)
+       ======================================================================== -->
+
+    <!-- Global Backdrop -->
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
+    <div class="drawer-backdrop" id="cartBackdrop" aria-hidden="true"></div>
+
+    <!-- Shopping Cart Slide-out Drawer -->
+    <aside
+      class="cart-drawer"
+      id="cartDrawer"
+      aria-label="Shopping Cart Drawer"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="cart-header">
+        <h3 class="cart-title">Your Cart</h3>
+        <button
+          class="btn-close"
+          id="cartCloseBtn"
+          aria-label="Close cart drawer"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="cart-body" id="cartItemsList">
+        <!-- Items dynamically populated by app.js / backend -->
+      </div>
+
+      <div class="cart-footer">
+        <div class="cart-subtotal-row">
+          <span>Subtotal</span>
+          <span class="cart-subtotal-val" id="cartSubtotal">$0.00</span>
+        </div>
+        <button
+          class="btn-checkout"
+          type="button"
+          onclick="alert('Proceeding to checkout with your backend!')"
+        >
+          Proceed to Checkout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Sign In / Register Modal -->
+    <div
+      class="modal-container"
+      id="authModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="authTitle"
+    >
+      <div class="modal-header">
+        <div class="auth-tabs" role="tablist">
+          <button
+            class="auth-tab active"
+            data-tab="signin"
+            id="authTitle"
+            role="tab"
+            aria-selected="true"
+          >
+            Sign In
+          </button>
+          <button
+            class="auth-tab"
+            data-tab="register"
+            role="tab"
+            aria-selected="false"
+          >
+            Create Account
+          </button>
+        </div>
+        <button class="btn-close" id="authCloseBtn" aria-label="Close modal">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="authForm" data-endpoint="/api/auth" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="authEmail">Email Address</label>
+            <input
+              type="email"
+              id="authEmail"
+              name="email"
+              class="form-input"
+              placeholder="sanctuary@verdelifestyle.com"
+              required
+              autocomplete="email"
+            />
+            <span class="field-error" id="authEmailError"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="authPassword">Password</label>
+            <input
+              type="password"
+              id="authPassword"
+              name="password"
+              class="form-input"
+              placeholder="••••••••••••"
+              required
+              autocomplete="current-password"
+            />
+            <span class="field-error" id="authPasswordError"></span>
+          </div>
+          <div class="form-actions">
+            <label class="form-checkbox">
+              <input type="checkbox" name="remember" checked />
+              <span>Remember me</span>
+            </label>
+            <a href="#" class="form-forgot">Forgot Password?</a>
+          </div>
+          <button type="submit" class="btn-submit" id="authSubmitBtn">
+            Sign In
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Search Overlay Modal -->
+    <div
+      class="search-modal"
+      id="searchModal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Botanical Search"
+    >
+      <div class="search-box-wrapper">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="search"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search for plants, pots, accessories..."
+          autocomplete="off"
+        />
+        <button class="btn-close" id="searchCloseBtn" aria-label="Close search">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="search-suggestions">
+        <p class="search-sugg-title">Popular Searches</p>
+        <div class="sugg-chips">
+          <span class="sugg-chip">Monstera</span>
+          <span class="sugg-chip">Peace Lily</span>
+          <span class="sugg-chip">Boston Fern</span>
+          <span class="sugg-chip">Succulents</span>
+          <span class="sugg-chip">Ceramic Planter</span>
+          <span class="sugg-chip">Low Light</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <aside
+      class="mobile-nav-drawer"
+      id="mobileNavDrawer"
+      aria-label="Mobile Navigation Drawer"
+    >
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <span class="logo-text">VERDÉ</span>
+        <button
+          class="btn-close"
+          id="mobileNavCloseBtn"
+          aria-label="Close menu"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <ul class="mobile-nav-links">
+        <li><a href="#home" class="mobile-nav-link">Home</a></li>
+        <li><a href="#shop" class="mobile-nav-link">Shop</a></li>
+        <li><a href="#offers" class="mobile-nav-link">Offers</a></li>
+        <li><a href="#about" class="mobile-nav-link">About</a></li>
+      </ul>
+    </aside>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/data.js' %}"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+  </body>
+</html>

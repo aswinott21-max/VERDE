@@ -1,74 +1,498 @@
-<!DOCTYPE html>
+{% load static %}
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERDÉ - Signup</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | Create Account</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  </head>
+  <body class="signup-page">
+    <main class="signup-shell">
+      <section class="signup-visual" aria-label="VERDÉ botanical welcome">
+        <img
+          src="{% static 'assets/images/hero-botanical.jpg' %}"
+          alt="Plants in a warm botanical living space"
+        />
+        <div class="signup-visual-overlay"></div>
+        <div class="signup-visual-copy">
+          <h1>Start growing<br />something beautiful.</h1>
+          <p>
+            Create your VERDÉ account and discover plants, gardening essentials,
+            and inspiration for your space.
+          </p>
+        </div>
+      </section>
 
-    <h1>Create Account</h1>
+      <section class="signup-panel" aria-labelledby="signup-title">
+        <div class="signup-panel-inner">
+          <header class="signup-brand-row">
+            <a class="signup-brand" href="/" aria-label="VERDÉ home"
+              ><span class="signup-brand-mark">✣</span><span>VERDÉ</span></a
+            >
+          </header>
 
-    <form id="signupForm">
+          <div class="signup-heading">
+            <h2 id="signup-title">Create Your Account</h2>
+            <p>Join VERDÉ and bring a little more nature into your everyday.</p>
+          </div>
 
-        <label for="name">Full Name</label>
-        <input type="text" id="name" name="name" required>
+          <form class="signup-form" id="signupForm" novalidate>
+            <div class="signup-field">
+              <label for="name">Full Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Jane"
+                autocomplete="name"
+                required
+              />
+              <span class="field-error" id="nameError" role="alert" aria-live="polite"></span>
+            </div>
 
-        <br><br>
+            <div class="signup-field">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="jane@example.com"
+                autocomplete="email"
+                required
+              />
+              <span class="field-error" id="emailError" role="alert" aria-live="polite"></span>
+            </div>
 
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
+            <div class="signup-field">
+              <label for="phone">Phone Number</label>
+              <div class="signup-phone-row">
+                <details class="country-picker">
+                  <summary id="countryPickerButton">🇮🇳 +91</summary>
+                  <div
+                    class="country-picker-menu"
+                    role="listbox"
+                    aria-label="Country code"
+                  >
+                    <button type="button" data-code="+91">
+                      🇮🇳 India (+91)
+                    </button>
+                    <button type="button" data-code="+1">
+                      🇺🇸 United States (+1)
+                    </button>
+                    <button type="button" data-code="+44">
+                      🇬🇧 United Kingdom (+44)
+                    </button>
+                    <button type="button" data-code="+61">
+                      🇦🇺 Australia (+61)
+                    </button>
+                    <button type="button" data-code="+81">
+                      🇯🇵 Japan (+81)
+                    </button>
+                    <button type="button" data-code="+86">
+                      🇨🇳 China (+86)
+                    </button>
+                    <button type="button" data-code="+49">
+                      🇩🇪 Germany (+49)
+                    </button>
+                    <button type="button" data-code="+33">
+                      🇫🇷 France (+33)
+                    </button>
+                    <button type="button" data-code="+39">
+                      🇮🇹 Italy (+39)
+                    </button>
+                    <button type="button" data-code="+34">
+                      🇪🇸 Spain (+34)
+                    </button>
+                    <button type="button" data-code="+7">🇷🇺 Russia (+7)</button>
+                    <button type="button" data-code="+971">
+                      🇦🇪 UAE (+971)
+                    </button>
+                    <button type="button" data-code="+966">
+                      🇸🇦 Saudi Arabia (+966)
+                    </button>
+                    <button type="button" data-code="+27">
+                      🇿🇦 South Africa (+27)
+                    </button>
+                    <button type="button" data-code="+55">
+                      🇧🇷 Brazil (+55)
+                    </button>
+                    <button type="button" data-code="+52">
+                      🇲🇽 Mexico (+52)
+                    </button>
+                    <button type="button" data-code="+82">
+                      🇰🇷 South Korea (+82)
+                    </button>
+                    <button type="button" data-code="+65">
+                      🇸🇬 Singapore (+65)
+                    </button>
+                    <button type="button" data-code="+60">
+                      🇲🇾 Malaysia (+60)
+                    </button>
+                    <button type="button" data-code="+66">
+                      🇹🇭 Thailand (+66)
+                    </button>
+                  </div>
+                </details>
+                <input type="hidden" id="countryCode" value="+91" />
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="98765 43210"
+                  autocomplete="tel"
+                  required
+                />
+              </div>
+              <span class="field-error" id="phoneError" role="alert" aria-live="polite"></span>
+            </div>
 
-        <br><br>
+            <div class="signup-field">
+              <label for="password">Password</label>
+              <div class="signup-password-input">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter password"
+                  autocomplete="new-password"
+                  required
+                />
+                <button
+                  class="signup-password-toggle"
+                  type="button"
+                  data-target="password"
+                  aria-label="Show password"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+                    ></path>
+                    <circle cx="12" cy="12" r="2.5"></circle>
+                  </svg>
+                </button>
+              </div>
+              <span class="field-error" id="passwordError" role="alert" aria-live="polite"></span>
+            </div>
 
-        <label for="phone">Phone</label>
-        <input type="tel" id="phone" name="phone" required>
+            <div class="signup-requirements">
+              <span>Password Requirements</span>
+              <div>
+                <small id="signupLength">○ 8+ Characters</small
+                ><small id="signupUpper">○ Uppercase</small>
+              </div>
+              <div>
+                <small id="signupLower">○ Lowercase</small
+                ><small id="signupNumber">○ Number</small>
+              </div>
+              <div>
+                <small id="signupSpecial">○ Special</small>
+              </div>
+            </div>
 
-        <br><br>
+            <div class="signup-field">
+              <label for="confirm_password">Confirm Password</label>
+              <div class="signup-password-input">
+                <input
+                  type="password"
+                  id="confirm_password"
+                  name="confirm_password"
+                  placeholder="Confirm password"
+                  autocomplete="new-password"
+                  required
+                />
+                <button
+                  class="signup-password-toggle"
+                  type="button"
+                  data-target="confirm_password"
+                  aria-label="Show confirmed password"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+                    ></path>
+                    <circle cx="12" cy="12" r="2.5"></circle>
+                  </svg>
+                </button>
+              </div>
+              <span class="field-error" id="confirmPasswordError" role="alert" aria-live="polite"></span>
+            </div>
 
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
+            <p
+              class="signup-error"
+              id="signupError"
+              role="alert"
+              aria-live="polite"
+            ></p>
+            <button class="signup-submit" type="submit">Create Account</button>
+            <div class="signup-divider"><span>OR</span></div>
+            <button class="signup-google" type="button">
+              <span>G</span> Continue with Google
+            </button>
+          </form>
 
-        <br><br>
+          <p class="signup-login">
+            Already have an account? <a href="/login-page/">Sign In</a>
+          </p>
+        </div>
+      </section>
+    </main>
 
-        <label for="confirm_password">Confirm Password</label>
-        <input type="password" id="confirm_password" name="confirm_password" required>
-
-        <br><br>
-
-        <button type="submit">Send OTP</button>
-
-    </form>
+    <footer class="signup-footer">
+      <div class="signup-footer-brand">
+        <div class="signup-footer-logo">VERDÉ</div>
+        <p>
+          &copy; 2024 VERDÉ. Curating botanical elegance for your domestic
+          spaces.
+        </p>
+      </div>
+      <div class="signup-footer-links">
+        <div>
+          <strong>Shop</strong><a href="#">Indoor</a><a href="#">Outdoor</a
+          ><a href="#">Accessories</a>
+        </div>
+        <div>
+          <strong>Help</strong><a href="#">Contact</a><a href="#">FAQ</a
+          ><a href="#">Shipping</a>
+        </div>
+        <div>
+          <strong>Account</strong><a href="/login-page/">Sign In</a
+          ><a href="/signup-page/">Create Account</a>
+        </div>
+        <div>
+          <strong>Follow</strong><a href="https://instagram.com">Instagram</a
+          ><a href="https://pinterest.com">Pinterest</a>
+        </div>
+      </div>
+    </footer>
 
     <script>
-    document.getElementById("signupForm").addEventListener("submit", async function(event) {
-        event.preventDefault();
+      const signupForm = document.getElementById("signupForm");
+      const signupError = document.getElementById("signupError");
+      const nameInput = document.getElementById("name");
+      const emailInput = document.getElementById("email");
+      const phoneInput = document.getElementById("phone");
+      const passwordInput = document.getElementById("password");
+      const confirmPasswordInput = document.getElementById("confirm_password");
 
-        const data = {
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value,
-            phone: document.getElementById("phone").value,
-            password: document.getElementById("password").value,
-            confirm_password: document.getElementById("confirm_password").value
-        };
+      const nameError = document.getElementById("nameError");
+      const emailError = document.getElementById("emailError");
+      const phoneError = document.getElementById("phoneError");
+      const passwordError = document.getElementById("passwordError");
+      const confirmPasswordError = document.getElementById("confirmPasswordError");
 
-        const response = await fetch("/signup/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
+      const requirementChecks = [
+        [document.getElementById("signupLength"), (value) => value.length >= 8],
+        [
+          document.getElementById("signupUpper"),
+          (value) => /[A-Z]/.test(value),
+        ],
+        [
+          document.getElementById("signupLower"),
+          (value) => /[a-z]/.test(value),
+        ],
+        [
+          document.getElementById("signupNumber"),
+          (value) => /\d/.test(value),
+        ],
+        [
+          document.getElementById("signupSpecial"),
+          (value) => /[^A-Za-z0-9]/.test(value),
+        ],
+      ];
+
+      function updateRequirements() {
+        requirementChecks.forEach(([element, check]) => {
+          const label = element.textContent.slice(2);
+          const valid = check(passwordInput.value);
+          element.textContent = `${valid ? "✓" : "○"} ${label}`;
+          element.classList.toggle("valid", valid);
         });
+      }
 
-        const result = await response.json();
-
-        if (response.ok) {
-            window.location.href = "/verify-otp-page/";
-        } else {
-            alert(result.error);
+      function setFieldError(inputEl, errorEl, message) {
+        if (errorEl) {
+          errorEl.textContent = message;
         }
-    });
-</script>
+        if (inputEl) {
+          inputEl.classList.add("is-invalid");
+        }
+      }
 
-</body>
+      function clearFieldError(inputEl, errorEl) {
+        if (errorEl) {
+          errorEl.textContent = "";
+        }
+        if (inputEl) {
+          inputEl.classList.remove("is-invalid");
+        }
+      }
+
+      function clearAllErrors() {
+        clearFieldError(nameInput, nameError);
+        clearFieldError(emailInput, emailError);
+        clearFieldError(phoneInput, phoneError);
+        clearFieldError(passwordInput, passwordError);
+        clearFieldError(confirmPasswordInput, confirmPasswordError);
+        if (signupError) signupError.textContent = "";
+      }
+
+      [nameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput].forEach((input) => {
+        if (input) {
+          input.addEventListener("input", () => {
+            if (input === nameInput) clearFieldError(nameInput, nameError);
+            if (input === emailInput) clearFieldError(emailInput, emailError);
+            if (input === phoneInput) clearFieldError(phoneInput, phoneError);
+            if (input === passwordInput) clearFieldError(passwordInput, passwordError);
+            if (input === confirmPasswordInput) clearFieldError(confirmPasswordInput, confirmPasswordError);
+            if (signupError) signupError.textContent = "";
+          });
+        }
+      });
+
+      passwordInput.addEventListener("input", updateRequirements);
+
+      document.querySelectorAll(".signup-password-toggle").forEach((toggle) => {
+        toggle.addEventListener("click", () => {
+          const input = document.getElementById(toggle.dataset.target);
+          const showing = input.type === "text";
+          input.type = showing ? "password" : "text";
+          toggle.setAttribute(
+            "aria-label",
+            showing ? "Show password" : "Hide password",
+          );
+        });
+      });
+
+      const countryPicker = document.querySelector(".country-picker");
+      const countryPickerButton = document.getElementById(
+        "countryPickerButton",
+      );
+      const countryCode = document.getElementById("countryCode");
+
+      countryPicker.querySelectorAll("[data-code]").forEach((option) => {
+        option.addEventListener("click", () => {
+          countryPickerButton.textContent = option.textContent;
+          countryCode.value = option.dataset.code;
+          countryPicker.removeAttribute("open");
+        });
+      });
+
+      signupForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        clearAllErrors();
+
+        const nameVal = nameInput.value.trim();
+        const emailVal = emailInput.value.trim();
+        const phoneVal = phoneInput.value.trim();
+        const passwordVal = passwordInput.value;
+        const confirmPasswordVal = confirmPasswordInput.value;
+
+        let hasClientError = false;
+        if (!nameVal) {
+          setFieldError(nameInput, nameError, "Full name is required.");
+          hasClientError = true;
+        }
+        if (!emailVal) {
+          setFieldError(emailInput, emailError, "Email address is required.");
+          hasClientError = true;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+          setFieldError(emailInput, emailError, "Please enter a valid email address.");
+          hasClientError = true;
+        }
+        if (!phoneVal) {
+          setFieldError(phoneInput, phoneError, "Phone number is required.");
+          hasClientError = true;
+        } else if (!/^\d{10}$/.test(phoneVal.replace(/\s+/g, ""))) {
+          setFieldError(phoneInput, phoneError, "Phone number must contain exactly 10 digits.");
+          hasClientError = true;
+        }
+        if (!passwordVal) {
+          setFieldError(passwordInput, passwordError, "Password is required.");
+          hasClientError = true;
+        } else if (
+          passwordVal.length < 8 ||
+          !/[A-Z]/.test(passwordVal) ||
+          !/[a-z]/.test(passwordVal) ||
+          !/\d/.test(passwordVal) ||
+          !/[^A-Za-z0-9]/.test(passwordVal)
+        ) {
+          setFieldError(passwordInput, passwordError, "Password does not meet the requirements.");
+          hasClientError = true;
+        }
+        if (!confirmPasswordVal) {
+          setFieldError(confirmPasswordInput, confirmPasswordError, "Please confirm your password.");
+          hasClientError = true;
+        } else if (passwordVal !== confirmPasswordVal) {
+          setFieldError(confirmPasswordInput, confirmPasswordError, "Passwords do not match.");
+          hasClientError = true;
+        }
+        if (hasClientError) {
+          const firstInvalid = [nameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput]
+            .find((input) => input.classList.contains("is-invalid"));
+          if (firstInvalid) firstInvalid.focus();
+          return;
+        }
+
+        try {
+          const response = await fetch("/signup/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: nameVal,
+              email: emailVal,
+              phone: phoneVal,
+              password: passwordVal,
+              confirm_password: confirmPasswordVal,
+            }),
+          });
+          const result = await response.json();
+
+          if (response.ok) {
+            window.location.href = "/verify-otp-page/";
+          } else {
+            const err = result.error || "Unable to create account.";
+            const lowerErr = err.toLowerCase();
+
+            if (lowerErr.includes("all fields are required")) {
+              if (!nameVal) setFieldError(nameInput, nameError, "Full name is required.");
+              if (!emailVal) setFieldError(emailInput, emailError, "Email address is required.");
+              if (!phoneVal) setFieldError(phoneInput, phoneError, "Phone number is required.");
+              if (!passwordVal) setFieldError(passwordInput, passwordError, "Password is required.");
+              if (!confirmPasswordVal) setFieldError(confirmPasswordInput, confirmPasswordError, "Please confirm your password.");
+            } else if (lowerErr.includes("name")) {
+              setFieldError(nameInput, nameError, err);
+              nameInput.focus();
+            } else if (lowerErr.includes("email")) {
+              setFieldError(emailInput, emailError, err);
+              emailInput.focus();
+            } else if (lowerErr.includes("phone")) {
+              setFieldError(phoneInput, phoneError, err);
+              phoneInput.focus();
+            } else if (lowerErr.includes("passwords do not match") || lowerErr.includes("password do not match")) {
+              setFieldError(confirmPasswordInput, confirmPasswordError, err);
+              confirmPasswordInput.focus();
+            } else if (lowerErr.includes("password")) {
+              setFieldError(passwordInput, passwordError, err);
+              passwordInput.focus();
+            } else {
+              signupError.textContent = err;
+            }
+          }
+        } catch (error) {
+          signupError.textContent = "Unable to connect. Please try again.";
+        }
+      });
+      // Start Google sign-in when the button is clicked
+      document.querySelector(".signup-google").addEventListener("click", () => {
+        window.location.href = "/google/login/";
+      });
+    </script>
+  </body>
 </html>

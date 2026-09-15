@@ -1,0 +1,1664 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | Edit Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+      .edit-page {
+        background: var(--color-bg-subtle);
+        color: var(--color-text-main);
+      }
+      .edit-header {
+        box-shadow: 0 2px 16px rgba(16, 37, 24, 0.04);
+      }
+      .edit-header .btn-signin {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+      }
+      .edit-shell {
+        width: min(100% - 56px, 900px);
+        margin: 48px auto 72px;
+      }
+      .edit-heading {
+        margin-bottom: 24px;
+      }
+      .edit-kicker {
+        color: var(--color-accent);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .edit-title {
+        margin-top: 8px;
+        color: var(--color-primary);
+        font: 600 34px/1.2 var(--font-serif);
+      }
+      .edit-intro {
+        margin-top: 8px;
+        color: var(--color-text-muted);
+        font-size: 13px;
+      }
+      .edit-card {
+        padding: 42px 48px;
+        border: 1px solid #e2e8e3;
+        border-radius: var(--radius-md);
+        background: #fff;
+        box-shadow: var(--shadow-card);
+      }
+      .edit-card-heading {
+        margin-bottom: 28px;
+        color: var(--color-primary);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .edit-error {
+        margin-bottom: 22px;
+        padding: 12px 14px;
+        border: 1px solid #e7bdb7;
+        border-radius: var(--radius-sm);
+        color: #8a3027;
+        background: #fff5f3;
+        font-size: 12px;
+      }
+      .edit-form {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px 28px;
+      }
+      .edit-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .edit-field.full-width {
+        grid-column: 1 / -1;
+      }
+      .edit-field label {
+        color: var(--color-text-muted);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .edit-field input,
+      .edit-field select {
+        width: 100%;
+        height: 42px;
+        padding: 0 13px;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        outline: 0;
+        color: var(--color-text-main);
+        background: #fbfcfb;
+        font: 400 13px var(--font-sans);
+      }
+      .edit-field input:focus,
+      .edit-field select:focus {
+        border-color: #73917a;
+        box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+      }
+      .edit-field input[readonly] {
+        color: #78827b;
+        background: #f3f6f3;
+      }
+      .email-edit-row {
+        display: flex;
+        gap: 12px;
+      }
+      .email-edit-row input {
+        flex: 1;
+        min-width: 0;
+      }
+      .phone-edit-row {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr);
+        gap: 12px;
+      }
+      .edit-help {
+        color: #829088;
+        font-size: 10px;
+      }
+      .otp-note {
+        margin-top: 2px;
+        color: var(--color-accent);
+        font-size: 10px;
+      }
+      .edit-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 12px;
+        padding-top: 28px;
+        border-top: 1px solid #e6e8e5;
+      }
+      .edit-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        line-height: 1;
+        white-space: nowrap;
+        min-height: 40px;
+        box-sizing: border-box;
+        padding: 0 18px;
+        border: 1px solid #c6d2c9;
+        border-radius: var(--radius-sm);
+        color: var(--color-primary);
+        background: #fff;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .edit-button:hover:not(:disabled) {
+        border-color: var(--color-primary);
+        transform: translateY(-1px);
+      }
+      .edit-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .edit-button.primary {
+        border-color: var(--color-primary);
+        color: #fff;
+        background: var(--color-primary);
+      }
+      .edit-button.primary:hover {
+        background: var(--color-primary-hover);
+      }
+
+      .email-edit-row .edit-button {
+        min-width: 126px;
+      }
+
+      .edit-actions .edit-button {
+        min-width: 126px;
+      }
+
+      .email-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(10, 23, 15, 0.58);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-fast);
+      }
+
+      .email-modal-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .email-modal {
+        position: relative;
+        width: min(100%, 470px);
+        padding: 34px;
+        border: 1px solid #dce6de;
+        border-radius: var(--radius-md);
+        background: #fff;
+        box-shadow: 0 20px 60px rgba(10, 23, 15, 0.2);
+        transform: translateY(10px) scale(0.98);
+        transition: transform var(--transition-fast);
+      }
+
+      .email-modal-backdrop.is-open .email-modal {
+        transform: translateY(0) scale(1);
+      }
+
+      .email-modal-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border: 1px solid #d5ded7;
+        border-radius: 50%;
+        color: var(--color-text-muted);
+        background: #fff;
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .email-modal-close:hover {
+        color: var(--color-primary);
+        border-color: #73917a;
+        background: #eef4ef;
+      }
+
+      .email-modal-kicker {
+        color: var(--color-accent);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .email-modal-title {
+        margin: 7px 42px 8px 0;
+        color: var(--color-primary);
+        font: 600 28px/1.2 var(--font-serif);
+      }
+
+      .email-modal-message {
+        margin-bottom: 24px;
+        color: var(--color-text-muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .email-modal-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .email-modal-field label {
+        color: var(--color-text-muted);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .email-modal-field input {
+        width: 100%;
+        height: 42px;
+        padding: 0 13px;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        outline: 0;
+        color: var(--color-text-main);
+        background: #fbfcfb;
+        font: 400 13px var(--font-sans);
+      }
+
+      .email-modal-field input:focus {
+        border-color: #73917a;
+        box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+      }
+
+      .email-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .email-modal-error {
+        margin-top: 12px;
+        color: #8a3027;
+        font-size: 11px;
+      }
+
+      .email-modal-status {
+        margin-top: 12px;
+        color: var(--color-accent);
+        font-size: 11px;
+      }
+
+      @media (max-width: 700px) {
+        .email-modal {
+          padding: 28px 22px 24px;
+        }
+
+        .email-modal-title {
+          font-size: 24px;
+        }
+
+        .email-modal-actions {
+          flex-direction: column-reverse;
+        }
+
+        .email-modal-actions .edit-button {
+          width: 100%;
+        }
+      }
+
+
+      /* Change Password Modal */
+
+      #password-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(10, 23, 15, 0.58);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-fast);
+      }
+
+      #password-modal-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #password-modal-backdrop .modal {
+        position: relative;
+        width: min(100%, 470px);
+        padding: 34px;
+        border: 1px solid #dce6de;
+        border-radius: var(--radius-md);
+        background: #fff;
+        box-shadow: 0 20px 60px rgba(10, 23, 15, 0.2);
+      }
+
+      #password-modal-backdrop h2 {
+        margin-bottom: 10px;
+        color: var(--color-primary);
+        font: 600 28px/1.2 var(--font-serif);
+      }
+
+      #password-modal-backdrop p {
+        color: var(--color-text-muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      #password-modal-backdrop input {
+        width: 100%;
+        height: 42px;
+        margin-top: 12px;
+        padding: 0 13px;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        outline: 0;
+        color: var(--color-text-main);
+        background: #fbfcfb;
+        font: 400 13px var(--font-sans);
+      }
+
+      #password-modal-backdrop input:focus {
+        border-color: #73917a;
+        box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+      }
+
+      #password-modal-backdrop button {
+        margin-top: 16px;
+      }
+
+      #password-otp-timer {
+        margin-top: 10px;
+      }
+
+      #password-otp-message,
+      #password-verify-message,
+      #password-save-message {
+        margin-top: 12px;
+        font-size: 11px;
+      }
+
+      #password-modal-backdrop button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 700px) {
+        #password-modal-backdrop .modal {
+          padding: 28px 22px 24px;
+        }
+
+        #password-modal-backdrop h2 {
+          font-size: 24px;
+        }
+      }
+
+
+
+
+
+
+
+      .edit-footer .footer-container {
+        padding-top: 42px;
+        padding-bottom: 42px;
+      }
+      @media (max-width: 700px) {
+        .edit-shell {
+          width: min(100% - 32px, 900px);
+          margin: 32px auto 48px;
+        }
+        .edit-title {
+          font-size: 28px;
+        }
+        .edit-intro {
+          font-size: 12px;
+        }
+        .edit-card {
+          padding: 28px 20px;
+        }
+        .edit-form {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        .edit-field.full-width {
+          grid-column: auto;
+        }
+        .email-edit-row {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .email-edit-row .edit-button {
+          align-self: flex-start;
+        }
+        .phone-edit-row {
+          grid-template-columns: 112px minmax(0, 1fr);
+          gap: 8px;
+        }
+        .edit-actions {
+          justify-content: stretch;
+        }
+        .edit-actions .edit-button {
+          flex: 1;
+        }
+      }
+
+      /* Profile Picture Upload Component */
+      .profile-upload-container {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 20px 24px;
+        border: 1px dashed #c2d1c6;
+        border-radius: var(--radius-md, 10px);
+        background: #fafbfa;
+        transition: border-color var(--transition-fast), background-color var(--transition-fast);
+      }
+
+      .profile-upload-container:hover {
+        border-color: #61876a;
+        background: #f4f8f4;
+      }
+
+      .avatar-preview-wrapper {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+      }
+
+      .avatar-preview-img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #ffffff;
+        box-shadow: 0 3px 12px rgba(16, 37, 24, 0.1);
+        background: #e4ece6;
+        display: block;
+      }
+
+      .avatar-preview-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: #e4ece6;
+        color: #6b7e72;
+        display: grid;
+        place-items: center;
+        border: 2px solid #ffffff;
+        box-shadow: 0 3px 12px rgba(16, 37, 24, 0.1);
+      }
+
+      .avatar-preview-placeholder svg {
+        width: 36px;
+        height: 36px;
+        stroke-width: 1.4;
+      }
+
+      .avatar-upload-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+      }
+
+      .avatar-upload-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .btn-upload-avatar {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 18px;
+        border: 1px solid #1f2623;
+        border-radius: var(--radius-sm, 6px);
+        background: #ffffff;
+        color: #1f2623;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+      }
+
+      .btn-upload-avatar:hover {
+        background: #1f2623;
+        color: #ffffff;
+        transform: translateY(-1px);
+      }
+
+      .btn-upload-avatar svg {
+        width: 15px;
+        height: 15px;
+        stroke-width: 2;
+      }
+
+      .btn-cancel-avatar {
+        background: none;
+        border: none;
+        color: #a33f3f;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 4px;
+        transition: background-color 0.15s ease;
+      }
+
+      .btn-cancel-avatar:hover {
+        background: #fdebee;
+      }
+
+      .avatar-upload-hint {
+        color: #7b8a80;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      .avatar-filename {
+        font-size: 11.5px;
+        color: var(--color-accent, #2e593d);
+        font-weight: 600;
+      }
+
+      .hidden-file-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      @media (max-width: 540px) {
+        .profile-upload-container {
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+        .avatar-upload-actions {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body class="edit-page">
+    <header class="site-header edit-header" role="banner">
+      <div class="header-container">
+        <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+          <svg
+            class="logo-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2"
+            />
+          </svg>
+          <span class="logo-text">VERDÉ</span>
+        </a>
+        <nav class="main-nav" aria-label="Primary Navigation">
+          <ul class="nav-list">
+            <li><a href="/" class="nav-link">Home</a></li>
+            <li><a href="#shop" class="nav-link">Shop</a></li>
+            <li><a href="#offers" class="nav-link">Offers</a></li>
+            <li><a href="#about" class="nav-link">About</a></li>
+          </ul>
+        </nav>
+        <div class="header-actions">
+          <a href="/profile/" class="btn-signin">Back to Profile</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="edit-shell">
+      <div class="edit-heading">
+        <span class="edit-kicker">Account Settings</span>
+        <h1 class="edit-title">Edit Profile</h1>
+        <p class="edit-intro">
+          Keep your personal information current and secure.
+        </p>
+      </div>
+
+      <section class="edit-card" aria-labelledby="edit-information-title">
+        <h2 class="edit-card-heading" id="edit-information-title">
+          Personal Information
+        </h2>
+        {% if error and not name_error and not phone_error %}
+        <p class="edit-error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <!-- Allow the form to upload an image file -->
+        <form class="edit-form" id="editProfileForm" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="edit-field">
+            <label for="edit-full-name">Full Name</label>
+            <input
+              id="edit-full-name"
+              name="full_name"
+              type="text"
+              value="{{ submitted_full_name|default:user.full_name }}"
+              class="{% if name_error %}is-invalid{% endif %}"
+              autocomplete="name"
+              required
+            />
+            <span class="field-error" id="editFullNameError" role="alert" aria-live="polite">{% if name_error %}{{ name_error }}{% endif %}</span>
+          </div>
+          <div class="edit-field">
+            <label for="edit-email">Email Address</label>
+            <div class="email-edit-row">
+              <input
+                id="edit-email"
+                name="email"
+                type="email"
+                value="{{ user.email }}"
+                readonly
+                autocomplete="email"
+              />
+              <button
+                class="edit-button"
+                id="change-email-button"
+                type="button"
+              >
+                Change Email
+              </button>
+            </div>
+          </div>
+          <div class="edit-field full-width">
+            <label for="edit-phone">Phone Number</label>
+            <div class="phone-edit-row">
+              <select
+                id="edit-country-code"
+                name="country_code"
+                aria-label="Country code"
+              >
+                <option value="+91" selected>India (+91)</option>
+                <option value="+1">United States (+1)</option>
+                <option value="+44">United Kingdom (+44)</option>
+                <option value="+61">Australia (+61)</option>
+                <option value="+81">Japan (+81)</option>
+                <option value="+971">UAE (+971)</option>
+              </select>
+              <input
+                id="edit-phone"
+                name="phone"
+                type="tel"
+                value="{{ submitted_phone|default:user.phone|default:'' }}"
+                class="{% if phone_error %}is-invalid{% endif %}"
+                placeholder="Enter phone number"
+                autocomplete="tel"
+              />
+            </div>
+            <span class="field-error" id="editPhoneError" role="alert" aria-live="polite">{% if phone_error %}{{ phone_error }}{% endif %}</span>
+            <span class="edit-help"
+              >Use a phone number where you can receive account
+              notifications.</span
+            >
+          </div>
+          <!-- Profile picture upload widget -->
+          <div class="edit-field full-width">
+            <label>Profile Picture</label>
+            <div class="profile-upload-container">
+              <div class="avatar-preview-wrapper">
+                {% if user.profile_picture %}
+                  <img
+                    id="avatar-preview-img"
+                    class="avatar-preview-img"
+                    src="{{ user.profile_picture.url }}"
+                    alt="{{ user.full_name }}"
+                  />
+                  <div id="avatar-preview-placeholder" class="avatar-preview-placeholder" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="8" r="3" />
+                      <path d="M5 21a7 7 0 0 1 14 0" />
+                    </svg>
+                  </div>
+                {% else %}
+                  <img
+                    id="avatar-preview-img"
+                    class="avatar-preview-img"
+                    src=""
+                    alt="{{ user.full_name }}"
+                    style="display: none;"
+                  />
+                  <div id="avatar-preview-placeholder" class="avatar-preview-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="8" r="3" />
+                      <path d="M5 21a7 7 0 0 1 14 0" />
+                    </svg>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="avatar-upload-info">
+                <div class="avatar-upload-actions">
+                  <label for="edit-profile-picture" class="btn-upload-avatar" role="button" tabindex="0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Upload New Photo</span>
+                  </label>
+                  <button type="button" id="btn-cancel-avatar" class="btn-cancel-avatar" style="display: none;">
+                    Cancel Selection
+                  </button>
+                </div>
+                <input
+                  id="edit-profile-picture"
+                  name="profile_picture"
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp, image/gif"
+                  class="hidden-file-input"
+                />
+                <span class="avatar-upload-hint">Recommended: Square JPG, PNG, or WEBP (Max 5MB).</span>
+                <span id="avatar-filename" class="avatar-filename" style="display: none;"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="edit-actions full-width">
+            <a class="edit-button" href="/profile/">Cancel</a>
+            <button class="edit-button primary" type="submit">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <div
+      class="email-modal-backdrop"
+      id="email-modal-backdrop"
+      aria-hidden="true"
+    >
+      <section
+        class="email-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="email-modal-title"
+      >
+        <button
+          class="email-modal-close"
+          id="email-modal-close"
+          type="button"
+          aria-label="Close email change dialog"
+        >
+          &times;
+        </button>
+        <span class="email-modal-kicker">Account Security</span>
+        <h2 class="email-modal-title" id="email-modal-title">Change Email</h2>
+        <p class="email-modal-message" id="email-modal-message">
+          Enter your new email address. We will send an OTP to verify it.
+        </p>
+        <form id="change-email-form">
+          <div class="email-modal-field" id="new-email-field">
+            <label for="new-email">New Email Address</label>
+            <input id="new-email" type="email" autocomplete="email" required />
+            <span class="field-error" id="newEmailError" role="alert" aria-live="polite"></span>
+          </div>
+          <div class="email-modal-field" id="otp-field" hidden>
+            <label for="email-otp">6-digit OTP</label>
+
+            <input
+              id="email-otp"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              autocomplete="one-time-code"
+            />
+            <span class="field-error" id="emailOtpError" role="alert" aria-live="polite"></span>
+
+            <!-- OTP countdown -->
+            <p
+              id="email-otp-timer"
+              class="edit-help"
+              style="margin-top: 6px;"
+            >
+              OTP expires in 01:00
+            </p>
+
+            <!-- Resend OTP button -->
+            <button
+              type="button"
+              id="resend-email-otp"
+              class="edit-button"
+              style="margin-top: 8px;"
+              disabled
+            >
+              Resend OTP
+            </button>
+          </div>
+          <p
+            class="email-modal-error"
+            id="email-modal-error"
+            role="alert"
+            aria-live="polite"
+          ></p>
+          <p
+            class="email-modal-status"
+            id="email-modal-status"
+            aria-live="polite"
+          ></p>
+          <div class="email-modal-actions">
+            <button
+              class="edit-button"
+              id="email-modal-back"
+              type="button"
+              hidden
+            >
+              Back
+            </button>
+            <button class="edit-button" id="email-modal-submit" type="submit">
+              Send OTP
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <footer class="site-footer edit-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <div class="footer-logo">VERDÉ</div>
+          <p class="footer-tagline">
+            &copy; 2024 VERDÉ. Curating botanical elegance for<br />your
+            domestic spaces.
+          </p>
+        </div>
+        <div class="footer-nav-groups">
+          <div class="footer-group">
+            <strong class="footer-heading">Shop</strong
+            ><a class="footer-link" href="#">Indoor</a
+            ><a class="footer-link" href="#">Outdoor</a
+            ><a class="footer-link" href="#">Accessories</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Help</strong
+            ><a class="footer-link" href="#">Contact</a
+            ><a class="footer-link" href="#">FAQ</a
+            ><a class="footer-link" href="#">Shipping</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Follow</strong
+            ><a class="footer-link" href="https://instagram.com">Instagram</a
+            ><a class="footer-link" href="https://pinterest.com">Pinterest</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+      <script>
+        // ==============================
+        // Profile Form Validation & Clear
+        // ==============================
+        const editProfileForm = document.getElementById("editProfileForm");
+        const editFullNameInput = document.getElementById("edit-full-name");
+        const editPhoneInput = document.getElementById("edit-phone");
+        const editFullNameError = document.getElementById("editFullNameError");
+        const editPhoneError = document.getElementById("editPhoneError");
+
+        if (editFullNameInput) {
+          editFullNameInput.addEventListener("input", function () {
+            if (editFullNameError) editFullNameError.textContent = "";
+            editFullNameInput.classList.remove("is-invalid");
+          });
+        }
+
+        if (editPhoneInput) {
+          editPhoneInput.addEventListener("input", function () {
+            if (editPhoneError) editPhoneError.textContent = "";
+            editPhoneInput.classList.remove("is-invalid");
+          });
+        }
+
+        if (editProfileForm) {
+          editProfileForm.addEventListener("submit", function (e) {
+            let hasError = false;
+            const nameVal = editFullNameInput ? editFullNameInput.value.trim() : "";
+            const phoneVal = editPhoneInput ? editPhoneInput.value.trim() : "";
+
+            if (!nameVal) {
+              if (editFullNameError) editFullNameError.textContent = "Full name is required.";
+              if (editFullNameInput) editFullNameInput.classList.add("is-invalid");
+              hasError = true;
+            } else if (!/^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/.test(nameVal)) {
+              if (editFullNameError) editFullNameError.textContent = "Enter a valid full name.";
+              if (editFullNameInput) editFullNameInput.classList.add("is-invalid");
+              hasError = true;
+            }
+
+            if (phoneVal && !(/^\d{10}$/.test(phoneVal))) {
+              if (editPhoneError) editPhoneError.textContent = "Phone number must contain exactly 10 digits.";
+              if (editPhoneInput) editPhoneInput.classList.add("is-invalid");
+              hasError = true;
+            }
+
+            if (hasError) {
+              e.preventDefault();
+            }
+          });
+        }
+
+        // ==============================
+        // Get modal elements
+        // ==============================
+
+        const changeEmailButton =
+          document.getElementById("change-email-button");
+
+        const emailModalBackdrop =
+          document.getElementById("email-modal-backdrop");
+
+        const emailModalClose =
+          document.getElementById("email-modal-close");
+
+        const changeEmailForm =
+          document.getElementById("change-email-form");
+
+        const newEmailField =
+          document.getElementById("new-email-field");
+
+        const otpField =
+          document.getElementById("otp-field");
+
+        const newEmailInput =
+          document.getElementById("new-email");
+
+        const otpInput =
+          document.getElementById("email-otp");
+
+        const newEmailError =
+          document.getElementById("newEmailError");
+
+        const emailOtpError =
+          document.getElementById("emailOtpError");
+
+        const modalSubmitButton =
+          document.getElementById("email-modal-submit");
+
+        const modalBackButton =
+          document.getElementById("email-modal-back");
+
+        const modalError =
+          document.getElementById("email-modal-error");
+
+        const modalStatus =
+          document.getElementById("email-modal-status");
+
+        const modalMessage =
+          document.getElementById("email-modal-message");
+
+        function clearEmailModalErrors() {
+          if (newEmailError) newEmailError.textContent = "";
+          if (emailOtpError) emailOtpError.textContent = "";
+          if (newEmailInput) newEmailInput.classList.remove("is-invalid");
+          if (otpInput) otpInput.classList.remove("is-invalid");
+          if (modalError) modalError.textContent = "";
+        }
+
+        if (newEmailInput) {
+          newEmailInput.addEventListener("input", function () {
+            if (newEmailError) newEmailError.textContent = "";
+            newEmailInput.classList.remove("is-invalid");
+            if (modalError) modalError.textContent = "";
+          });
+        }
+
+        if (otpInput) {
+          otpInput.addEventListener("input", function () {
+            if (emailOtpError) emailOtpError.textContent = "";
+            otpInput.classList.remove("is-invalid");
+            if (modalError) modalError.textContent = "";
+          });
+        }
+
+        // ==============================
+        // OTP timer elements
+        // ==============================
+
+        const emailOtpTimer =
+          document.getElementById("email-otp-timer");
+
+        const resendEmailOtpButton =
+          document.getElementById("resend-email-otp");
+
+        let emailOtpTimeLeft = 60; // 1 minute
+        let emailOtpCountdown;
+        let emailBeingChanged = "";
+
+
+        // ==============================
+        // Get CSRF token
+        // ==============================
+
+        function getCookie(name) {
+          const cookies = document.cookie.split(";");
+
+          for (const cookie of cookies) {
+            const [key, value] = cookie.trim().split("=");
+
+            if (key === name) {
+              return decodeURIComponent(value);
+            }
+          }
+
+          return null;
+        }
+
+
+        // ==============================
+        // Start OTP timer
+        // ==============================
+
+        function startEmailOtpTimer() {
+
+          // Stop any previous timer
+          clearInterval(emailOtpCountdown);
+
+          // Reset to 1 minute
+          emailOtpTimeLeft = 60;
+
+          // Disable resend while timer is running
+          resendEmailOtpButton.disabled = true;
+
+          emailOtpTimer.textContent =
+            "OTP expires in 01:00";
+
+
+          emailOtpCountdown = setInterval(() => {
+
+            const minutes =
+              Math.floor(emailOtpTimeLeft / 60);
+
+            const seconds =
+              String(emailOtpTimeLeft % 60).padStart(2, "0");
+
+
+            emailOtpTimer.textContent =
+              `OTP expires in ${minutes}:${seconds}`;
+
+
+            emailOtpTimeLeft--;
+
+
+            // OTP expired
+            if (emailOtpTimeLeft < 0) {
+
+              clearInterval(emailOtpCountdown);
+
+              emailOtpTimer.textContent =
+                "OTP has expired.";
+
+              // Enable resend
+              resendEmailOtpButton.disabled = false;
+            }
+
+          }, 1000);
+        }
+
+
+        // ==============================
+        // Open Change Email modal
+        // ==============================
+
+        changeEmailButton.addEventListener("click", function () {
+
+          emailModalBackdrop.classList.add("is-open");
+
+          emailModalBackdrop.setAttribute(
+            "aria-hidden",
+            "false"
+          );
+
+
+          // Show email step
+          newEmailField.hidden = false;
+
+          // Hide OTP step
+          otpField.hidden = true;
+
+          // Reset buttons
+          modalBackButton.hidden = true;
+
+          modalSubmitButton.textContent =
+            "Send OTP";
+
+          
+          // Resend OTP must be disabled until the first OTP is sent
+          resendEmailOtpButton.disabled = true;
+          resendEmailOtpButton.textContent = "Resend OTP";
+
+          // Clear previous messages
+          clearEmailModalErrors();
+
+          modalStatus.textContent = "";
+
+
+          modalMessage.textContent =
+            "Enter your new email address. We will send an OTP to verify it.";
+
+
+          newEmailInput.focus();
+        });
+
+
+        // ==============================
+        // Close modal
+        // ==============================
+
+        emailModalClose.addEventListener("click", function () {
+
+          emailModalBackdrop.classList.remove("is-open");
+
+          emailModalBackdrop.setAttribute(
+            "aria-hidden",
+            "true"
+          );
+
+          clearInterval(emailOtpCountdown);
+          clearEmailModalErrors();
+        });
+
+
+        // ==============================
+        // Close modal when clicking outside
+        // ==============================
+
+        emailModalBackdrop.addEventListener(
+          "click",
+          function (event) {
+
+            if (event.target === emailModalBackdrop) {
+
+              emailModalBackdrop.classList.remove(
+                "is-open"
+              );
+
+              emailModalBackdrop.setAttribute(
+                "aria-hidden",
+                "true"
+              );
+
+              clearInterval(emailOtpCountdown);
+              clearEmailModalErrors();
+            }
+          }
+        );
+
+
+        // ==============================
+        // Send OTP / Verify OTP
+        // ==============================
+
+        changeEmailForm.addEventListener(
+          "submit",
+          async function (event) {
+
+            event.preventDefault();
+
+            clearEmailModalErrors();
+            modalStatus.textContent = "";
+
+
+            const csrfToken = getCookie("csrftoken");
+
+
+            // ==========================================
+            // STEP 2: Verify OTP
+            // ==========================================
+
+            if (!otpField.hidden) {
+
+              const otp =
+                otpInput.value.trim();
+
+
+              // Check OTP
+              if (!otp) {
+                if (emailOtpError) emailOtpError.textContent = "Please enter the OTP.";
+                otpInput.classList.add("is-invalid");
+                otpInput.focus();
+                return;
+              }
+
+
+              if (!/^\d{6}$/.test(otp)) {
+                if (emailOtpError) emailOtpError.textContent = "Please enter a valid 6-digit OTP.";
+                otpInput.classList.add("is-invalid");
+                otpInput.focus();
+                return;
+              }
+
+
+              modalSubmitButton.disabled = true;
+
+              modalSubmitButton.textContent =
+                "Verifying...";
+
+
+              try {
+
+                const response = await fetch(
+                  "/profile/verify-email/",
+                  {
+                    method: "POST",
+
+                    headers: {
+                      "Content-Type": "application/json",
+                      "X-CSRFToken": csrfToken,
+                    },
+
+                    body: JSON.stringify({
+                      otp: otp,
+                    }),
+                  }
+                );
+
+
+                const data =
+                  await response.json();
+
+
+                if (response.ok) {
+
+                  clearEmailModalErrors();
+
+                  modalStatus.textContent =
+                    data.message ||
+                    "Email changed successfully.";
+
+
+                  // Stop countdown
+                  clearInterval(emailOtpCountdown);
+
+
+                  // Redirect to profile
+                  setTimeout(() => {
+
+                    window.location.href =
+                      "/profile/";
+
+                  }, 1000);
+
+
+                } else {
+                  const err = data.error || "Invalid or expired OTP.";
+                  if (emailOtpError) emailOtpError.textContent = err;
+                  otpInput.classList.add("is-invalid");
+                  otpInput.focus();
+                }
+
+
+              } catch (error) {
+                if (emailOtpError) emailOtpError.textContent = "Unable to connect. Please try again.";
+              }
+
+
+              modalSubmitButton.disabled = false;
+
+              modalSubmitButton.textContent =
+                "Verify OTP";
+
+
+              return;
+            }
+
+
+            // ==========================================
+            // STEP 1: Send OTP
+            // ==========================================
+
+            const newEmail =
+              newEmailInput.value.trim();
+
+
+            if (!newEmail) {
+              if (newEmailError) newEmailError.textContent = "Please enter your new email address.";
+              newEmailInput.classList.add("is-invalid");
+              newEmailInput.focus();
+              return;
+            }
+
+
+            modalSubmitButton.disabled = true;
+
+            modalSubmitButton.textContent =
+              "Sending...";
+
+
+            try {
+
+              const response = await fetch(
+                "/profile/change-email/",
+                {
+                  method: "POST",
+
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                  },
+
+                  body: JSON.stringify({
+                    email: newEmail,
+                  }),
+                }
+              );
+
+
+              const data =
+                await response.json();
+
+
+              if (response.ok) {
+
+                // Remember the email
+                emailBeingChanged =
+                  newEmail;
+
+
+                // Hide email field
+                newEmailField.hidden = true;
+
+
+                // Show OTP field
+                otpField.hidden = false;
+
+
+                // Show Back button
+                modalBackButton.hidden = false;
+
+
+                // Change button text
+                modalSubmitButton.textContent =
+                  "Verify OTP";
+
+
+                clearEmailModalErrors();
+
+                modalStatus.textContent =
+                  data.message ||
+                  "OTP sent successfully.";
+
+
+                modalMessage.textContent =
+                  "Enter the 6-digit OTP sent to your new email address.";
+
+
+                // Start 1-minute countdown
+                startEmailOtpTimer();
+
+
+                otpInput.focus();
+
+              } else {
+                const err = data.error || "Unable to send OTP.";
+                if (newEmailError) newEmailError.textContent = err;
+                newEmailInput.classList.add("is-invalid");
+                newEmailInput.focus();
+              }
+
+
+            } catch (error) {
+              if (newEmailError) newEmailError.textContent = "Unable to connect. Please try again.";
+            }
+
+
+            modalSubmitButton.disabled = false;
+
+
+            if (otpField.hidden) {
+
+              modalSubmitButton.textContent =
+                "Send OTP";
+            }
+          }
+        );
+
+
+        // ==============================
+        // Resend OTP
+        // ==============================
+
+        resendEmailOtpButton.addEventListener(
+          "click",
+          async function () {
+
+            if (!emailBeingChanged) {
+              if (emailOtpError) emailOtpError.textContent = "Please enter your email again.";
+              return;
+            }
+
+
+            clearEmailModalErrors();
+            modalStatus.textContent = "";
+
+
+            resendEmailOtpButton.disabled = true;
+
+            resendEmailOtpButton.textContent =
+              "Sending...";
+
+
+            const csrfToken =
+              getCookie("csrftoken");
+
+
+            try {
+
+              const response = await fetch(
+                "/profile/change-email/",
+                {
+                  method: "POST",
+
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                  },
+
+                  body: JSON.stringify({
+                    email: emailBeingChanged,
+                  }),
+                }
+              );
+
+
+              const data =
+                await response.json();
+
+
+              if (response.ok) {
+
+                modalStatus.textContent =
+                  data.message ||
+                  "A new OTP has been sent.";
+
+
+                // Clear old OTP
+                otpInput.value = "";
+
+
+                // Restart 1-minute timer
+                startEmailOtpTimer();
+
+
+                otpInput.focus();
+
+              } else {
+                const err = data.error || "Unable to resend OTP.";
+                if (emailOtpError) emailOtpError.textContent = err;
+                resendEmailOtpButton.disabled = false;
+              }
+
+
+            } catch (error) {
+              if (emailOtpError) emailOtpError.textContent = "Unable to connect. Please try again.";
+              resendEmailOtpButton.disabled = false;
+            }
+
+
+            resendEmailOtpButton.textContent =
+              "Resend OTP";
+          }
+        );
+
+        // ==============================
+        // Back button
+        // ==============================
+
+        modalBackButton.addEventListener(
+          "click",
+          function () {
+
+            // Stop the OTP countdown
+            clearInterval(emailOtpCountdown);
+
+            // Go back to the email step
+            newEmailField.hidden = false;
+            otpField.hidden = true;
+
+            // Reset buttons
+            modalBackButton.hidden = true;
+
+            modalSubmitButton.textContent =
+              "Send OTP";
+
+            // Resend stays disabled until a new OTP is requested
+            resendEmailOtpButton.disabled = true;
+            resendEmailOtpButton.textContent =
+              "Resend OTP";
+
+            // Clear messages
+            clearEmailModalErrors();
+            modalStatus.textContent = "";
+
+            // Reset modal message
+            modalMessage.textContent =
+              "Enter your new email address. We will send an OTP to verify it.";
+
+            // Focus email input
+            newEmailInput.focus();
+          }
+        );
+
+        // ==============================
+        // Profile Picture Live Preview
+        // ==============================
+        const profilePicInput = document.getElementById("edit-profile-picture");
+        const avatarPreviewImg = document.getElementById("avatar-preview-img");
+        const avatarPreviewPlaceholder = document.getElementById("avatar-preview-placeholder");
+        const avatarFilename = document.getElementById("avatar-filename");
+        const btnCancelAvatar = document.getElementById("btn-cancel-avatar");
+        const originalAvatarSrc = avatarPreviewImg ? avatarPreviewImg.src : "";
+        const hadOriginalAvatar = {% if user.profile_picture %}true{% else %}false{% endif %};
+
+        if (profilePicInput) {
+          profilePicInput.addEventListener("change", function () {
+            const file = this.files && this.files[0];
+            if (file) {
+              if (!file.type.startsWith("image/")) {
+                alert("Please select a valid image file (JPG, PNG, WEBP, or GIF).");
+                this.value = "";
+                return;
+              }
+              if (file.size > 5 * 1024 * 1024) {
+                alert("Image size must be 5MB or smaller.");
+                this.value = "";
+                return;
+              }
+
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                if (avatarPreviewImg) {
+                  avatarPreviewImg.src = e.target.result;
+                  avatarPreviewImg.style.display = "block";
+                }
+                if (avatarPreviewPlaceholder) {
+                  avatarPreviewPlaceholder.style.display = "none";
+                }
+              };
+              reader.readAsDataURL(file);
+
+              if (avatarFilename) {
+                avatarFilename.textContent = `Selected: ${file.name}`;
+                avatarFilename.style.display = "block";
+              }
+              if (btnCancelAvatar) {
+                btnCancelAvatar.style.display = "inline-block";
+              }
+            }
+          });
+        }
+
+        if (btnCancelAvatar) {
+          btnCancelAvatar.addEventListener("click", function () {
+            if (profilePicInput) {
+              profilePicInput.value = "";
+            }
+            if (avatarFilename) {
+              avatarFilename.textContent = "";
+              avatarFilename.style.display = "none";
+            }
+            btnCancelAvatar.style.display = "none";
+
+            if (hadOriginalAvatar && avatarPreviewImg) {
+              avatarPreviewImg.src = originalAvatarSrc;
+              avatarPreviewImg.style.display = "block";
+              if (avatarPreviewPlaceholder) {
+                avatarPreviewPlaceholder.style.display = "none";
+              }
+            } else {
+              if (avatarPreviewImg) {
+                avatarPreviewImg.src = "";
+                avatarPreviewImg.style.display = "none";
+              }
+              if (avatarPreviewPlaceholder) {
+                avatarPreviewPlaceholder.style.display = "grid";
+              }
+            }
+          });
+        }
+      </script>
+  </body>
+</html>

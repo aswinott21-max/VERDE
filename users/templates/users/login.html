@@ -1,65 +1,256 @@
-<!DOCTYPE html>
+{% load static %}
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERDÉ - Login</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | Welcome Back</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  </head>
+  <body class="login-page">
+    <header class="login-header">
+      <a class="login-header-brand" href="/" aria-label="VERDÉ home">
+        <span class="login-header-mark">✣</span>
+        <span>VERDÉ</span>
+      </a>
+    </header>
 
-    <h1>Login</h1>
+    <main class="login-shell">
+      <section class="login-visual" aria-label="VERDÉ botanical welcome">
+        <img
+          src="{% static 'assets/images/hero-botanical.jpg' %}"
+          alt="Lush monstera plants in a sunlit room"
+        />
+        <div class="login-visual-overlay"></div>
+        <div class="login-visual-copy">
+          <h1>Bring nature home.</h1>
+          <p>A greener space begins with something simple.</p>
+        </div>
+      </section>
 
-    <form id="loginForm">
+      <section class="login-panel" aria-labelledby="login-title">
+        <div class="login-panel-inner">
+          <a class="login-brand" href="/" aria-label="VERDÉ home">
+            <span class="login-brand-mark">✣</span>
+            <span>VERDÉ</span>
+          </a>
 
-        <label for="email">Email</label>
-        <input type="email" id="email" required>
+          <div class="login-heading">
+            <h2 id="login-title">Welcome Back</h2>
+            <p>Sign in to continue your journey with VERDÉ.</p>
+          </div>
 
-        <br><br>
+          <form class="login-form" id="loginForm" novalidate>
+            <div class="login-field">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email address"
+                autocomplete="email"
+                required
+              />
+              <span class="field-error" id="emailError" role="alert" aria-live="polite"></span>
+            </div>
 
-        <label for="password">Password</label>
-        <input type="password" id="password" required>
+            <div class="login-field">
+              <label for="password">Password</label>
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button
+                  class="password-toggle"
+                  type="button"
+                  id="passwordToggle"
+                  aria-label="Show password"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path
+                      d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+                    ></path>
+                    <circle cx="12" cy="12" r="2.5"></circle>
+                  </svg>
+                </button>
+              </div>
+              <span class="field-error" id="passwordError" role="alert" aria-live="polite"></span>
+            </div>
 
-        <br><br>
+            <div class="login-options">
+              <a href="/forgot-password/">Forgot password?</a>
+            </div>
 
-        <button type="submit">Login</button>
+            <p
+              class="login-error"
+              id="loginError"
+              role="alert"
+              aria-live="polite"
+            ></p>
 
-    </form>
+            <button class="login-submit" type="submit">Sign In</button>
+
+            <div class="login-divider"><span>OR CONTINUE WITH</span></div>
+
+            <a href="/google/login/" class="google-button">
+              <span class="google-mark">G</span>
+              Continue with Google
+            </a>
+          </form>
+
+          <p class="login-register">
+            Don't have an account? <a href="/signup-page/">Create an account</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="login-footer">
+      <div class="login-footer-brand">
+        <div class="login-footer-logo">VERDÉ</div>
+        <p>
+          &copy; 2024 VERDÉ. Curating botanical elegance for<br />your domestic
+          spaces.
+        </p>
+      </div>
+      <div class="login-footer-links">
+        <div>
+          <strong>Shop</strong><a href="#">Indoor</a><a href="#">Outdoor</a
+          ><a href="#">Accessories</a>
+        </div>
+        <div>
+          <strong>Help</strong><a href="#">Contact</a><a href="#">FAQ</a
+          ><a href="#">Shipping</a>
+        </div>
+        <div>
+          <strong>Account</strong><a href="/login-page/">Profile</a
+          ><a href="#">Orders</a>
+        </div>
+        <div>
+          <strong>Follow</strong><a href="https://instagram.com">Instagram</a
+          ><a href="https://pinterest.com">Pinterest</a>
+        </div>
+      </div>
+    </footer>
+
     <script>
-    // Handle login form submission
-    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+      const loginForm = document.getElementById("loginForm");
+      const loginError = document.getElementById("loginError");
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const emailError = document.getElementById("emailError");
+      const passwordError = document.getElementById("passwordError");
+      const passwordToggle = document.getElementById("passwordToggle");
 
-        // Prevent the browser from refreshing the page
-        event.preventDefault();
+      passwordToggle.addEventListener("click", function () {
+        const showing = passwordInput.type === "text";
+        passwordInput.type = showing ? "password" : "text";
+        passwordToggle.setAttribute(
+          "aria-label",
+          showing ? "Show password" : "Hide password",
+        );
+      });
 
-        // Get email and password from the form
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+      function setFieldError(inputEl, errorEl, message) {
+        if (errorEl) errorEl.textContent = message;
+        if (inputEl) inputEl.classList.add("is-invalid");
+      }
 
-        // Send login data to the Django login API
-        const response = await fetch("/login/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password
-            })
-        });
+      function clearFieldError(inputEl, errorEl) {
+        if (errorEl) errorEl.textContent = "";
+        if (inputEl) inputEl.classList.remove("is-invalid");
+      }
 
-        // Convert the response into JSON
-        const result = await response.json();
+      function clearAllErrors() {
+        clearFieldError(emailInput, emailError);
+        clearFieldError(passwordInput, passwordError);
+        if (loginError) loginError.textContent = "";
+      }
 
-        // Handle the login response
-        if (response.ok) {
-        // Redirect the user to the dashboard after successful login
-             window.location.href = "/dashboard/";
-        } else {
-        // Show the error message if login fails
-             alert(result.error);
+      [emailInput, passwordInput].forEach((input) => {
+        if (input) {
+          input.addEventListener("input", () => {
+            if (input === emailInput) clearFieldError(emailInput, emailError);
+            if (input === passwordInput) clearFieldError(passwordInput, passwordError);
+            if (loginError) loginError.textContent = "";
+          });
         }
-    });
-</script>
+      });
 
-</body>
+      loginForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        clearAllErrors();
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        let hasRequiredError = false;
+        if (!email) {
+          setFieldError(emailInput, emailError, "Email address is required.");
+          hasRequiredError = true;
+        }
+        if (!password) {
+          setFieldError(passwordInput, passwordError, "Password is required.");
+          hasRequiredError = true;
+        }
+        if (hasRequiredError) {
+          if (!email) {
+            emailInput.focus();
+          } else {
+            passwordInput.focus();
+          }
+          return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          setFieldError(emailInput, emailError, "Please enter a valid email address.");
+          emailInput.focus();
+          return;
+        }
+
+        try {
+          const response = await fetch("/login/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, password: password }),
+          });
+          const result = await response.json();
+
+          if (response.ok) {
+            window.location.href = "/";
+          } else {
+            const err = result.error || "Unable to sign in.";
+            const lowerErr = err.toLowerCase();
+
+            if (lowerErr.includes("email and password are required")) {
+              if (!email) setFieldError(emailInput, emailError, "Email address is required.");
+              if (!password) setFieldError(passwordInput, passwordError, "Password is required.");
+            } else if (lowerErr.includes("invalid email or password")) {
+              setFieldError(emailInput, emailError, err);
+              setFieldError(passwordInput, passwordError, err);
+              emailInput.focus();
+            } else if (lowerErr.includes("verify your email")) {
+              setFieldError(emailInput, emailError, err);
+              emailInput.focus();
+            } else {
+              loginError.textContent = err;
+            }
+          }
+        } catch (error) {
+          loginError.textContent = "Unable to connect. Please try again.";
+        }
+      });
+    </script>
+  </body>
 </html>

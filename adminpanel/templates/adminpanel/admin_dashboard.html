@@ -1,0 +1,1505 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERDÉ Admin Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Palette */
+            --bg-sidebar: #091a10;
+            --sidebar-hover: rgba(255, 255, 255, 0.06);
+            --sidebar-active: #142a1d;
+            --sidebar-text: #8ea896;
+            --sidebar-text-active: #ffffff;
+            --sidebar-heading: #4b6854;
+
+            --bg-main: #fbfcfb;
+            --bg-card: #ffffff;
+            --card-border: #edf0eb;
+            --color-text-main: #141715;
+            --color-text-muted: #64746a;
+            --color-text-light: #94a399;
+
+            --green-badge-bg: #eaf6ed;
+            --green-badge-text: #23834c;
+            --red-badge-bg: #fdebee;
+            --red-badge-text: #d32f2f;
+            --gray-badge-bg: #f1f3f0;
+            --gray-badge-text: #505d54;
+
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            
+            --shadow-subtle: 0 2px 10px rgba(16, 37, 24, 0.03);
+            --shadow-card: 0 4px 20px rgba(16, 37, 24, 0.04);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+        }
+
+        /* Base Resets */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-main);
+            color: var(--color-text-main);
+            min-height: 100vh;
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ==========================================================================
+           Sidebar Navigation
+           ========================================================================== */
+        .admin-sidebar {
+            width: 230px;
+            min-width: 230px;
+            background-color: var(--bg-sidebar);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .admin-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        /* Brand Logo */
+        .sidebar-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 24px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+        }
+
+        .brand-logo-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .brand-logo-wrap svg {
+            width: 24px;
+            height: 24px;
+            stroke: #a2c4ac;
+            margin-bottom: 2px;
+        }
+
+        .brand-title {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .brand-subtitle {
+            font-size: 9px;
+            letter-spacing: 3.5px;
+            color: #6b8a74;
+            font-weight: 600;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Navigation Groups */
+        .nav-section {
+            margin-top: 14px;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--sidebar-heading);
+            padding: 6px 12px 4px;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--sidebar-text);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            color: var(--sidebar-text-active);
+            background-color: var(--sidebar-hover);
+        }
+
+        .nav-item.active a {
+            color: var(--sidebar-text-active);
+            background-color: var(--sidebar-active);
+            font-weight: 600;
+        }
+
+        .nav-item svg {
+            width: 17px;
+            height: 17px;
+            stroke-width: 1.8;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+
+        .nav-item.active svg {
+            opacity: 1;
+            stroke: #72ba88;
+        }
+
+        /* ==========================================================================
+           Main Content Area
+           ========================================================================== */
+        .admin-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+        }
+
+        /* Top Header */
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 36px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header-title {
+            font-family: var(--font-serif);
+            font-size: 23px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            letter-spacing: -0.2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #434e46;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 4px;
+            border-radius: 50%;
+            transition: color 0.15s ease;
+        }
+
+        .header-icon-btn:hover {
+            color: var(--color-text-main);
+        }
+
+        .header-icon-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            background-color: #e53935;
+            border-radius: 50%;
+        }
+
+        /* Profile Dropdown Wrapper */
+        .profile-dropdown-wrapper {
+            position: relative;
+        }
+
+        .admin-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            padding: 4px 6px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .admin-profile-btn:hover {
+            background-color: #f0f4f1;
+        }
+
+        .admin-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #e2e8e3;
+            color: #35493b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid #d4ded6;
+        }
+
+        .chevron-icon {
+            color: #728477;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-profile-btn[aria-expanded="true"] .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background-color: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 30px rgba(16, 37, 24, 0.1);
+            min-width: 200px;
+            padding: 6px 0;
+            z-index: 100;
+        }
+
+        .profile-dropdown-menu.show {
+            display: block;
+            animation: dropdownFadeIn 0.15s ease-out;
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-header {
+            padding: 8px 16px 6px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dropdown-user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .dropdown-user-role {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: var(--card-border);
+            margin: 4px 0;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-main);
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .dropdown-item svg {
+            width: 15px;
+            height: 15px;
+            color: #637268;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f4f6f4;
+        }
+
+        .dropdown-item.logout-btn {
+            color: #d32f2f;
+        }
+
+        .dropdown-item.logout-btn svg {
+            color: #d32f2f;
+        }
+
+        .dropdown-item.logout-btn:hover {
+            background-color: #fdebee;
+        }
+
+        .logout-form {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            padding: 28px 36px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Greeting & Date Bar */
+        .greeting-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .greeting-heading {
+            font-family: var(--font-serif);
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .greeting-subtext {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin-top: 4px;
+        }
+
+        .date-picker-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            background: #ffffff;
+            border: 1px solid #dbe2dc;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 500;
+            color: #3e4a42;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            transition: border-color 0.15s ease;
+        }
+
+        .date-picker-btn:hover {
+            border-color: #aebdb2;
+        }
+
+        .date-picker-btn svg {
+            width: 15px;
+            height: 15px;
+            color: #637268;
+        }
+
+        /* ==========================================================================
+           KPI Summary Cards
+           ========================================================================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 20px 22px;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-card-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+        }
+
+        .stat-card-value-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .stat-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            letter-spacing: -0.4px;
+        }
+
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2.5px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .badge-positive {
+            background-color: var(--green-badge-bg);
+            color: var(--green-badge-text);
+        }
+
+        .badge-warning {
+            background-color: var(--red-badge-bg);
+            color: var(--red-badge-text);
+        }
+
+        /* ==========================================================================
+           Middle Section: Chart & Store Snapshot
+           ========================================================================== */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-subtle);
+            padding: 22px 24px;
+        }
+
+        /* Sales Performance Chart */
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .card-heading {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .time-filter-tabs {
+            display: flex;
+            gap: 14px;
+        }
+
+        .tab-btn {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-light);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding-bottom: 2px;
+            transition: color 0.15s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--color-text-main);
+            font-weight: 700;
+            border-bottom: 2px solid var(--color-text-main);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--color-text-muted);
+        }
+
+        .chart-container {
+            background-color: #f5f6f4;
+            border-radius: var(--radius-md);
+            height: 230px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px 28px 16px;
+            overflow: hidden;
+        }
+
+        .chart-placeholder-text {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #929d95;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        .chart-bars-wrap {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 100%;
+            padding-top: 40px;
+            gap: 12px;
+        }
+
+        .chart-bar-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .chart-bar {
+            width: 100%;
+            max-width: 44px;
+            background-color: #cfd6d1;
+            border-radius: 4px 4px 0 0;
+            transition: background-color 0.2s ease, height 0.3s ease;
+        }
+
+        .chart-bar-col:hover .chart-bar {
+            background-color: #b1bdb4;
+        }
+
+        /* Store Snapshot Dark Card */
+        .card-dark-snapshot {
+            background-color: #0b1d12;
+            color: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 10px 25px rgba(11, 29, 18, 0.15);
+        }
+
+        .snapshot-title {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 500;
+            line-height: 1.25;
+            color: #ffffff;
+            margin-bottom: 24px;
+        }
+
+        .snapshot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .snapshot-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .snapshot-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .snapshot-label {
+            font-size: 13px;
+            color: #9cb5a3;
+            font-weight: 400;
+        }
+
+        .snapshot-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* ==========================================================================
+           Lower Middle Section: Recent Orders & Needs Attention
+           ========================================================================== */
+        .orders-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .view-all-link {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            font-weight: 500;
+            transition: color 0.15s ease;
+        }
+
+        .view-all-link:hover {
+            color: var(--color-text-main);
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .orders-table th {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            padding: 8px 10px 12px 0;
+            border-bottom: 1px solid #edf0eb;
+        }
+
+        .orders-table td {
+            padding: 13px 10px 13px 0;
+            font-size: 13px;
+            color: var(--color-text-main);
+            border-bottom: 1px solid #f2f5f1;
+        }
+
+        .orders-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: #1f2722;
+        }
+
+        .order-customer {
+            font-weight: 500;
+        }
+
+        .order-date {
+            color: var(--color-text-muted);
+        }
+
+        .order-total {
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-main);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .dot-processing { background-color: #388e3c; }
+        .dot-shipped { background-color: #43a047; }
+        .dot-delivered { background-color: #2e7d32; }
+
+        /* Needs Attention Card */
+        .attention-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .attention-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+        }
+
+        .attention-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-main);
+        }
+
+        .attention-icon {
+            width: 17px;
+            height: 17px;
+            color: #536458;
+        }
+
+        .count-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 700;
+            background-color: var(--gray-badge-bg);
+            color: var(--gray-badge-text);
+        }
+
+        .count-pill.pill-danger {
+            background-color: var(--red-badge-bg);
+            color: var(--red-badge-text);
+        }
+
+        /* ==========================================================================
+           Bottom Section: Best Sellers
+           ========================================================================== */
+        .best-sellers-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 22px 24px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .best-sellers-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .product-item {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .product-img-wrap {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #f3f5f2;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-item:hover .product-img {
+            transform: scale(1.04);
+        }
+
+        .product-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-sales {
+            font-size: 11.5px;
+            color: var(--color-text-muted);
+            font-weight: 500;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1100px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            .best-sellers-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .admin-sidebar {
+                width: 100%;
+                min-width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .dashboard-container {
+                padding: 20px 16px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .best-sellers-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================================================
+       Left Sidebar Navigation
+       ======================================================================== -->
+    <aside class="admin-sidebar" aria-label="Admin Navigation">
+        <!-- Logo & Header -->
+        <div class="sidebar-brand">
+            <div class="brand-logo-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L12 22"></path>
+                    <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                    <path d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"></path>
+                    <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+                </svg>
+                <div class="brand-title">VERDÉ</div>
+                <div class="brand-subtitle">ADMIN</div>
+            </div>
+        </div>
+
+        <!-- Section: Overview -->
+        <div class="nav-section">
+            <div class="nav-section-title">OVERVIEW</div>
+            <ul class="nav-list">
+                <li class="nav-item active">
+                    <a href="/adminpanel/admin-dashboard/">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Catalog -->
+        <div class="nav-section">
+            <div class="nav-section-title">CATALOG</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        <span>Products</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                        <span>Categories</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Sales -->
+        <div class="nav-section">
+            <div class="nav-section-title">SALES</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        <span>Orders</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                        </svg>
+                        <span>Coupons</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Customers -->
+        <div class="nav-section">
+            <div class="nav-section-title">CUSTOMERS</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="/adminpanel/admin-panel/users/">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <span>Referrals</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Content -->
+        <div class="nav-section">
+            <div class="nav-section-title">CONTENT</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span>Banners</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Analytics -->
+        <div class="nav-section">
+            <div class="nav-section-title">ANALYTICS</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                        <span>Sales &amp; Revenue</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: System -->
+        <div class="nav-section">
+            <div class="nav-section-title">SYSTEM</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- ========================================================================
+       Main Content
+       ======================================================================== -->
+    <main class="admin-main">
+        <!-- Top Bar Header -->
+        <header class="admin-header">
+            <h1 class="header-title">Dashboard</h1>
+            <div class="header-actions">
+                <!-- Search Icon -->
+                <button class="header-icon-btn" aria-label="Search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+
+                <!-- Notifications Icon -->
+                <button class="header-icon-btn" aria-label="Notifications">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="notification-dot"></span>
+                </button>
+
+                <!-- Profile Dropdown Container -->
+                <div class="profile-dropdown-wrapper" id="profileDropdown">
+                    <button class="admin-profile-btn" id="profileToggleBtn" aria-expanded="false" aria-haspopup="true" onclick="toggleProfileDropdown(event)">
+                        <span class="admin-name">Aswin Admin</span>
+                        <div class="admin-avatar">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu List -->
+                    <div class="profile-dropdown-menu" id="profileMenu">
+                        <div class="dropdown-header">
+                            <span class="dropdown-user-name">Aswin Admin</span>
+                            <span class="dropdown-user-role">Administrator</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Account Settings</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <!-- Sign Out Form Button -->
+                        <form action="/adminpanel/admin-logout/" method="POST" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item logout-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>Sign Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content Body -->
+        <div class="dashboard-container">
+            
+            <!-- Greeting & Date Row -->
+            <div class="greeting-section">
+                <div>
+                    <h2 class="greeting-heading">Good morning, Aswin.</h2>
+                    <p class="greeting-subtext">Here is what's happening at VERDÉ today.</p>
+                </div>
+                <button class="date-picker-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>August 10, 2026</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; margin-left: 2px;">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- KPI Summary Cards Row -->
+            <div class="stats-grid">
+                <!-- Stat 1: Revenue -->
+                <div class="stat-card">
+                    <span class="stat-card-title">Revenue</span>
+                    <div class="stat-card-value-row">
+                        <span class="stat-card-value">&#8377;2,48,650</span>
+                        <span class="stat-badge badge-positive">+12.5%</span>
+                    </div>
+                </div>
+
+                <!-- Stat 2: Orders -->
+                <div class="stat-card">
+                    <span class="stat-card-title">Orders</span>
+                    <div class="stat-card-value-row">
+                        <span class="stat-card-value">1,248</span>
+                        <span class="stat-badge badge-positive">+8.3%</span>
+                    </div>
+                </div>
+
+                <!-- Stat 3: Customers -->
+                <div class="stat-card">
+                    <span class="stat-card-title">Customers</span>
+                    <div class="stat-card-value-row">
+                        <span class="stat-card-value">3,842</span>
+                        <span class="stat-badge badge-positive">+6.4%</span>
+                    </div>
+                </div>
+
+                <!-- Stat 4: Products -->
+                <div class="stat-card">
+                    <span class="stat-card-title">Products</span>
+                    <div class="stat-card-value-row">
+                        <span class="stat-card-value">186</span>
+                        <span class="stat-badge badge-warning">12 low stock</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Row: Sales Performance & Store Snapshot -->
+            <div class="grid-2col">
+                <!-- Sales Performance Chart Card -->
+                <div class="card">
+                    <div class="chart-header">
+                        <h3 class="card-heading">Sales Performance</h3>
+                        <div class="time-filter-tabs">
+                            <button class="tab-btn active">Week</button>
+                            <button class="tab-btn">Month</button>
+                            <button class="tab-btn">Year</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-placeholder-text">Chart Visualization Area</div>
+                        <div class="chart-bars-wrap">
+                            <div class="chart-bar-col">
+                                <div class="chart-bar" style="height: 38%;"></div>
+                            </div>
+                            <div class="chart-bar-col">
+                                <div class="chart-bar" style="height: 52%;"></div>
+                            </div>
+                            <div class="chart-bar-col">
+                                <div class="chart-bar" style="height: 42%;"></div>
+                            </div>
+                            <div class="chart-bar-col">
+                                <div class="chart-bar" style="height: 76%;"></div>
+                            </div>
+                            <div class="chart-bar-col">
+                                <div class="chart-bar" style="height: 94%;"></div>
+                            </div>
+                            <div class="chart-bar-col">
+                                <div class="chart-bar" style="height: 82%;"></div>
+                            </div>
+                            <div class="chart-bar-col">
+                                <div class="chart-bar" style="height: 60%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Store Snapshot Dark Card -->
+                <div class="card-dark-snapshot">
+                    <div>
+                        <h3 class="snapshot-title">Store<br>Snapshot</h3>
+                    </div>
+                    <div class="snapshot-list">
+                        <div class="snapshot-item">
+                            <span class="snapshot-label">Orders Today</span>
+                            <span class="snapshot-value">42</span>
+                        </div>
+                        <div class="snapshot-item">
+                            <span class="snapshot-label">Revenue Today</span>
+                            <span class="snapshot-value">&#8377;8,420</span>
+                        </div>
+                        <div class="snapshot-item">
+                            <span class="snapshot-label">Avg. Order Value</span>
+                            <span class="snapshot-value">&#8377;1,240</span>
+                        </div>
+                        <div class="snapshot-item">
+                            <span class="snapshot-label">Conversion Rate</span>
+                            <span class="snapshot-value">3.2%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lower Middle Row: Recent Orders & Needs Attention -->
+            <div class="grid-2col">
+                <!-- Recent Orders Table Card -->
+                <div class="card">
+                    <div class="orders-header">
+                        <h3 class="card-heading">Recent Orders</h3>
+                        <a href="#" class="view-all-link">View All &rarr;</a>
+                    </div>
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="order-id">#12485</td>
+                                <td class="order-customer">Eleanor Vance</td>
+                                <td class="order-date">Aug 10</td>
+                                <td class="order-total">&#8377;3,450</td>
+                                <td>
+                                    <span class="status-badge">
+                                        <span class="status-dot dot-processing"></span>
+                                        <span>Processing</span>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="order-id">#12484</td>
+                                <td class="order-customer">Julian Crain</td>
+                                <td class="order-date">Aug 10</td>
+                                <td class="order-total">&#8377;1,200</td>
+                                <td>
+                                    <span class="status-badge">
+                                        <span class="status-dot dot-shipped"></span>
+                                        <span>Shipped</span>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="order-id">#12483</td>
+                                <td class="order-customer">Sarah Manning</td>
+                                <td class="order-date">Aug 09</td>
+                                <td class="order-total">&#8377;9,900</td>
+                                <td>
+                                    <span class="status-badge">
+                                        <span class="status-dot dot-delivered"></span>
+                                        <span>Delivered</span>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="order-id">#12482</td>
+                                <td class="order-customer">Cosima Niehaus</td>
+                                <td class="order-date">Aug 09</td>
+                                <td class="order-total">&#8377;450</td>
+                                <td>
+                                    <span class="status-badge">
+                                        <span class="status-dot dot-delivered"></span>
+                                        <span>Delivered</span>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Needs Attention Card -->
+                <div class="card">
+                    <h3 class="card-heading">Needs Attention</h3>
+                    <div class="attention-list">
+                        <!-- Item 1: Returns -->
+                        <div class="attention-item">
+                            <div class="attention-left">
+                                <svg class="attention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 14 4 9 9 4"></polyline>
+                                    <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                                </svg>
+                                <span>Returns</span>
+                            </div>
+                            <span class="count-pill">12</span>
+                        </div>
+
+                        <!-- Item 2: Refunds -->
+                        <div class="attention-item">
+                            <div class="attention-left">
+                                <svg class="attention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                                    <circle cx="12" cy="12" r="2"></circle>
+                                    <path d="M6 12h.01M18 12h.01"></path>
+                                </svg>
+                                <span>Refunds</span>
+                            </div>
+                            <span class="count-pill">5</span>
+                        </div>
+
+                        <!-- Item 3: Low Inventory -->
+                        <div class="attention-item">
+                            <div class="attention-left">
+                                <svg class="attention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                                <span>Low Inventory</span>
+                            </div>
+                            <span class="count-pill pill-danger">12</span>
+                        </div>
+
+                        <!-- Item 4: Expiring Banners -->
+                        <div class="attention-item">
+                            <div class="attention-left">
+                                <svg class="attention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                <span>Expiring Banners</span>
+                            </div>
+                            <span class="count-pill">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Best Sellers -->
+            <div class="best-sellers-card">
+                <h3 class="card-heading">Best Sellers</h3>
+                <div class="best-sellers-grid">
+                    <!-- Product 1 -->
+                    <div class="product-item">
+                        <div class="product-img-wrap">
+                            <img src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=400&q=80" alt="Monstera Deliciosa" class="product-img">
+                        </div>
+                        <span class="product-name">Monstera Deliciosa</span>
+                        <span class="product-sales">412 sold</span>
+                    </div>
+
+                    <!-- Product 2 -->
+                    <div class="product-item">
+                        <div class="product-img-wrap">
+                            <img src="https://images.unsplash.com/photo-1597055181300-e3633a917c9c?auto=format&fit=crop&w=400&q=80" alt="Fiddle Leaf Fig" class="product-img">
+                        </div>
+                        <span class="product-name">Fiddle Leaf Fig</span>
+                        <span class="product-sales">389 sold</span>
+                    </div>
+
+                    <!-- Product 3 -->
+                    <div class="product-item">
+                        <div class="product-img-wrap">
+                            <img src="https://images.unsplash.com/photo-1632207691143-643e2a9a9361?auto=format&fit=crop&w=400&q=80" alt="ZZ Plant" class="product-img">
+                        </div>
+                        <span class="product-name">ZZ Plant</span>
+                        <span class="product-sales">342 sold</span>
+                    </div>
+
+                    <!-- Product 4 -->
+                    <div class="product-item">
+                        <div class="product-img-wrap">
+                            <img src="https://images.unsplash.com/photo-1599598425947-5202edd564c9?auto=format&fit=crop&w=400&q=80" alt="Calathea Orbifolia" class="product-img">
+                        </div>
+                        <span class="product-name">Calathea Orbifolia</span>
+                        <span class="product-sales">290 sold</span>
+                    </div>
+
+                    <!-- Product 5 -->
+                    <div class="product-item">
+                        <div class="product-img-wrap">
+                            <img src="https://images.unsplash.com/photo-1598880940371-c756e015fea1?auto=format&fit=crop&w=400&q=80" alt="Snake Plant" class="product-img">
+                        </div>
+                        <span class="product-name">Snake Plant</span>
+                        <span class="product-sales">215 sold</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Dropdown Interaction Script (Pure UI) -->
+    <script>
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('profileMenu');
+            const btn = document.getElementById('profileToggleBtn');
+            const isOpen = menu.classList.toggle('show');
+            btn.setAttribute('aria-expanded', isOpen);
+        }
+
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('profileDropdown');
+            const menu = document.getElementById('profileMenu');
+            const btn = document.getElementById('profileToggleBtn');
+            if (dropdown && !dropdown.contains(event.target)) {
+                menu.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    </script>
+
+</body>
+</html>

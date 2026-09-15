@@ -17,6 +17,11 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
+
+# Google OAuth credentials
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+
 # Email settings used by Django to send OTP emails
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
@@ -48,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'users',
+    'adminpanel',
 ]
 
 MIDDLEWARE = [
@@ -129,7 +135,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+# Tell Django where the project's static files are stored
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 
 # Email
@@ -147,3 +158,9 @@ AUTH_USER_MODEL = "users.User"
 
 # URL where Django redirects unauthenticated users
 LOGIN_URL = "/login-page/"
+
+# Media files uploaded by users
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+SESSION_COOKIE_AGE = 60*60

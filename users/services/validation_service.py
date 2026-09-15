@@ -15,6 +15,23 @@ def validate_user_phone(phone):
     # Phone number must contain exactly 10 digits
     return phone.isdigit() and len(phone) == 10
 
+def validate_pin(pin):
+    return pin.isdigit() and len(pin) ==6
+
+
+def validate_user_name(name):
+    return bool(re.fullmatch (r"[A-Za-z]+(?:[ '-][A-Za-z]+)*", name))
+
+
+def validate_address_line(address):
+    return bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\s,./'-]*", address))
+
+
+def validate_city(city):
+    return bool(re.fullmatch(r"[A-Za-z]+(?: [A-Za-z]+)*", city))
+
+
+
 def validate_user_password(password):
     # Password must contain uppercase, lowercase, number,
     # special character, and at least 8 characters
