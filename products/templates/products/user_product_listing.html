@@ -1,0 +1,1311 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | Shop All Plants & Essentials</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/components.css' %}" />
+
+    <style>
+      :root {
+        --verde-dark: #102518;
+        --verde-sage-footer: #8e9488;
+      }
+
+      /* Container width: expansive, proportional, matching modern screens without empty side gaps */
+      .shop-page-wrapper {
+        width: 100%;
+        max-width: none;
+        margin: 0 auto;
+        padding: 0 clamp(24px, 3vw, 48px);
+        box-sizing: border-box;
+      }
+
+      /* Breadcrumbs - friendly, readable font */
+      .shop-breadcrumb {
+        padding: 22px 0 14px;
+        font-size: 13px;
+        color: #666;
+        letter-spacing: 0.2px;
+      }
+      .shop-breadcrumb a {
+        color: #666;
+        text-decoration: none;
+      }
+      .shop-breadcrumb a:hover {
+        color: #102518;
+      }
+      .shop-breadcrumb .sep {
+        margin: 0 8px;
+        color: #aaa;
+      }
+      .shop-breadcrumb .current {
+        color: #141715;
+        font-weight: 500;
+      }
+
+      /* Hero Section */
+      .shop-hero-section {
+        text-align: center;
+        padding: 20px 0 40px;
+      }
+      .hero-verde-badge {
+        display: inline-block;
+        margin-bottom: 22px;
+      }
+      .hero-verde-logo {
+        font-family: var(--font-serif, "Playfair Display", serif);
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        color: #102518;
+        display: block;
+        line-height: 1;
+      }
+      .hero-verde-sub {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        color: #666;
+        text-transform: uppercase;
+        margin-top: 6px;
+        display: block;
+      }
+      .shop-hero-heading {
+        font-family: var(--font-serif, "Playfair Display", serif);
+        font-size: 44px;
+        font-weight: 500;
+        color: #141715;
+        margin: 0 0 16px;
+        letter-spacing: -0.4px;
+        line-height: 1.2;
+      }
+      .shop-hero-desc {
+        font-size: 16px;
+        color: #555555;
+        max-width: 620px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+
+      /* Category Tabs: Exactly 4 options (All, Plants, Pots, Equipments) */
+      .shop-tabs-row {
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 40px;
+      }
+      .shop-tabs-nav {
+        display: flex;
+        gap: 36px;
+        align-items: center;
+      }
+      .shop-tab-item {
+        font-size: 15px;
+        color: #555555;
+        text-decoration: none;
+        font-weight: 500;
+        padding-bottom: 14px;
+        position: relative;
+        transition: color 0.15s ease;
+      }
+      .shop-tab-item:hover {
+        color: #102518;
+      }
+      .shop-tab-item.active {
+        color: #102518;
+        font-weight: 600;
+      }
+      .shop-tab-item.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #102518;
+      }
+
+      /* Two Column Content Layout - broad, perfectly balanced */
+      .shop-main-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 32px;
+        align-items: start;
+        padding-bottom: 90px;
+      }
+
+      /* Sidebar Filters */
+      .shop-sidebar-wrap {
+        width: 100%;
+      }
+      .sidebar-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #141715;
+        margin: 0 0 24px 0;
+        letter-spacing: 0.1px;
+      }
+      .filter-sec-label {
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: #2b2b2b;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .filter-divider-line {
+        height: 1px;
+        background-color: #ededed;
+        margin: 24px 0;
+        border: none;
+      }
+
+      /* Range slider */
+      .range-labels-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: #3b3b3b;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .custom-range-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 3px;
+        background: #102518;
+        outline: none;
+        cursor: pointer;
+      }
+      .custom-range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #102518;
+        cursor: pointer;
+      }
+      .custom-range-slider::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #102518;
+        border: none;
+        cursor: pointer;
+      }
+
+      /* Filter Checkboxes / Radios */
+      .filter-choice-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14.5px;
+        color: #333333;
+        margin-bottom: 12px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .filter-choice-label input {
+        display: none;
+      }
+      .filter-box-indicator {
+        width: 16px;
+        height: 16px;
+        border: 1.5px solid #a8a8a8;
+        border-radius: 3px;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+      }
+      .filter-choice-label input:checked + .filter-box-indicator {
+        background: #102518;
+        border-color: #102518;
+      }
+      .filter-choice-label input:checked + .filter-box-indicator::after {
+        content: '';
+        width: 4px;
+        height: 8px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        margin-bottom: 2px;
+      }
+
+      /* Filter Action Buttons */
+      .btn-apply-dark {
+        display: block;
+        width: 100%;
+        background-color: #102518;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-align: center;
+        padding: 13px 0;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        text-transform: uppercase;
+        margin-top: 22px;
+        margin-bottom: 10px;
+        transition: background-color 0.15s ease;
+      }
+      .btn-apply-dark:hover {
+        background-color: #1a3825;
+      }
+      .btn-clear-light {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        background-color: #ffffff;
+        color: #333333;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.9px;
+        padding: 12px 0;
+        border: 1px solid #dcdcdc;
+        border-radius: 3px;
+        cursor: pointer;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.15s ease;
+      }
+      .btn-clear-light:hover {
+        background-color: #f7f7f7;
+        border-color: #bbb;
+      }
+
+      /* Right Products Column */
+      .products-sec-header {
+        margin-bottom: 26px;
+      }
+      .products-main-title {
+        font-family: var(--font-serif, "Playfair Display", serif);
+        font-size: 28px;
+        font-weight: 500;
+        color: #141715;
+        margin: 0 0 6px;
+      }
+      .products-count-sub {
+        font-size: 14px;
+        color: #666666;
+        margin: 0;
+      }
+
+      /* 3 Column Grid with generous, proportionate sizing */
+      .shop-items-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 32px;
+        margin-bottom: 50px;
+      }
+
+      /* Product Card */
+      .item-product-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .item-media-box {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1.12;
+        background: #f4f3ef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+      .item-media-box a {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .item-media-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.35s ease;
+      }
+      .item-media-box:hover img {
+        transform: scale(1.03);
+      }
+
+      /* Badges */
+      .item-badge-pill {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        padding: 4px 9px;
+        border-radius: 2px;
+        text-transform: uppercase;
+      }
+      .badge-neutral {
+        background: rgba(255, 255, 255, 0.92);
+        color: #222;
+      }
+      .badge-discount-red {
+        background: #3e1b17;
+        color: #ffffff;
+      }
+
+      /* Heart / Wishlist */
+      .item-wishlist-circle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #444444;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        transition: all 0.15s ease;
+      }
+      .item-wishlist-circle:hover {
+        background: #ffffff;
+        color: #e53935;
+      }
+      .item-wishlist-circle.active,
+      .item-wishlist-circle.in-wishlist {
+        background: #ffffff;
+        color: #102518;
+      }
+      .item-wishlist-circle.active svg,
+      .item-wishlist-circle.in-wishlist svg {
+        fill: currentColor;
+      }
+      .item-wishlist-circle.active:hover,
+      .item-wishlist-circle.in-wishlist:hover {
+        color: #e53935;
+      }
+
+      /* Item Meta Info */
+      .item-category-tag {
+        font-size: 12.5px;
+        color: #777777;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      .item-title-link {
+        text-decoration: none;
+        color: #141715;
+      }
+      .item-name-heading {
+        font-size: 16px;
+        font-weight: 600;
+        color: #141715;
+        margin: 0 0 6px;
+        line-height: 1.35;
+      }
+      .item-name-heading:hover {
+        color: #102518;
+      }
+      .item-price-action-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: auto;
+        padding-top: 4px;
+      }
+      .price-regular-val {
+        font-size: 17px;
+        font-weight: 700;
+        color: #141715;
+      }
+      .price-discounted-val {
+        font-size: 17px;
+        font-weight: 700;
+        color: #c02b2b;
+      }
+      .price-struck-val {
+        font-size: 13px;
+        color: #999999;
+        text-decoration: line-through;
+        margin-left: 6px;
+        font-weight: 400;
+      }
+      .btn-quick-plus {
+        width: 32px;
+        height: 32px;
+        border-radius: 5px;
+        background: #f0eee8;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #333333;
+        font-size: 18px;
+        font-weight: 400;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+      }
+      .btn-quick-plus:hover {
+        background-color: #e3dfd6;
+      }
+
+      /* Pagination */
+      .pagination-controls-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        margin-top: 40px;
+        font-size: 13.5px;
+      }
+      .page-arrow-nav {
+        color: #444444;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        letter-spacing: 0.5px;
+      }
+      .page-arrow-nav:hover {
+        color: #102518;
+      }
+      .page-circle-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        color: #555555;
+      }
+      .page-circle-btn.current {
+        background-color: #102518;
+        color: #ffffff;
+      }
+      .page-circle-btn:not(.current):hover {
+        background-color: #f0eee8;
+        color: #102518;
+      }
+
+      
+      /* Search Input Box above Product Grid */
+      .products-header-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+      .products-search-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .search-input-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .search-lens-svg {
+        position: absolute;
+        left: 12px;
+        color: #777;
+        pointer-events: none;
+      }
+      .grid-search-input {
+        padding: 9px 36px 9px 36px;
+        font-size: 13.5px;
+        border: 1px solid #d4d4d4;
+        border-radius: 4px;
+        outline: none;
+        width: 250px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: inherit;
+        background: #fafafa;
+      }
+      .grid-search-input:focus {
+        border-color: #102518;
+        background: #ffffff;
+        box-shadow: 0 0 0 2px rgba(16, 37, 24, 0.08);
+      }
+      .clear-search-x {
+        position: absolute;
+        right: 12px;
+        color: #888;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 2px 4px;
+      }
+      .clear-search-x:hover {
+        color: #102518;
+      }
+      .grid-search-btn {
+        background: #102518;
+        color: #ffffff;
+        border: none;
+        border-radius: 4px;
+        padding: 9px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .grid-search-btn:hover {
+        background: #1b3825;
+      }
+
+      /* Price inputs row */
+      .price-number-input {
+        width: 100%;
+        padding: 7px 10px;
+        font-size: 13px;
+        border: 1px solid #d0d0d0;
+        border-radius: 3px;
+        outline: none;
+        font-family: inherit;
+        box-sizing: border-box;
+      }
+      .price-number-input:focus {
+        border-color: #102518;
+      }
+
+      /* Site Footer */
+      .site-footer {
+        background-color: var(--verde-sage-footer) !important;
+        color: #ffffff !important;
+      }
+      .site-footer .footer-logo,
+      .site-footer .footer-heading,
+      .site-footer .footer-link,
+      .site-footer .footer-tagline {
+        color: #ffffff !important;
+      }
+      .site-footer .footer-link:hover {
+        color: #f0f4f1 !important;
+      }
+
+      @media (max-width: 1000px) {
+        .shop-main-layout {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+
+        .shop-items-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 24px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .shop-page-wrapper {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .shop-sidebar-wrap,
+        .shop-products-column {
+          min-width: 0;
+        }
+
+        .products-search-form {
+          width: 100%;
+        }
+
+        .search-input-box {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .grid-search-input {
+          width: 100%;
+        }
+
+        .shop-items-grid {
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+      }
+
+    </style>
+  </head>
+  <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+    <!-- Top Navigation Bar -->
+    <header class="site-header" role="banner">
+      <div class="header-container">
+        <!-- Left: Botanical Brand Logo -->
+        <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+          <svg
+            class="logo-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 2L12 22"></path>
+            <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+            <path d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"></path>
+            <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+          </svg>
+          <span class="logo-text">VERDÉ</span>
+        </a>
+
+        <!-- Center: Main Navigation -->
+        <nav class="main-nav" aria-label="Primary Navigation">
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="/" class="nav-link">Home</a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'product_list' %}" class="nav-link active">Shop</a>
+            </li>
+            <li class="nav-item">
+              <a href="#offers" class="nav-link">Offers</a>
+            </li>
+            <li class="nav-item">
+              <a href="#about" class="nav-link">About</a>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Right: Utility Actions & Sign In -->
+        <div class="header-actions">
+          <!-- Search Button -->
+          <button class="action-btn" id="searchBtn" aria-label="Search botanicals">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+
+          <!-- Wishlist Button -->
+          <a href="/wishlist/" class="action-btn" id="wishlistBtn" aria-label="Wishlist" title="Wishlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <span class="badge-count js-wishlist-count-badge" id="wishlistCountBadge" style="{% if not wishlist_count %}display:none;{% endif %}">{% if wishlist_count %}{{ wishlist_count }}{% else %}0{% endif %}</span>
+          </a>
+
+          <!-- Cart Button -->
+          <a href="{% url 'cart:cart_page' %}" data-cart-api="{% url 'cart:view_cart' %}" class="action-btn" aria-label="Cart" title="Cart">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+          </a>
+
+          <!-- Sign In / Profile Avatar -->
+          {% if user.is_authenticated %}
+          <a href="/profile/" class="profile-avatar" aria-label="Profile">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" />
+            {% else %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+            </svg>
+            {% endif %}
+          </a>
+          {% else %}
+          <a href="/login-page/" class="btn-signin">Sign In</a>
+          {% endif %}
+
+          <!-- Mobile Menu Toggle Button -->
+          <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+      <div class="shop-page-wrapper">
+        <!-- Breadcrumb: Home / Shop -->
+        <nav class="shop-breadcrumb" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          <span class="sep">/</span>
+          <span class="current">Shop</span>
+        </nav>
+
+        <!-- Centered Shop Hero Header -->
+        <section class="shop-hero-section">
+          <div class="hero-verde-badge">
+            <span class="hero-verde-logo">VERDÉ</span>
+            <span class="hero-verde-sub">THE VERDÉ COLLECTION</span>
+          </div>
+          <h1 class="shop-hero-heading">Bring a Little More Green Home.</h1>
+          <p class="shop-hero-desc">
+            Explore thoughtfully selected plants, gardening essentials, and pieces designed to help your space grow.
+          </p>
+        </section>
+
+        <!-- Category Horizontal Tabs Bar -->
+        <div class="shop-tabs-row">
+          <div class="shop-tabs-nav">
+            <a
+              href="{% url 'product_list' %}?{% if search_query %}search={{ search_query }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}"
+              class="shop-tab-item {% if not category_id %}active{% endif %}"
+            >All</a>
+            {% for cat in categories %}
+              {% if not cat.parent %}
+              <a
+                href="{% url 'product_list' %}?category={{ cat.id }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                class="shop-tab-item {% if category_id|stringformat:'s' == cat.id|stringformat:'s' %}active{% endif %}"
+              >{{ cat.name }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Search Active Banner (if user searched) -->
+        {% if search_query %}
+        <div style="display: flex; align-items: center; justify-content: space-between; background: #f7f6f2; border: 1px solid #e7e6e0; padding: 10px 18px; border-radius: 3px; margin-bottom: 24px; font-size: 13px;">
+          <span>Search results for: <strong>"{{ search_query }}"</strong></span>
+          <a href="{% url 'product_list' %}{% if category_id %}?category={{ category_id }}{% endif %}" style="color: #102518; text-decoration: underline; font-weight: 600; font-size: 12px;">Clear search ✕</a>
+        </div>
+        {% endif %}
+
+        <!-- Two Column Layout: Sidebar + Product Grid -->
+        <div class="shop-main-layout">
+          <!-- Sidebar Filters -->
+          <aside class="shop-sidebar-wrap">
+            <form id="productFilterForm" method="GET" action="{% url 'product_list' %}">
+              <!-- Hidden search preserved -->
+              <input type="hidden" name="search" value="{{ search_query }}" />
+
+              <h2 class="sidebar-title">Filter By</h2>
+
+              <!-- PRICE RANGE Section -->
+              <div class="filter-section-group">
+                <div class="filter-sec-label">PRICE RANGE</div>
+                <div class="range-labels-row">
+                  <span>₹0</span>
+                  <span id="priceDisplayLabel">{% if max_price %}₹{{ max_price }}{% else %}₹5,000+{% endif %}</span>
+                </div>
+                <input
+                  type="range"
+                  class="custom-range-slider"
+                  id="priceRangeSlider"
+                  min="0"
+                  max="5000"
+                  step="50"
+                  value="{{ max_price|default:'5000' }}"
+                  oninput="document.getElementById('maxPriceInput').value = this.value; document.getElementById('priceDisplayLabel').textContent = this.value >= 5000 ? '₹5,000+' : '₹' + this.value;"
+                />
+                <div style="display: flex; gap: 8px; margin-top: 12px; align-items: center;">
+                  <input
+                    type="number"
+                    name="min_price"
+                    id="minPriceInput"
+                    placeholder="Min ₹"
+                    value="{{ min_price }}"
+                    class="price-number-input"
+                  />
+                  <span style="color: #888;">-</span>
+                  <input
+                    type="number"
+                    name="max_price"
+                    id="maxPriceInput"
+                    placeholder="Max ₹"
+                    value="{{ max_price }}"
+                    class="price-number-input"
+                  />
+                </div>
+              </div>
+
+              <hr class="filter-divider-line" />
+
+              <!-- PRODUCT TYPE Section (Categories) -->
+              <div class="filter-section-group">
+                <div class="filter-sec-label">PRODUCT TYPE</div>
+                <div class="filter-options-list">
+                  {% for cat in categories %}
+                    {% if not cat.parent %}
+                    <label class="filter-choice-label">
+                      <input
+                        type="radio"
+                        name="category"
+                        value="{{ cat.id }}"
+                        {% if category_id|stringformat:'s' == cat.id|stringformat:'s' %}checked{% endif %}
+                      />
+                      <span class="filter-box-indicator"></span>
+                      <span>{{ cat.name }}</span>
+                    </label>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+
+              <hr class="filter-divider-line" />
+
+              <!-- SORT BY Section -->
+              <div class="filter-section-group">
+                <div class="filter-sec-label">SORT BY</div>
+                <div class="filter-options-list">
+                  <label class="filter-choice-label">
+                    <input
+                      type="radio"
+                      name="sort"
+                      value="price_low_high"
+                      {% if sort_by == 'price_low_high' %}checked{% endif %}
+                    />
+                    <span class="filter-box-indicator"></span>
+                    <span>Price: Low to High</span>
+                  </label>
+                  <label class="filter-choice-label">
+                    <input
+                      type="radio"
+                      name="sort"
+                      value="price_high_low"
+                      {% if sort_by == 'price_high_low' %}checked{% endif %}
+                    />
+                    <span class="filter-box-indicator"></span>
+                    <span>Price: High to Low</span>
+                  </label>
+                  <label class="filter-choice-label">
+                    <input
+                      type="radio"
+                      name="sort"
+                      value="name_a_z"
+                      {% if sort_by == 'name_a_z' %}checked{% endif %}
+                    />
+                    <span class="filter-box-indicator"></span>
+                    <span>Name: A to Z</span>
+                  </label>
+                  <label class="filter-choice-label">
+                    <input
+                      type="radio"
+                      name="sort"
+                      value="name_z_a"
+                      {% if sort_by == 'name_z_a' %}checked{% endif %}
+                    />
+                    <span class="filter-box-indicator"></span>
+                    <span>Name: Z to A</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Filter Action Buttons -->
+              <button type="submit" class="btn-apply-dark">APPLY FILTERS</button>
+              <a href="{% url 'product_list' %}" class="btn-clear-light">CLEAR ALL</a>
+            </form>
+          </aside>
+
+          <!-- Right Content: Products Grid & Header -->
+          <section class="shop-products-column">
+            <div class="products-sec-header">
+              <div class="products-header-top-row">
+                <div>
+                  <h2 class="products-main-title">All Plants & Essentials</h2>
+                  <p class="products-count-sub">Showing {{ products|length }} of {{ total_products }} products</p>
+                </div>
+
+                <!-- Search Input above Product Grid -->
+                <form method="GET" action="{% url 'product_list' %}" class="products-search-form">
+                  <input type="hidden" name="category" value="{{ category_id }}" />
+                  <input type="hidden" name="min_price" value="{{ min_price }}" />
+                  <input type="hidden" name="max_price" value="{{ max_price }}" />
+                  <input type="hidden" name="sort" value="{{ sort_by }}" />
+
+                  <div class="search-input-box">
+                    <svg class="search-lens-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input
+                      type="text"
+                      name="search"
+                      value="{{ search_query }}"
+                      placeholder="Search products..."
+                      class="grid-search-input"
+                    />
+                    {% if search_query %}
+                    <a
+                      href="{% url 'product_list' %}?{% if category_id %}category={{ category_id }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}"
+                      class="clear-search-x"
+                      title="Clear search"
+                    >✕</a>
+                    {% endif %}
+                  </div>
+                  <button type="submit" class="grid-search-btn">Search</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- 3 Column Product Grid -->
+            <div class="shop-items-grid">
+              {% for product in products %}
+              <article class="item-product-card">
+                <div class="item-media-box">
+                  {% if product.product_offer and product.product_offer > 0 %}
+                  <span class="item-badge-pill badge-discount-red">{{ product.product_offer|floatformat:0 }}% OFF</span>
+                  {% elif product.is_featured %}
+                  <span class="item-badge-pill badge-neutral">FEATURED</span>
+                  {% endif %}
+
+                  <!-- Wishlist Heart Button -->
+                  <button
+                    class="item-wishlist-circle js-wishlist-btn {% if product.id in wishlist_product_ids %}active in-wishlist{% endif %}"
+                    type="button"
+                    data-product-id="{{ product.id }}"
+                    aria-label="{% if product.id in wishlist_product_ids %}Remove from wishlist{% else %}Add to wishlist{% endif %}"
+                    title="{% if product.id in wishlist_product_ids %}Remove from wishlist{% else %}Add to wishlist{% endif %}"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="{% if product.id in wishlist_product_ids %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                  </button>
+
+                  <!-- Product Image Link -->
+                  <a href="{% url 'product_detail' product.id %}">
+                    {% with img=product.product_images.first %}
+                      {% if img and img.image_url %}
+                        <img src="{{ img.image_url.url }}" alt="{{ product.name }}" loading="lazy" />
+                      {% elif product.variants.first.images.first %}
+                        <img src="{{ product.variants.first.images.first.image_url.url }}" alt="{{ product.name }}" loading="lazy" />
+                      {% else %}
+                        <div class="empty-product-thumb-placeholder">
+                          <span>No Image</span>
+                        </div>
+                      {% endif %}
+                    {% endwith %}
+                  </a>
+                </div>
+
+                <!-- Product Details -->
+                <div class="item-category-tag">{{ product.category.name }}</div>
+                <a href="{% url 'product_detail' product.id %}" class="item-title-link">
+                  <h3 class="item-name-heading">{{ product.name }}</h3>
+                </a>
+                <div class="item-price-action-row" style="margin-top: 6px;">
+                  <div>
+                    <span class="price-regular-val">₹{{ product.regular_price }}</span>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-quick-plus"
+                    data-product-id="{{ product.id }}"
+                    aria-label="Add {{ product.name }} to cart"
+                    title="Add to cart"
+                  >+</button>
+                </div>
+              </article>
+              {% empty %}
+              <div style="grid-column: span 3; text-align: center; padding: 60px 20px; color: #777;">
+                <p style="font-size: 14px; margin-bottom: 8px;">No products found in the database.</p>
+                <a href="{% url 'product_list' %}" style="font-size: 12px; color: #102518; text-decoration: underline;">View all products</a>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Pagination Bar Matching Screenshot -->
+            <div class="pagination-controls-row">
+              {% if has_previous %}
+              <a
+                href="?page={{ page|add:'-1' }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_id %}&category={{ category_id }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                class="page-arrow-nav"
+              >‹ PREV</a>
+              {% else %}
+              <span class="page-arrow-nav" style="color: #bbb; cursor: default;">‹ PREV</span>
+              {% endif %}
+
+              <span class="page-circle-btn current">{{ page|default:'1' }}</span>
+
+              {% if total_pages and total_pages > 1 %}
+                {% if page < total_pages %}
+                <a
+                  href="?page={{ page|add:'1' }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_id %}&category={{ category_id }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                  class="page-circle-btn"
+                >{{ page|add:'1' }}</a>
+                {% endif %}
+
+                {% if total_pages > page|add:'2' %}
+                <span style="color: #888; font-size: 11px;">...</span>
+                {% endif %}
+
+                {% if total_pages > page|add:'1' %}
+                <a
+                  href="?page={{ total_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_id %}&category={{ category_id }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                  class="page-circle-btn"
+                >{{ total_pages }}</a>
+                {% endif %}
+              {% endif %}
+
+              {% if has_next %}
+              <a
+                href="?page={{ page|add:'1' }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_id %}&category={{ category_id }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                class="page-arrow-nav"
+              >NEXT ›</a>
+              {% else %}
+              <span class="page-arrow-nav" style="color: #bbb; cursor: default;">NEXT ›</span>
+              {% endif %}
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Site Footer (Muted Sage-Olive) -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer-container">
+        <!-- Left Column: Brand & Tagline -->
+        <div class="footer-brand">
+          <h2 class="footer-logo">VERDÉ</h2>
+          <p class="footer-tagline">
+            &copy; 2024 VERDÉ. Curating botanical elegance for your domestic spaces.
+          </p>
+        </div>
+
+        <!-- Right Column: Navigation Groups -->
+        <div class="footer-nav-groups">
+          <div class="footer-group">
+            <h3 class="footer-heading">Shop</h3>
+            <ul class="footer-links">
+              <li><a href="{% url 'product_list' %}" class="footer-link">Indoor</a></li>
+              <li><a href="{% url 'product_list' %}" class="footer-link">Outdoor</a></li>
+              <li><a href="{% url 'product_list' %}" class="footer-link">Accessories</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Help</h3>
+            <ul class="footer-links">
+              <li><a href="#contact" class="footer-link">Contact</a></li>
+              <li><a href="#faq" class="footer-link">FAQ</a></li>
+              <li><a href="#shipping" class="footer-link">Shipping</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Account</h3>
+            <ul class="footer-links">
+              <li><a href="/profile/" class="footer-link">Profile</a></li>
+              <li><a href="/orders/" class="footer-link">Orders</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Follow</h3>
+            <ul class="footer-links">
+              <li>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="footer-link">Instagram</a>
+              </li>
+              <li>
+                <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" class="footer-link">Pinterest</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Interactive Overlays -->
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
+    <!-- Search Overlay Modal -->
+    <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Botanical Search">
+      <form method="GET" action="{% url 'product_list' %}" class="search-box-wrapper">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="search"
+          name="search"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search for plants, pots, accessories..."
+          autocomplete="off"
+          value="{{ search_query }}"
+        />
+        <button type="button" class="btn-close" id="searchCloseBtn" aria-label="Close search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </form>
+      <div class="search-suggestions">
+        <p class="search-sugg-title">Popular Searches</p>
+        <div class="sugg-chips">
+          <a href="{% url 'product_list' %}?search=Monstera" class="sugg-chip">Monstera</a>
+          <a href="{% url 'product_list' %}?search=Peace+Lily" class="sugg-chip">Peace Lily</a>
+          <a href="{% url 'product_list' %}?search=Fern" class="sugg-chip">Fern</a>
+          <a href="{% url 'product_list' %}?search=Succulent" class="sugg-chip">Succulents</a>
+          <a href="{% url 'product_list' %}?search=Planter" class="sugg-chip">Planter</a>
+        </div>
+      </div>
+    </div>
+
+    {% comment %}
+    <!-- Cart Drawer -->
+    <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping Cart Drawer" role="dialog" aria-modal="true">
+      <div class="cart-header">
+        <h3 class="cart-title">Your Cart</h3>
+        <button class="btn-close" id="cartCloseBtn" aria-label="Close cart drawer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="cart-body" id="cartItemsList"></div>
+      <div class="cart-footer">
+        <div class="cart-subtotal-row">
+          <span>Subtotal</span>
+          <span class="cart-subtotal-val" id="cartSubtotal">₹0.00</span>
+        </div>
+        <button class="btn-checkout" type="button">Proceed to Checkout</button>
+      </div>
+    </aside>
+    {% endcomment %}
+
+    <!-- Mobile Navigation Drawer -->
+    <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="Mobile Navigation Drawer">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="logo-text">VERDÉ</span>
+        <button class="btn-close" id="mobileNavCloseBtn" aria-label="Close menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <ul class="mobile-nav-links">
+        <li><a href="/" class="mobile-nav-link">Home</a></li>
+        <li><a href="{% url 'product_list' %}" class="mobile-nav-link">Shop</a></li>
+        <li><a href="#offers" class="mobile-nav-link">Offers</a></li>
+        <li><a href="#about" class="mobile-nav-link">About</a></li>
+      </ul>
+    </aside>
+
+    <form id="cartCsrfForm" hidden>{% csrf_token %}</form>
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/data.js' %}"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
+    <script src="{% static 'js/wishlist.js' %}" defer></script>
+    <script>
+      (function () {
+        var productGrid = document.querySelector('.shop-items-grid');
+        var toastContainer = document.getElementById('toastContainer');
+        var csrfInput = document.querySelector('#cartCsrfForm [name="csrfmiddlewaretoken"]');
+        var addToCartUrl = "{% url 'cart:add_to_cart' %}";
+
+        function showCartMessage(message, isError) {
+          if (!toastContainer) return;
+
+          var toast = document.createElement('div');
+          toast.className = 'toast-message';
+          toast.textContent = message;
+          if (isError) toast.style.backgroundColor = '#991b1b';
+          toastContainer.appendChild(toast);
+
+          requestAnimationFrame(function () {
+            toast.classList.add('show');
+          });
+          window.setTimeout(function () {
+            toast.classList.remove('show');
+            window.setTimeout(function () {
+              toast.remove();
+            }, 320);
+          }, 3400);
+        }
+
+        if (productGrid) {
+          productGrid.addEventListener('click', function (event) {
+            // Wishlist toggle
+            var wishBtn = event.target.closest('.js-wishlist-btn');
+            if (wishBtn && productGrid.contains(wishBtn)) {
+              event.preventDefault();
+              event.stopPropagation();
+              if (window.VERDEWishlist) {
+                window.VERDEWishlist.toggle({
+                  productId: wishBtn.dataset.productId,
+                  buttonEl: wishBtn
+                });
+              }
+              return;
+            }
+
+            // Quick add to cart
+            var button = event.target.closest('.btn-quick-plus');
+            if (!button || !productGrid.contains(button)) return;
+
+            button.disabled = true;
+            button.textContent = '…';
+
+            fetch(addToCartUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfInput ? csrfInput.value : '',
+              },
+              credentials: 'same-origin',
+              body: JSON.stringify({
+                product_id: Number(button.dataset.productId),
+                quantity: 1,
+              }),
+            })
+              .then(function (response) {
+                return response.json().then(function (data) {
+                  if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Could not add this product to your cart.');
+                  }
+                  return data;
+                });
+              })
+              .then(function () {
+                showCartMessage('Added to cart.');
+                window.dispatchEvent(new Event('verde:cart-updated'));
+                button.textContent = '✓';
+                window.setTimeout(function () {
+                  button.textContent = '+';
+                  button.disabled = false;
+                }, 1200);
+              })
+              .catch(function (error) {
+                showCartMessage(error.message || 'Unable to add this product to your cart.', true);
+                button.textContent = '+';
+                button.disabled = false;
+              });
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

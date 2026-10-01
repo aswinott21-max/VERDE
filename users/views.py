@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from .services.validation_service import(validate_user_email,validate_user_phone,validate_user_name,validate_user_password,is_phone_taken,is_email_taken,validate_pin,validate_address_line,validate_city)
 from .services.otp_service import generate_otp, get_otp_expiry, send_otp_email
+from cart.services.cart_service import merge_guest_cart_to_user_cart
 from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -55,7 +56,7 @@ def signup(request):
 
 
     #Check required fields
-    if not name or not email or not phone or not password or not confirm_password:
+    if not all([name, email, phone, password, confirm_password]):
         return JsonResponse({
             "error" : "All fields are required"
         },status=400)
@@ -300,6 +301,8 @@ def login(request): # to process login credentials
 
     auth_login(request, user)
 
+    merge_guest_cart_to_user_cart(request, user)
+
     return JsonResponse({
         "message" : "Login successful",
         "email" : user.email
@@ -427,7 +430,7 @@ def reset_password(request):
     password = data.get("password")
     confirm_password = data.get("confirm_password")
 
-    if not password or not confirm_password:
+    if not all([password, confirm_password]):
         return JsonResponse({
             "error" : "Both password fields are required"
         }, status=400)

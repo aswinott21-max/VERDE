@@ -1,0 +1,2743 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Category Management — VERDÉ Admin</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        /* Brand & System Palette */
+        --bg-sidebar: #091a10;
+        --sidebar-hover: rgba(255, 255, 255, 0.06);
+        --sidebar-active: #142a1d;
+        --sidebar-text: #8ea896;
+        --sidebar-text-active: #ffffff;
+        --sidebar-heading: #4b6854;
+
+        --bg-main: #fbfcfb;
+        --bg-card: #ffffff;
+        --card-border: #edf0eb;
+        --table-header-bg: #f5f4f0;
+        --color-text-main: #141715;
+        --color-text-muted: #64746a;
+        --color-text-light: #94a399;
+
+        --badge-listed-bg: #eaf6ed;
+        --badge-listed-text: #23834c;
+        --badge-unlisted-bg: #f1f3f0;
+        --badge-unlisted-text: #505d54;
+
+        --color-primary: #0f2719;
+        --color-primary-hover: #1b3d28;
+
+        --font-serif: "Playfair Display", Georgia, serif;
+        --font-sans:
+          "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+
+        --shadow-subtle: 0 2px 10px rgba(16, 37, 24, 0.03);
+        --shadow-card: 0 4px 20px rgba(16, 37, 24, 0.04);
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 14px;
+      }
+
+      /* Base Reset */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background-color: var(--bg-main);
+        color: var(--color-text-main);
+        min-height: 100vh;
+        display: flex;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      button {
+        font-family: inherit;
+      }
+
+      /* ==========================================================================
+           Sidebar Navigation
+           ========================================================================== */
+      .admin-sidebar {
+        width: 230px;
+        min-width: 230px;
+        background-color: var(--bg-sidebar);
+        color: var(--sidebar-text);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding: 24px 16px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 30;
+      }
+
+      .admin-sidebar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .admin-sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+      }
+
+      /* Brand Logo */
+      .sidebar-brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 24px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        text-align: center;
+      }
+
+      .brand-logo-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .brand-logo-wrap svg {
+        width: 24px;
+        height: 24px;
+        stroke: #a2c4ac;
+        margin-bottom: 2px;
+      }
+
+      .brand-title {
+        font-family: var(--font-serif);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 2.5px;
+        color: #ffffff;
+        line-height: 1.1;
+      }
+
+      .brand-subtitle {
+        font-size: 9px;
+        letter-spacing: 3.5px;
+        color: #6b8a74;
+        font-weight: 600;
+        margin-top: 2px;
+        text-transform: uppercase;
+      }
+
+      /* Navigation Groups */
+      .nav-section {
+        margin-top: 14px;
+      }
+
+      .nav-section-title {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: var(--sidebar-heading);
+        padding: 6px 12px 4px;
+      }
+
+      .nav-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .nav-item a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--sidebar-text);
+        transition: all 0.2s ease;
+      }
+
+      .nav-item a:hover {
+        color: var(--sidebar-text-active);
+        background-color: var(--sidebar-hover);
+      }
+
+      .nav-item.active a {
+        color: var(--sidebar-text-active);
+        background-color: var(--sidebar-active);
+        font-weight: 600;
+      }
+
+      .nav-item svg {
+        width: 17px;
+        height: 17px;
+        stroke-width: 1.8;
+        opacity: 0.85;
+        flex-shrink: 0;
+      }
+
+      .nav-item.active svg {
+        opacity: 1;
+        stroke: #72ba88;
+      }
+
+      /* ==========================================================================
+           Main Content Area
+           ========================================================================== */
+      .admin-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--bg-main);
+      }
+
+      /* Top Header */
+      .admin-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 40px;
+        background-color: #ffffff;
+        border-bottom: 1px solid var(--card-border);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+
+      .header-search-trigger {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #434e46;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        border-radius: 50%;
+        transition: color 0.15s ease;
+      }
+
+      .header-search-trigger:hover {
+        color: var(--color-text-main);
+      }
+
+      .header-search-trigger svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-left: auto;
+      }
+
+      .header-icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #434e46;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 4px;
+        border-radius: 50%;
+        transition: color 0.15s ease;
+      }
+
+      .header-icon-btn:hover {
+        color: var(--color-text-main);
+      }
+
+      .header-icon-btn svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .notification-dot {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 6px;
+        height: 6px;
+        background-color: #e53935;
+        border-radius: 50%;
+      }
+
+      /* Profile Dropdown */
+      .profile-dropdown-wrapper {
+        position: relative;
+      }
+
+      .admin-profile-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: none;
+        border: none;
+        padding: 4px 6px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+      }
+
+      .admin-profile-btn:hover {
+        background-color: #f0f4f1;
+      }
+
+      .admin-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-main);
+      }
+
+      .admin-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #e2e8e3;
+        color: #35493b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #d4ded6;
+        overflow: hidden;
+      }
+
+      .admin-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .profile-dropdown-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        background-color: #ffffff;
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-md);
+        box-shadow: 0 10px 30px rgba(16, 37, 24, 0.1);
+        min-width: 200px;
+        padding: 6px 0;
+        z-index: 100;
+      }
+
+      .profile-dropdown-menu.show {
+        display: block;
+        animation: dropdownFadeIn 0.15s ease-out;
+      }
+
+      @keyframes dropdownFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .dropdown-header {
+        padding: 8px 16px 6px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .dropdown-user-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--color-text-main);
+      }
+
+      .dropdown-user-role {
+        font-size: 11px;
+        color: var(--color-text-muted);
+      }
+
+      .dropdown-divider {
+        height: 1px;
+        background-color: var(--card-border);
+        margin: 4px 0;
+      }
+
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-text-main);
+        background: none;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease;
+      }
+
+      .dropdown-item svg {
+        width: 15px;
+        height: 15px;
+        color: #637268;
+      }
+
+      .dropdown-item:hover {
+        background-color: #f4f6f4;
+      }
+
+      .dropdown-item.logout-btn {
+        color: #d32f2f;
+      }
+
+      .dropdown-item.logout-btn svg {
+        color: #d32f2f;
+      }
+
+      /* ==========================================================================
+           Content Layout
+           ========================================================================== */
+      .content-container {
+        padding: 32px 40px 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        max-width: 1320px;
+        width: 100%;
+        margin: 0 auto;
+      }
+
+      .page-header-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .page-title {
+        font-family: var(--font-serif);
+        font-size: 26px;
+        font-weight: 600;
+        color: var(--color-text-main);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+
+      .page-subtitle {
+        font-size: 13.5px;
+        color: var(--color-text-muted);
+        font-weight: 400;
+      }
+
+      /* ==========================================================================
+           Card 1: Add Category Card
+           ========================================================================== */
+      .add-category-card {
+        background: var(--bg-card);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        padding: 24px 28px;
+        box-shadow: var(--shadow-card);
+      }
+
+      .add-category-form {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr 1.5fr auto;
+        gap: 16px;
+        align-items: flex-end;
+      }
+
+      @media (max-width: 992px) {
+        .add-category-form {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .add-category-form {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .add-category-form .form-group {
+        position: relative;
+      }
+
+      .add-category-form .field-error {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 6px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .form-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #4b5850;
+      }
+
+      .form-input,
+      .form-select {
+        width: 100%;
+        height: 42px;
+        padding: 0 14px;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        font-size: 13.5px;
+        font-family: var(--font-sans);
+        color: var(--color-text-main);
+        background-color: #ffffff;
+        outline: none;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+
+      .form-select {
+        cursor: pointer;
+      }
+
+      .form-input:focus,
+      .form-select:focus {
+        border-color: #244b32;
+        box-shadow: 0 0 0 2px rgba(36, 75, 50, 0.1);
+      }
+
+      .form-input::placeholder {
+        color: #a4aea7;
+        font-size: 13px;
+      }
+
+      .btn-add-category {
+        height: 42px;
+        padding: 0 24px;
+        background-color: var(--color-primary);
+        color: #ffffff;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition:
+          background-color 0.2s ease,
+          transform 0.1s ease;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn-add-category:hover {
+        background-color: var(--color-primary-hover);
+      }
+
+      .btn-add-category:active {
+        transform: scale(0.98);
+      }
+
+      /* Feedback Modal */
+      .alert-banner {
+        display: none;
+      }
+
+      .feedback-modal {
+        width: min(100%, 300px);
+        display: flex;
+        flex-direction: column;
+        border-radius: 10px;
+      }
+
+      .feedback-modal .modal-header {
+        padding: 12px 16px 10px;
+      }
+
+      .feedback-modal .modal-body {
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 16px 20px 20px;
+        text-align: center;
+      }
+
+      .feedback-modal-icon {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #edf7ed;
+        color: #23834c;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .feedback-modal.error .feedback-modal-icon {
+        background: #fdeded;
+        color: #b3261e;
+      }
+
+      .feedback-modal-message {
+        color: var(--color-text-muted);
+        font-size: 12px;
+        line-height: 1.5;
+        max-width: 240px;
+      }
+
+      .feedback-modal.success .feedback-modal-message {
+        color: #1e4620;
+      }
+
+      .feedback-modal.error .feedback-modal-message {
+        color: #5f2120;
+      }
+
+      .edit-category-modal {
+        width: min(100%, 420px);
+        display: flex;
+        flex-direction: column;
+        border-radius: 14px;
+      }
+
+      .edit-category-modal .modal-header {
+        padding: 16px 20px 12px;
+      }
+
+      .edit-category-modal .modal-title {
+        font-size: 18px;
+      }
+
+      .edit-category-modal form {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        flex-direction: column;
+      }
+
+      .edit-category-modal .modal-body {
+        flex: 1;
+        gap: 12px;
+        padding: 18px 20px;
+      }
+
+      .edit-category-modal .modal-footer {
+        padding: 12px 20px;
+      }
+
+      .category-offer-modal {
+        width: min(100%, 520px);
+        max-height: calc(100vh - 40px);
+      }
+
+      .category-offer-modal form {
+        min-width: 0;
+      }
+
+      .btn-modal-remove {
+        margin-right: auto;
+        padding: 8px 14px;
+        border: 1px solid #e0c8c5;
+        border-radius: var(--radius-sm);
+        background: #fffafa;
+        color: #a33a32;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease;
+      }
+
+      .btn-modal-remove:hover,
+      .btn-modal-remove:focus-visible {
+        border-color: #c99a95;
+        background: #fff1ef;
+        outline: none;
+      }
+
+      .offer-category-context {
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        background: #f5f8f5;
+        color: var(--color-text-muted);
+        font-size: 12px;
+      }
+
+      .offer-category-context strong {
+        color: var(--color-text-main);
+        font-weight: 700;
+      }
+
+      .offer-fields {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 16px;
+      }
+
+      .offer-fields .form-group {
+        min-width: 0;
+      }
+
+      .offer-fields .form-input {
+        min-width: 0;
+      }
+
+      .offer-fields .form-group:first-child {
+        grid-column: 1 / -1;
+      }
+
+      @media (max-width: 520px) {
+        .modal-backdrop {
+          padding: 12px;
+        }
+
+        .category-offer-modal .modal-header,
+        .category-offer-modal .modal-body,
+        .category-offer-modal .modal-footer {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+
+        .offer-fields {
+          grid-template-columns: 1fr;
+        }
+
+        .offer-fields .form-group:first-child {
+          grid-column: auto;
+        }
+      }
+
+      .field-error {
+        display: none;
+        margin-top: 6px;
+        color: #b3261e;
+        font-size: 11px;
+      }
+
+      .field-error.visible {
+        display: block;
+      }
+
+      .form-input.input-error {
+        border-color: #b3261e;
+      }
+
+      /* ==========================================================================
+           Card 2: All Categories List Card
+           ========================================================================== */
+      .categories-table-card {
+        background: var(--bg-card);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        padding: 24px 28px 28px;
+        box-shadow: var(--shadow-card);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .table-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .table-card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--color-text-main);
+      }
+
+      .table-search-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .search-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .search-input-wrap svg {
+        position: absolute;
+        left: 12px;
+        width: 15px;
+        height: 15px;
+        color: #8c9b91;
+        pointer-events: none;
+      }
+
+      .table-search-input {
+        height: 36px;
+        padding: 0 12px 0 34px;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-family: var(--font-sans);
+        color: var(--color-text-main);
+        width: 220px;
+        outline: none;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+
+      .table-search-input:focus {
+        border-color: #244b32;
+        box-shadow: 0 0 0 2px rgba(36, 75, 50, 0.1);
+      }
+
+      .table-search-input::placeholder {
+        color: #9aa89f;
+        font-size: 12.5px;
+      }
+
+      .btn-table-search {
+        height: 36px;
+        padding: 0 16px;
+        background: #ffffff;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #38453d;
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease;
+      }
+
+      .btn-table-search:hover {
+        background-color: #f4f7f4;
+        border-color: #b5c4b8;
+      }
+
+      .btn-table-clear {
+        height: 36px;
+        padding: 0 14px;
+        background: none;
+        border: none;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #6a7a70;
+        cursor: pointer;
+        transition: color 0.15s ease;
+      }
+
+      .btn-table-clear:hover {
+        color: #141715;
+      }
+
+      /* ==========================================================================
+           Categories Table
+           ========================================================================== */
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .categories-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      .categories-table th {
+        padding: 14px 16px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #6a776f;
+        border-bottom: 1px solid #edf0eb;
+        background-color: transparent;
+        white-space: nowrap;
+      }
+
+      .categories-table td {
+        padding: 16px 16px;
+        font-size: 13px;
+        color: var(--color-text-main);
+        border-bottom: 1px solid #edf0eb;
+        vertical-align: middle;
+      }
+
+      .categories-table th:nth-child(n + 4),
+      .categories-table td:nth-child(n + 4) {
+        text-align: center;
+      }
+
+      .categories-table tbody tr {
+        transition: background-color 0.15s ease;
+      }
+
+      .categories-table tbody tr:hover {
+        background-color: #fcfdfc;
+      }
+
+      .col-name {
+        font-weight: 600;
+        color: #151a17;
+        white-space: nowrap;
+      }
+
+      .col-parent {
+        color: #4b5850;
+        font-weight: 500;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .parent-category-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        background-color: #f0f4f1;
+        border: 1px solid #dbe2dc;
+        border-radius: var(--radius-sm);
+        color: #1e3f2c;
+        font-weight: 600;
+        font-size: 11.5px;
+      }
+
+      .col-desc {
+        color: #606d64;
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .col-products {
+        font-weight: 500;
+        color: #38453d;
+      }
+
+      .col-offer {
+        font-weight: 500;
+        color: #38453d;
+      }
+
+      .offer-trigger {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 3px 8px;
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease,
+          color 0.15s ease;
+      }
+
+      .offer-trigger:hover,
+      .offer-trigger:focus-visible {
+        border-color: #c8d8cc;
+        background-color: #f0f6f1;
+        color: var(--color-primary);
+        outline: none;
+      }
+
+      .offer-trigger.empty {
+        color: #607065;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+      }
+
+      /* Status Badge */
+      .status-badge {
+        display: inline-block;
+        padding: 4px 9px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .status-badge.listed {
+        background-color: var(--badge-listed-bg);
+        color: var(--badge-listed-text);
+      }
+
+      .status-badge.unlisted {
+        background-color: var(--badge-unlisted-bg);
+        color: var(--badge-unlisted-text);
+      }
+
+      /* Action Buttons */
+      .action-icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 4px;
+        color: #607065;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          color 0.15s ease,
+          background-color 0.15s ease;
+      }
+
+      .action-icon-btn:hover {
+        color: #141715;
+        background-color: #f0f4f1;
+      }
+
+      .action-icon-btn svg {
+        width: 17px;
+        height: 17px;
+      }
+
+      .actions-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      /* ==========================================================================
+           Pagination
+           ========================================================================== */
+      .pagination-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 14px;
+        padding-top: 12px;
+      }
+
+      .page-num-btn {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #3f4e44;
+        background: none;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .page-num-btn:hover {
+        background-color: #f0f4f1;
+        color: #141715;
+      }
+
+      .page-num-btn.active {
+        background-color: var(--color-primary);
+        color: #ffffff;
+        font-weight: 700;
+      }
+
+      .page-next-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0 10px;
+        height: 32px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #3f4e44;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: color 0.15s ease;
+      }
+
+      .page-next-btn:hover {
+        color: #141715;
+      }
+
+      /* Empty Table State */
+      .empty-table-row {
+        text-align: center;
+        padding: 40px 16px !important;
+        color: var(--color-text-muted);
+      }
+
+      /* ==========================================================================
+           Edit Category Modal
+           ========================================================================== */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: none;
+        place-items: center;
+        padding: 20px;
+        background: rgba(9, 26, 16, 0.55);
+        backdrop-filter: blur(2px);
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      .modal-backdrop.open {
+        display: grid;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-dialog {
+        background: #ffffff;
+        border: 1px solid #cfd5d0;
+        border-radius: var(--radius-md);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        width: min(100%, 460px);
+        overflow: hidden;
+        animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .modal-header {
+        padding: 20px 24px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #edf0eb;
+      }
+
+      .modal-title {
+        font-family: var(--font-serif);
+        font-size: 20px;
+        font-weight: 600;
+        color: #141715;
+      }
+
+      .modal-close-btn {
+        background: none;
+        border: none;
+        color: #6b7770;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: color 0.15s ease;
+      }
+
+      .modal-close-btn:hover {
+        color: #141715;
+      }
+
+      .modal-body {
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .modal-footer {
+        background: #f8faf8;
+        border-top: 1px solid #edf0eb;
+        padding: 14px 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .btn-modal-cancel {
+        padding: 8px 18px;
+        background: #ffffff;
+        border: 1px solid #d5ded7;
+        border-radius: var(--radius-sm);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #38453d;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+      }
+
+      .btn-modal-cancel:hover {
+        background-color: #f2f5f2;
+      }
+
+      .btn-modal-save {
+        padding: 8px 20px;
+        background: var(--color-primary);
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #ffffff;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+      }
+
+      .btn-modal-save:hover {
+        background-color: var(--color-primary-hover);
+      }
+
+      /* Responsive */
+      @media (max-width: 992px) {
+        .add-category-form {
+          grid-template-columns: 1fr;
+        }
+        .admin-sidebar {
+          width: 72px;
+          min-width: 72px;
+          padding: 16px 8px;
+        }
+        .brand-title,
+        .brand-subtitle,
+        .nav-section-title,
+        .nav-item span {
+          display: none;
+        }
+        .nav-item a {
+          justify-content: center;
+          padding: 10px;
+        }
+        .content-container {
+          padding: 20px 16px 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ========================================================================
+       Left Sidebar Navigation
+       ======================================================================== -->
+    <aside class="admin-sidebar" aria-label="Admin Navigation">
+      <!-- Logo & Header -->
+      <div class="sidebar-brand">
+        <div class="brand-logo-wrap">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 2L12 22"></path>
+            <path
+              d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"
+            ></path>
+            <path
+              d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"
+            ></path>
+            <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+          </svg>
+          <div class="brand-title">VERDÉ</div>
+          <div class="brand-subtitle">ADMIN</div>
+        </div>
+      </div>
+
+      <!-- Section: Overview -->
+      <div class="nav-section">
+        <div class="nav-section-title">OVERVIEW</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/adminpanel/admin-dashboard/">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section: Catalog -->
+      <div class="nav-section">
+        <div class="nav-section-title">CATALOG</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/products/admin/products/">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                ></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+              <span>Products</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="/catalog/admin/categories/">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+              <span>Categories</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section: Sales -->
+      <div class="nav-section">
+        <div class="nav-section-title">SALES</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"
+                ></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+              <span>Orders</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                ></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              </svg>
+              <span>Coupons</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section: Customers -->
+      <div class="nav-section">
+        <div class="nav-section-title">CUSTOMERS</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/adminpanel/admin-panel/users/">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Users</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+              <span>Referrals</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section: Content -->
+      <div class="nav-section">
+        <div class="nav-section-title">CONTENT</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span>Banners</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section: Analytics -->
+      <div class="nav-section">
+        <div class="nav-section-title">ANALYTICS</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              <span>Sales &amp; Revenue</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section: System -->
+      <div class="nav-section">
+        <div class="nav-section-title">SYSTEM</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                ></path>
+              </svg>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- ========================================================================
+       Main Content
+       ======================================================================== -->
+    <main class="admin-main">
+      <!-- Top Bar Header -->
+      <header class="admin-header">
+        <!-- Right Actions -->
+        <div class="header-actions">
+          <!-- Search Icon -->
+          <button class="header-search-trigger" aria-label="Search">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+
+          <!-- Notifications Icon -->
+          <button class="header-icon-btn" aria-label="Notifications">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notification-dot"></span>
+          </button>
+
+          <!-- Profile Dropdown -->
+          <div class="profile-dropdown-wrapper" id="profileDropdown">
+            <button
+              class="admin-profile-btn"
+              id="profileToggleBtn"
+              aria-expanded="false"
+              aria-haspopup="true"
+              onclick="toggleProfileDropdown(event)"
+            >
+              <span class="admin-name">Aswin Admin</span>
+              <div class="admin-avatar">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <svg
+                class="chevron-icon"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="profile-dropdown-menu" id="profileMenu">
+              <div class="dropdown-header">
+                <span class="dropdown-user-name">Aswin Admin</span>
+                <span class="dropdown-user-role">Administrator</span>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a href="#" class="dropdown-item">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Account Settings</span>
+              </a>
+              <div class="dropdown-divider"></div>
+              <form action="/adminpanel/admin-logout/" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item logout-btn">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span>Sign Out</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Category Management Content -->
+      <div class="content-container">
+        <!-- Title Header -->
+        <div class="page-header-row">
+          <h2 class="page-title">CATEGORY MANAGEMENT</h2>
+          <p class="page-subtitle">
+            Manage categories for your VERDÉ plant and gardening products.
+          </p>
+        </div>
+
+        <!-- ========================================================================
+               Card 1: Add Category
+               ======================================================================== -->
+        <div class="add-category-card">
+          <form
+            id="addCategoryForm"
+            class="add-category-form"
+            onsubmit="handleAddCategory(event)"
+          >
+            {% csrf_token %}
+            <!-- Category Name Field -->
+            <div class="form-group">
+              <label class="form-label" for="categoryName">CATEGORY NAME *</label>
+              <input
+                type="text"
+                id="categoryName"
+                name="name"
+                class="form-input"
+                placeholder="e.g. Indoor Plants"
+                required
+              />
+              <span
+                id="categoryNameError"
+                class="field-error"
+                role="alert"
+              ></span>
+            </div>
+
+            <!-- Parent Category Dropdown Field -->
+            <div class="form-group">
+              <label class="form-label" for="categoryParent">PARENT CATEGORY</label>
+              <select
+                id="categoryParent"
+                name="parent_id"
+                class="form-select"
+              >
+                <option value="">None (Top-Level Category)</option>
+                {% for pcat in parent_categories %}
+                <option value="{{ pcat.id }}">{{ pcat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Description Field -->
+            <div class="form-group">
+              <label class="form-label" for="categoryDescription"
+                >DESCRIPTION</label
+              >
+              <input
+                type="text"
+                id="categoryDescription"
+                name="description"
+                class="form-input"
+                placeholder="Brief description of the category..."
+              />
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="addCategoryBtn" class="btn-add-category">
+              ADD CATEGORY
+            </button>
+          </form>
+        </div>
+
+        <!-- ========================================================================
+               Card 2: All Categories Table
+               ======================================================================== -->
+        <div class="categories-table-card">
+          <!-- Card Header with Search Controls -->
+          <div class="table-card-header">
+            <h3 class="table-card-title">All Categories</h3>
+
+            <form
+              method="GET"
+              class="table-search-group"
+              onsubmit="handleSearch(event)"
+            >
+              <div class="search-input-wrap">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  id="searchInput"
+                  name="search"
+                  class="table-search-input"
+                  placeholder="Search categories..."
+                  value="{{ request.GET.search|default:'' }}"
+                />
+              </div>
+              <button type="submit" class="btn-table-search">SEARCH</button>
+              <button
+                type="button"
+                class="btn-table-clear"
+                onclick="clearSearch()"
+              >
+                CLEAR
+              </button>
+            </form>
+          </div>
+
+          <!-- Categories Table -->
+          <div class="table-responsive">
+            <table class="categories-table">
+              <thead>
+                <tr>
+                  <th>CATEGORY NAME</th>
+                  <th>PARENT CATEGORY</th>
+                  <th>DESCRIPTION</th>
+                  <th>PRODUCTS</th>
+                  <th>OFFER</th>
+                  <th>STATUS</th>
+                  <th>LIST/UNLIST</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <!-- prettier-ignore -->
+              <tbody id="categoryTableBody">
+                {% for cat in categories %}
+                <tr data-id="{{ cat.id }}">
+                  <!-- Category Name -->
+                  <td class="col-name">{{ cat.name }}</td>
+
+                  <!-- Parent Category -->
+                  <td class="col-parent">
+                    {% if cat.parent %}
+                      <span class="parent-category-badge">{{ cat.parent.name }}</span>
+                    {% else %}
+                      <span style="color: var(--color-text-light); font-weight: 600;">—</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Description -->
+                  <td class="col-desc" title="{{ cat.description }}">
+                    {{ cat.description|default:"—" }}
+                  </td>
+
+                  <!-- Product Count -->
+                  <td class="col-products">
+                    {{ cat.product_count|default:0 }}
+                  </td>
+
+                  <!-- Offer -->
+                  <td class="col-offer">
+                    {% if cat.discount_value and cat.discount_value > 0 %}
+                    <button
+                      type="button"
+                      class="offer-trigger"
+                      data-category-id="{{ cat.id }}"
+                      data-category-name="{{ cat.name|escape }}"
+                      data-discount="{{ cat.discount_value }}"
+                      data-offer-start="{{ cat.offer_start_at|date:'Y-m-d\TH:i' }}"
+                      data-offer-end="{{ cat.offer_end_at|date:'Y-m-d\TH:i' }}"
+                      onclick="openCategoryOfferModal(this)"
+                      title="Manage category offer"
+                    >
+                      {{ cat.discount_value|floatformat:0 }}%
+                    </button>
+                    {% else %}
+                    <button
+                      type="button"
+                      class="offer-trigger empty"
+                      data-category-id="{{ cat.id }}"
+                      data-category-name="{{ cat.name|escape }}"
+                      data-discount=""
+                      data-offer-start=""
+                      data-offer-end=""
+                      onclick="openCategoryOfferModal(this)"
+                      title="Add category offer"
+                    >
+                      + ADD OFFER
+                    </button>
+                    {% endif %}
+                  </td>
+
+                  <!-- Status -->
+                  <td>
+                    {% if cat.is_active %}
+                    <span class="status-badge listed"> LISTED </span>
+                    {% else %}
+                    <span class="status-badge unlisted"> UNLISTED </span>
+                    {% endif %}
+                  </td>
+
+                  <!-- List / Unlist -->
+                  <td>
+                    <button
+                      class="action-icon-btn toggle-status-btn"
+                      onclick="toggleCategoryStatus('{{ cat.id }}')"
+                      title="{% if cat.is_active %}Unlist Category{% else %}List Category{% endif %}"
+                    >
+                      {% if cat.is_active %}
+                      <!-- Eye Open Icon -->
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                        ></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      {% else %}
+                      <!-- Eye Off Icon -->
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                        ></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                      </svg>
+                      {% endif %}
+                    </button>
+                  </td>
+
+                  <!-- Edit -->
+                  <td>
+                    <div class="actions-cell">
+                      <button
+                        class="action-icon-btn edit-btn"
+                        onclick="openEditModal(
+                                    '{{ cat.id }}',
+                                    '{{ cat.name|escapejs }}',
+                                    '{{ cat.description|escapejs }}',
+                                    '{{ cat.parent_id|default:'' }}'
+                                )"
+                        title="Edit Category"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                          ></path>
+                          <path
+                            d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                          ></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <!-- No categories found -->
+                <tr>
+                  <td colspan="8" class="empty-table-row">
+                    No categories found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination-container">
+            {% if page_obj %} {% for num in page_obj.paginator.page_range %}
+            <a
+              href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+              class="page-num-btn {% if page_obj.number == num %}active{% endif %}"
+            >
+              {{ num }}
+            </a>
+            {% endfor %} {% if page_obj.has_next %}
+            <a
+              href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+              class="page-next-btn"
+            >
+              NEXT &rarr;
+            </a>
+            {% endif %} {% else %}
+            <button type="button" class="page-num-btn active">1</button>
+            <button type="button" class="page-num-btn">2</button>
+            <button type="button" class="page-num-btn">3</button>
+            <button type="button" class="page-next-btn">NEXT &rarr;</button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ========================================================================
+       Edit Category Modal
+       ======================================================================== -->
+    <div id="editCategoryModal" class="modal-backdrop">
+      <div class="modal-dialog edit-category-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Edit Category</h3>
+          <button
+            type="button"
+            class="modal-close-btn"
+            onclick="closeEditModal()"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <form id="editCategoryForm" onsubmit="handleEditCategory(event)">
+          {% csrf_token %}
+          <input type="hidden" id="editCategoryId" name="category_id" />
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label" for="editCategoryName"
+                >CATEGORY NAME *</label
+              >
+              <input
+                type="text"
+                id="editCategoryName"
+                name="name"
+                class="form-input"
+                required
+              />
+              <span
+                id="editCategoryNameError"
+                class="field-error"
+                role="alert"
+              ></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="editCategoryParent"
+                >PARENT CATEGORY</label
+              >
+              <select
+                id="editCategoryParent"
+                name="parent_id"
+                class="form-select"
+              >
+                <option value="">None (Top-Level Category)</option>
+                {% for pcat in parent_categories %}
+                <option value="{{ pcat.id }}">{{ pcat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="editCategoryDescription"
+                >DESCRIPTION</label
+              >
+              <input
+                type="text"
+                id="editCategoryDescription"
+                name="description"
+                class="form-input"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-modal-cancel"
+              onclick="closeEditModal()"
+            >
+              CANCEL
+            </button>
+            <button type="submit" id="editCategoryBtn" class="btn-modal-save">SAVE CHANGES</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================================================
+       Category Offer Modal
+       ======================================================================== -->
+    <div
+      id="categoryOfferModal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="categoryOfferModalTitle"
+    >
+      <div class="modal-dialog category-offer-modal">
+        <div class="modal-header">
+          <h3 id="categoryOfferModalTitle" class="modal-title">
+            Category Offer
+          </h3>
+          <button
+            type="button"
+            class="modal-close-btn"
+            onclick="closeCategoryOfferModal()"
+            aria-label="Close category offer"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <form id="categoryOfferForm" onsubmit="saveCategoryOffer(event)">
+          {% csrf_token %}
+          <input type="hidden" id="offerCategoryId" name="category_id" />
+          <div class="modal-body">
+            <div class="offer-category-context">
+              Category: <strong id="offerCategoryName"></strong>
+            </div>
+            <div class="offer-fields">
+              <div class="form-group">
+                <label class="form-label" for="offerDiscount"
+                  >DISCOUNT (%)</label
+                >
+                <input
+                  type="number"
+                  id="offerDiscount"
+                  name="discount_value"
+                  class="form-input"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="e.g. 10"
+                />
+                <span
+                  id="offerDiscountError"
+                  class="field-error"
+                  role="alert"
+                ></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="offerStart">OFFER START</label>
+                <input
+                  type="datetime-local"
+                  id="offerStart"
+                  name="offer_start"
+                  class="form-input"
+                />
+                <span
+                  id="offerStartError"
+                  class="field-error"
+                  role="alert"
+                ></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="offerEnd">OFFER END</label>
+                <input
+                  type="datetime-local"
+                  id="offerEnd"
+                  name="offer_end"
+                  class="form-input"
+                />
+                <span
+                  id="offerEndError"
+                  class="field-error"
+                  role="alert"
+                ></span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              id="removeCategoryOfferButton"
+              class="btn-modal-remove"
+              onclick="removeCategoryOffer(event)"
+            >
+              REMOVE OFFER
+            </button>
+            <button
+              type="button"
+              class="btn-modal-cancel"
+              onclick="closeCategoryOfferModal()"
+            >
+              CANCEL
+            </button>
+            <button type="submit" class="btn-modal-save">SAVE OFFER</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div
+      id="feedbackModal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-live="polite"
+    >
+      <div class="modal-dialog feedback-modal">
+        <div class="modal-header">
+          <h3 id="feedbackModalTitle" class="modal-title">Success</h3>
+          <button
+            type="button"
+            class="modal-close-btn"
+            onclick="closeFeedbackModal()"
+            aria-label="Close message"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div
+            id="feedbackModalIcon"
+            class="feedback-modal-icon"
+            aria-hidden="true"
+          >
+            ✓
+          </div>
+          <p id="feedbackModalMessage" class="feedback-modal-message"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================
+       Scripts
+       ======================================================================== -->
+    <script>
+      // Helper to extract CSRF token
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1),
+              );
+              break;
+            }
+          }
+        }
+        if (!cookieValue) {
+          const csrfInput = document.querySelector(
+            'input[name="csrfmiddlewaretoken"]',
+          );
+          if (csrfInput) {
+            cookieValue = csrfInput.value;
+          }
+        }
+        return cookieValue;
+      }
+
+      // Profile Dropdown Toggle
+      function toggleProfileDropdown(event) {
+        event.stopPropagation();
+        const menu = document.getElementById("profileMenu");
+        const btn = document.getElementById("profileToggleBtn");
+        const isOpen = menu.classList.toggle("show");
+        btn.setAttribute("aria-expanded", isOpen);
+      }
+
+      document.addEventListener("click", (event) => {
+        const dropdown = document.getElementById("profileDropdown");
+        const menu = document.getElementById("profileMenu");
+        const btn = document.getElementById("profileToggleBtn");
+        if (dropdown && !dropdown.contains(event.target)) {
+          menu.classList.remove("show");
+          btn.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      // Feedback Modal Helper
+      function showAlert(message, type = "success") {
+        const modal = document.getElementById("feedbackModal");
+        const dialog = modal.querySelector(".feedback-modal");
+        document.getElementById("feedbackModalTitle").textContent =
+          type === "error" ? "Error" : "Success";
+        document.getElementById("feedbackModalIcon").textContent =
+          type === "error" ? "!" : "✓";
+        document.getElementById("feedbackModalMessage").textContent = message;
+        dialog.className = `modal-dialog feedback-modal ${type}`;
+        modal.classList.add("open");
+        setTimeout(closeFeedbackModal, 2500);
+      }
+
+      function closeFeedbackModal() {
+        document.getElementById("feedbackModal").classList.remove("open");
+      }
+
+      function showFieldError(inputId, errorId, message) {
+        const input = document.getElementById(inputId);
+        const error = document.getElementById(errorId);
+        input.classList.add("input-error");
+        error.textContent = message;
+        error.classList.add("visible");
+      }
+
+      function clearFieldError(inputId, errorId) {
+        const input = document.getElementById(inputId);
+        const error = document.getElementById(errorId);
+        input.classList.remove("input-error");
+        error.textContent = "";
+        error.classList.remove("visible");
+      }
+
+      // Add Category Submission
+      async function handleAddCategory(event) {
+        event.preventDefault();
+        const nameInput = document.getElementById("categoryName");
+        const parentInput = document.getElementById("categoryParent");
+        const descInput = document.getElementById("categoryDescription");
+        const submitBtn = document.getElementById("addCategoryBtn");
+
+        const name = nameInput.value.trim();
+        const parentId = parentInput ? parentInput.value : "";
+        const description = descInput.value.trim();
+
+        if (!name) {
+          showFieldError(
+            "categoryName",
+            "categoryNameError",
+            "Category name is required.",
+          );
+          return;
+        }
+        clearFieldError("categoryName", "categoryNameError");
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "ADDING...";
+
+        try {
+          const formData = new FormData();
+          formData.append("name", name);
+          formData.append("parent_id", parentId);
+          formData.append("description", description);
+
+          const response = await fetch("/catalog/admin/categories/add/", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success !== false) {
+            showAlert(
+              result.message || "Category added successfully!",
+              "success",
+            );
+            nameInput.value = "";
+            if (parentInput) parentInput.value = "";
+            descInput.value = "";
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            showAlert(
+              result.message || result.error || "Failed to create category.",
+              "error",
+            );
+          }
+        } catch (err) {
+          showAlert("An unexpected error occurred. Please try again.", "error");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "ADD CATEGORY";
+        }
+      }
+
+      // Edit Modal Controls
+      function openEditModal(id, name, description, parentId) {
+        document.getElementById("editCategoryId").value = id;
+        document.getElementById("editCategoryName").value = name;
+        document.getElementById("editCategoryDescription").value =
+          description || "";
+
+        const parentSelect = document.getElementById("editCategoryParent");
+        if (parentSelect) {
+          parentSelect.value = parentId || "";
+          // Disable/hide self as parent option to prevent circular hierarchy
+          Array.from(parentSelect.options).forEach((opt) => {
+            if (opt.value && opt.value.toString() === id.toString()) {
+              opt.disabled = true;
+              opt.hidden = true;
+            } else {
+              opt.disabled = false;
+              opt.hidden = false;
+            }
+          });
+        }
+
+        clearFieldError("editCategoryName", "editCategoryNameError");
+        document.getElementById("editCategoryModal").classList.add("open");
+      }
+
+      function closeEditModal() {
+        document.getElementById("editCategoryModal").classList.remove("open");
+      }
+
+      let activeOfferTrigger = null;
+
+      function openCategoryOfferModal(trigger) {
+        activeOfferTrigger = trigger;
+        const categoryId = trigger.dataset.categoryId;
+        const categoryName = trigger.dataset.categoryName;
+        const discount = trigger.dataset.discount || "";
+        const offerStart = trigger.dataset.offerStart || "";
+        const offerEnd = trigger.dataset.offerEnd || "";
+
+        document.getElementById("offerCategoryId").value = categoryId;
+        document.getElementById("offerCategoryName").textContent = categoryName;
+        document.getElementById("offerDiscount").value = discount;
+        document.getElementById("offerStart").value = offerStart;
+        document.getElementById("offerEnd").value = offerEnd;
+
+        clearFieldError("offerDiscount", "offerDiscountError");
+        clearFieldError("offerStart", "offerStartError");
+        clearFieldError("offerEnd", "offerEndError");
+
+        const removeButton = document.getElementById(
+          "removeCategoryOfferButton",
+        );
+        if (removeButton) {
+          if (discount && parseFloat(discount) > 0) {
+            removeButton.style.display = "inline-flex";
+          } else {
+            removeButton.style.display = "none";
+          }
+        }
+
+        document.getElementById("categoryOfferModal").classList.add("open");
+      }
+
+      function closeCategoryOfferModal() {
+        document.getElementById("categoryOfferModal").classList.remove("open");
+      }
+
+      async function removeCategoryOffer(event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
+        const removeButton = document.getElementById(
+          "removeCategoryOfferButton",
+        );
+        const categoryId = document.getElementById("offerCategoryId").value;
+
+        if (!categoryId) {
+          showAlert("Select a category before removing its offer.", "error");
+          return;
+        }
+
+        if (removeButton) {
+          removeButton.disabled = true;
+          removeButton.textContent = "REMOVING...";
+        }
+
+        const csrfToken =
+          getCookie("csrftoken") ||
+          document.querySelector('input[name="csrfmiddlewaretoken"]')?.value ||
+          "";
+
+        const formData = new FormData();
+        formData.append("discount_value", "0");
+        formData.append("offer_start_at", "");
+        formData.append("offer_end_at", "");
+        formData.append("remove_offer", "true");
+        if (csrfToken) {
+          formData.append("csrfmiddlewaretoken", csrfToken);
+        }
+
+        try {
+          const response = await fetch(
+            `/catalog/admin/categories/${categoryId}/offer/`,
+            {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": csrfToken,
+              },
+              body: formData,
+            },
+          );
+
+          let result = {};
+          try {
+            result = await response.json();
+          } catch (parseError) {
+            console.error("Remove offer response parsing error:", parseError);
+          }
+
+          if (response.ok && result.success) {
+            if (activeOfferTrigger) {
+              activeOfferTrigger.classList.add("empty");
+              activeOfferTrigger.dataset.discount = "";
+              activeOfferTrigger.dataset.offerStart = "";
+              activeOfferTrigger.dataset.offerEnd = "";
+              activeOfferTrigger.textContent = "+ ADD OFFER";
+              activeOfferTrigger.title = "Add category offer";
+            }
+            showAlert(
+              result.message || "Offer removed successfully.",
+              "success",
+            );
+            closeCategoryOfferModal();
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            showAlert(result.message || "Failed to remove offer.", "error");
+          }
+        } catch (err) {
+          console.error("Remove category offer error:", err);
+          showAlert("Failed to remove offer. Please try again.", "error");
+        } finally {
+          if (removeButton) {
+            removeButton.disabled = false;
+            removeButton.textContent = "REMOVE OFFER";
+          }
+        }
+      }
+
+      async function saveCategoryOffer(event) {
+        event.preventDefault();
+        const discountInput = document.getElementById("offerDiscount");
+        const startInput = document.getElementById("offerStart");
+        const endInput = document.getElementById("offerEnd");
+        const discount = discountInput.value.trim();
+        const start = startInput.value;
+        const end = endInput.value;
+
+        clearFieldError("offerDiscount", "offerDiscountError");
+        clearFieldError("offerStart", "offerStartError");
+        clearFieldError("offerEnd", "offerEndError");
+
+        if (!discount) {
+          showFieldError(
+            "offerDiscount",
+            "offerDiscountError",
+            "Discount is required.",
+          );
+          return;
+        }
+        if (Number.isNaN(Number(discount)) || Number(discount) < 0) {
+          showFieldError(
+            "offerDiscount",
+            "offerDiscountError",
+            "Enter a valid non-negative discount.",
+          );
+          return;
+        }
+        if (start && Number.isNaN(new Date(start).getTime())) {
+          showFieldError(
+            "offerStart",
+            "offerStartError",
+            "Enter a valid start date and time.",
+          );
+          return;
+        }
+        if (end && Number.isNaN(new Date(end).getTime())) {
+          showFieldError(
+            "offerEnd",
+            "offerEndError",
+            "Enter a valid end date and time.",
+          );
+          return;
+        }
+
+        const csrfToken =
+          getCookie("csrftoken") ||
+          document.querySelector('input[name="csrfmiddlewaretoken"]')?.value ||
+          "";
+
+        const formData = new FormData();
+        formData.append("discount_value", discount);
+        formData.append("offer_start_at", start);
+        formData.append("offer_end_at", end);
+        if (csrfToken) {
+          formData.append("csrfmiddlewaretoken", csrfToken);
+        }
+
+        const categoryId = document.getElementById("offerCategoryId").value;
+
+        try {
+          const response = await fetch(
+            `/catalog/admin/categories/${categoryId}/offer/`,
+            {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": csrfToken,
+              },
+              body: formData,
+            },
+          );
+
+          let result = {};
+          try {
+            result = await response.json();
+          } catch (parseErr) {
+            console.error("Save offer response parsing error:", parseErr);
+          }
+
+          if (response.ok && result.success) {
+            showAlert(result.message || "Offer saved successfully.", "success");
+            closeCategoryOfferModal();
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            showAlert(result.message || "Failed to save offer.", "error");
+          }
+        } catch (err) {
+          console.error("Save category offer error:", err);
+          showAlert(
+            "Failed to save category offer. Please try again.",
+            "error",
+          );
+        }
+      }
+
+      async function handleEditCategory(event) {
+        event.preventDefault();
+        const id = document.getElementById("editCategoryId").value;
+        const name = document.getElementById("editCategoryName").value.trim();
+        const parentSelect = document.getElementById("editCategoryParent");
+        const parentId = parentSelect ? parentSelect.value : "";
+        const description = document
+          .getElementById("editCategoryDescription")
+          .value.trim();
+        const submitBtn = document.getElementById("editCategoryBtn");
+
+        if (!name) {
+          showFieldError(
+            "editCategoryName",
+            "editCategoryNameError",
+            "Category name is required.",
+          );
+          return;
+        }
+        clearFieldError("editCategoryName", "editCategoryNameError");
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "SAVING...";
+        }
+
+        try {
+          const formData = new FormData();
+          formData.append("name", name);
+          formData.append("parent_id", parentId);
+          formData.append("description", description);
+
+          const response = await fetch(
+            `/catalog/admin/categories/${id}/edit/`,
+            {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+              body: formData,
+            },
+          );
+
+          const result = await response.json();
+          if (response.ok && result.success !== false) {
+            showAlert(
+              result.message || "Category updated successfully!",
+              "success",
+            );
+            closeEditModal();
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showAlert(result.message || "Failed to update category.", "error");
+          }
+        } catch (err) {
+          console.error("Edit category error:", err);
+          showAlert("Failed to edit category. Please try again.", "error");
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "SAVE CHANGES";
+          }
+        }
+      }
+
+      // Toggle Category Status (List / Unlist)
+      async function toggleCategoryStatus(id) {
+        try {
+          const response = await fetch(
+            `/catalog/admin/categories/${id}/toggle-status/`,
+            {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+            },
+          );
+          const result = await response.json();
+          if (response.ok) {
+            showAlert(result.message || "Status updated.", "success");
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showAlert(result.message || "Failed to update status.", "error");
+          }
+        } catch (err) {
+          showAlert("Status toggled (preview mode).", "success");
+        }
+      }
+
+      // Clear Search Form
+      function clearSearch() {
+        const input = document.getElementById("searchInput");
+        if (input) input.value = "";
+        window.location.href = window.location.pathname;
+      }
+
+      function handleSearch(event) {
+        // Standard GET form submission handled natively by browser
+      }
+
+      // Close modals on backdrop click
+      window.addEventListener("click", (event) => {
+        const editModal = document.getElementById("editCategoryModal");
+        if (event.target === editModal) {
+          closeEditModal();
+        }
+        const offerModal = document.getElementById("categoryOfferModal");
+        if (event.target === offerModal) {
+          closeCategoryOfferModal();
+        }
+        const feedbackModal = document.getElementById("feedbackModal");
+        if (event.target === feedbackModal) {
+          closeFeedbackModal();
+        }
+      });
+    </script>
+  </body>
+</html>

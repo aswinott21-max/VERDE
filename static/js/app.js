@@ -7,20 +7,12 @@
 document.addEventListener('DOMContentLoaded', () => {
   // State
   const state = {
-    cart: [...(window.VerdeData?.initialCart || [])],
     wishlistCount: 3,
     isWishlisted: false,
   };
 
   // DOM Elements
   const header = document.querySelector('.site-header');
-  const cartDrawer = document.getElementById('cartDrawer');
-  const cartBackdrop = document.getElementById('cartBackdrop');
-  const cartBtn = document.getElementById('cartBtn');
-  const cartCloseBtn = document.getElementById('cartCloseBtn');
-  const cartCountBadge = document.getElementById('cartCountBadge');
-  const cartItemsList = document.getElementById('cartItemsList');
-  const cartSubtotalEl = document.getElementById('cartSubtotal');
   
   const authModal = document.getElementById('authModal');
   const modalBackdrop = document.getElementById('modalBackdrop');
@@ -80,105 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => toast.remove(), 300);
     }, 3200);
   }
-
-  // --- Shopping Cart Functions ---
-  function updateCartUI() {
-    const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    // Update badges
-    if (cartCountBadge) {
-      cartCountBadge.textContent = totalItems;
-      cartCountBadge.style.display = totalItems > 0 ? 'flex' : 'none';
-    }
-
-    if (cartSubtotalEl) {
-      cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-    }
-
-    // Render items
-    if (cartItemsList) {
-      if (state.cart.length === 0) {
-        cartItemsList.innerHTML = `
-          <div class="cart-empty">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="9" cy="21" r="1"></circle>
-              <circle cx="20" cy="21" r="1"></circle>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-            <p>Your cart is empty.</p>
-          </div>
-        `;
-      } else {
-        cartItemsList.innerHTML = state.cart.map(item => `
-          <div class="cart-item" data-id="${item.id}">
-            <img src="${item.image}" alt="${item.name}" class="cart-item-img">
-            <div class="cart-item-details">
-              <div class="cart-item-name">${item.name}</div>
-              <div class="cart-item-meta">${item.category}</div>
-              <div class="cart-item-footer">
-                <div class="qty-control">
-                  <button class="qty-btn" data-action="decrease" data-id="${item.id}" aria-label="Decrease quantity">−</button>
-                  <span class="qty-val">${item.quantity}</span>
-                  <button class="qty-btn" data-action="increase" data-id="${item.id}" aria-label="Increase quantity">+</button>
-                </div>
-                <div class="cart-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
-                <button class="cart-item-remove" data-action="remove" data-id="${item.id}" aria-label="Remove item">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      }
-    }
-  }
-
-  function openCart() {
-    cartDrawer?.classList.add('open');
-    cartBackdrop?.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeCart() {
-    cartDrawer?.classList.remove('open');
-    cartBackdrop?.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  cartBtn?.addEventListener('click', openCart);
-  cartCloseBtn?.addEventListener('click', closeCart);
-  cartBackdrop?.addEventListener('click', closeCart);
-
-  // Delegate cart quantity buttons
-  cartItemsList?.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-
-    const action = btn.dataset.action;
-    const itemId = btn.dataset.id;
-    const item = state.cart.find(i => i.id === itemId);
-    if (!item) return;
-
-    if (action === 'increase') {
-      item.quantity += 1;
-    } else if (action === 'decrease') {
-      if (item.quantity > 1) {
-        item.quantity -= 1;
-      } else {
-        state.cart = state.cart.filter(i => i.id !== itemId);
-        showToast(`Removed "${item.name}" from cart`);
-      }
-    } else if (action === 'remove') {
-      state.cart = state.cart.filter(i => i.id !== itemId);
-      showToast(`Removed "${item.name}" from cart`);
-    }
-
-    updateCartUI();
-  });
 
   // --- Auth Modal (Sign In / Register) ---
   function openAuthModal() {
@@ -291,21 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // --- Wishlist Interaction ---
-  wishlistBtn?.addEventListener('click', () => {
-    state.isWishlisted = !state.isWishlisted;
-    if (state.isWishlisted) {
-      state.wishlistCount += 1;
-      wishlistBtn.querySelector('svg')?.setAttribute('fill', 'currentColor');
-      showToast('Saved to your botanical wishlist');
-    } else {
-      state.wishlistCount = Math.max(0, state.wishlistCount - 1);
-      wishlistBtn.querySelector('svg')?.setAttribute('fill', 'none');
-      showToast('Removed from your wishlist');
-    }
-    if (wishlistBadge) {
-      wishlistBadge.textContent = state.wishlistCount;
-    }
-  });
+  // Managed by static/js/wishlist.js for real backend API integration
+
 
   // --- Category Card Click ---
   categoryCards.forEach(card => {
@@ -339,14 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Global Keyboard Escape Key Handler ---
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      closeCart();
       closeAuthModal();
       closeSearchModal();
       mobileNavDrawer?.classList.remove('open');
       modalBackdrop?.classList.remove('active');
     }
   });
-
-  // Initialize UI
-  updateCartUI();
 });

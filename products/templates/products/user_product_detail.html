@@ -1,0 +1,1576 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ product.name }} | VERDÉ</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/components.css' %}" />
+
+    <style>
+      :root {
+        --verde-dark: #102518;
+        --verde-dark-hover: #1b3825;
+        --verde-cream-bg: #f5f4ef;
+        --verde-border: #e8e7e1;
+        --verde-sage-footer: #8e9488;
+      }
+
+      body {
+        background-color: #faf9f6;
+        color: #141715;
+      }
+
+      .product-cart-toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 1000;
+        max-width: min(360px, calc(100vw - 32px));
+        padding: 14px 18px;
+        border-radius: 6px;
+        background: #102518;
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(16, 37, 24, 0.2);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(12px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      .product-cart-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .product-cart-toast.error {
+        background: #991b1b;
+      }
+
+      /* Main Page Wrapper */
+      .page-main-wrap {
+        width: 100%;
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 24px 24px 80px;
+        box-sizing: border-box;
+      }
+
+      /* Breadcrumb */
+      .page-breadcrumb {
+        font-size: 12.5px;
+        color: #717171;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 30px;
+      }
+      .page-breadcrumb a {
+        color: #666;
+        text-decoration: none;
+      }
+      .page-breadcrumb a:hover {
+        color: #102518;
+      }
+      .page-breadcrumb .sep {
+        color: #aaa;
+      }
+      .page-breadcrumb .current {
+        color: #141715;
+        font-weight: 500;
+      }
+
+      /* ========================================================
+         PRODUCT SHOWCASE: 2-COLUMN SECTION
+         ======================================================== */
+      .product-showcase-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 54px;
+        align-items: start;
+        margin-bottom: 70px;
+      }
+
+      /* Left: Image Viewport */
+      .showcase-media-box {
+        position: relative;
+        background-color: #f2f1eb;
+        border-radius: 4px;
+        overflow: hidden;
+        aspect-ratio: 1 / 1.05;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .showcase-media-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s ease;
+      }
+      .showcase-media-box:hover img {
+        transform: scale(1.02);
+      }
+      .badge-featured-pill {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        background: rgba(224, 242, 233, 0.95);
+        color: #235937;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        z-index: 2;
+      }
+      .badge-discount-pill {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        background: #3e1b17;
+        color: #ffffff;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        padding: 5px 12px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        z-index: 2;
+      }
+
+      /* Empty Media Placeholder */
+      .empty-media-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: #888;
+        padding: 40px;
+        text-align: center;
+      }
+      .empty-media-box svg {
+        opacity: 0.5;
+      }
+      .empty-media-box p {
+        margin: 0;
+        font-size: 13.5px;
+        font-weight: 500;
+      }
+
+      /* Media Groups (Product Images vs Variant Images) */
+      .media-group-wrap {
+        margin-top: 18px;
+      }
+      .media-group-heading {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .media-group-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #444;
+      }
+      .media-group-count {
+        font-size: 11px;
+        color: #888;
+      }
+
+      /* Gallery Thumbnails */
+      .showcase-thumbnails-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .thumb-small-btn {
+        width: 66px;
+        height: 66px;
+        border-radius: 3px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        background-color: #f5f4ef;
+        padding: 0;
+        cursor: pointer;
+        opacity: 0.75;
+        transition: all 0.15s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .thumb-small-btn.active, .thumb-small-btn:hover {
+        border-color: #102518;
+        opacity: 1;
+      }
+      .thumb-small-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .variant-thumb-chip {
+        position: absolute;
+        bottom: 2px;
+        left: 2px;
+        right: 2px;
+        background: rgba(16, 37, 24, 0.85);
+        color: #fff;
+        font-size: 8.5px;
+        font-weight: 600;
+        text-align: center;
+        padding: 1px 2px;
+        border-radius: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .empty-field-msg {
+        font-size: 12.5px;
+        color: #999;
+        font-style: italic;
+        padding: 6px 0;
+      }
+
+      /* Right: Information & Purchasing */
+      .showcase-info-box {
+        display: flex;
+        flex-direction: column;
+      }
+      .showcase-category-tag {
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #777;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .showcase-title {
+        font-family: var(--font-serif, "Playfair Display", serif);
+        font-size: 34px;
+        font-weight: 600;
+        color: #141715;
+        margin: 0 0 6px;
+        line-height: 1.2;
+      }
+      .showcase-subtitle-variety {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 14px;
+      }
+
+      /* Stock Status Badge */
+      .showcase-stock-row {
+        margin-bottom: 12px;
+      }
+      .stock-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+      }
+      .stock-status-pill.in-stock {
+        background-color: #edf7ee;
+        color: #2e6930;
+      }
+      .stock-status-pill.out-of-stock {
+        background-color: #fbeae8;
+        color: #a3271c;
+      }
+
+      /* Pricing */
+      .showcase-price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .price-main-val {
+        font-size: 24px;
+        font-weight: 700;
+        color: #141715;
+      }
+      .price-struck-val {
+        font-size: 16px;
+        color: #999;
+        text-decoration: line-through;
+        font-weight: 400;
+      }
+      .badge-discount-tag {
+        font-size: 11px;
+        font-weight: 700;
+        background-color: #3e1b17;
+        color: #ffffff;
+        padding: 3px 8px;
+        border-radius: 3px;
+        text-transform: uppercase;
+      }
+
+      .showcase-rule {
+        height: 1px;
+        background-color: #eae9e2;
+        border: none;
+        margin: 14px 0 20px;
+      }
+
+      /* Description body */
+      .showcase-desc-text {
+        font-size: 14.5px;
+        color: #555555;
+        line-height: 1.7;
+        margin: 0 0 24px;
+      }
+
+      /* Reviews score row */
+      .showcase-reviews-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13.5px;
+        color: #141715;
+        margin-bottom: 14px;
+      }
+      .showcase-reviews-row .stars-span {
+        letter-spacing: 2px;
+        font-size: 13px;
+        color: #102518;
+      }
+      .showcase-reviews-row .score-span {
+        font-weight: 700;
+      }
+      .showcase-reviews-row .count-span {
+        font-size: 12px;
+        color: #666;
+      }
+      .showcase-reviews-row.empty-reviews-teaser {
+        color: #888;
+        font-size: 13px;
+        font-style: italic;
+      }
+
+      /* View Reviews button */
+      .btn-scroll-reviews {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        background-color: #ffffff;
+        border: 1px solid #d5d4cd;
+        border-radius: 3px;
+        padding: 11px;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: #333;
+        text-decoration: none;
+        margin-bottom: 24px;
+        transition: all 0.15s ease;
+      }
+      .btn-scroll-reviews:hover {
+        background-color: #f7f6f0;
+        border-color: #102518;
+        color: #102518;
+      }
+
+      /* Showcase Action Row: Plants & Equipments */
+      .showcase-action-row {
+        display: flex;
+        gap: 12px;
+      }
+      .btn-add-cart-arrow {
+        flex: 1;
+        background-color: #102518;
+        color: #ffffff;
+        border: none;
+        border-radius: 3px;
+        height: 50px;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: background-color 0.15s ease;
+      }
+      .btn-add-cart-arrow:hover {
+        background-color: #1b3825;
+      }
+      .btn-square-wishlist {
+        width: 50px;
+        height: 50px;
+        background-color: #ffffff;
+        border: 1px solid #d5d4cd;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #333;
+        transition: all 0.15s ease;
+      }
+      .btn-square-wishlist:hover {
+        border-color: #102518;
+        color: #102518;
+      }
+      .btn-square-wishlist.active,
+      .btn-square-wishlist.in-wishlist {
+        border-color: #102518;
+        color: #102518;
+      }
+      .btn-square-wishlist.active svg,
+      .btn-square-wishlist.in-wishlist svg {
+        fill: currentColor;
+      }
+      .btn-square-wishlist.active:hover,
+      .btn-square-wishlist.in-wishlist:hover {
+        color: #e53935;
+        border-color: #e53935;
+      }
+
+      /* ========================================================
+         POT VARIANTS (Size Pills & Color Swatches)
+         ======================================================== */
+      .pot-variants-container {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        margin: 20px 0 28px;
+      }
+      .pot-variant-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #222;
+        margin-bottom: 10px;
+      }
+      .active-color-name {
+        font-weight: 600;
+        color: #666;
+        text-transform: capitalize;
+      }
+
+      .pot-sizes-list {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .pot-size-button {
+        padding: 10px 20px;
+        border: 1px solid #d5d4cd;
+        border-radius: 3px;
+        background: #ffffff;
+        font-size: 13px;
+        font-weight: 500;
+        color: #222;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .pot-size-button:hover {
+        border-color: #102518;
+      }
+      .pot-size-button.active {
+        border-color: #102518;
+        background-color: #102518;
+        color: #ffffff;
+      }
+
+      .pot-colors-list {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .pot-color-item {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.15s ease;
+      }
+      .pot-color-item.active {
+        border-color: #102518;
+      }
+      .pot-color-item-inner {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Pot Quantity + Add to Cart */
+      .pot-actions-row {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .pot-qty-box {
+        display: flex;
+        align-items: center;
+        border: 1px solid #d5d4cd;
+        border-radius: 3px;
+        height: 48px;
+        background-color: #ffffff;
+      }
+      .pot-qty-btn {
+        width: 36px;
+        height: 100%;
+        background: none;
+        border: none;
+        font-size: 16px;
+        color: #555;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .pot-qty-btn:hover {
+        background-color: #f5f4ef;
+      }
+      .pot-qty-input {
+        width: 36px;
+        height: 100%;
+        border: none;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        outline: none;
+      }
+      .btn-pot-add-cart {
+        flex: 1;
+        background-color: #102518;
+        color: #ffffff;
+        border: none;
+        border-radius: 3px;
+        height: 48px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+      }
+      .btn-pot-add-cart:hover {
+        background-color: #1b3825;
+      }
+
+      /* ========================================================
+         CUSTOMER REVIEWS SECTION: INLINE
+         ======================================================== */
+      .customer-reviews-section {
+        border-top: 1px solid #e8e7e1;
+        padding-top: 60px;
+        margin-bottom: 70px;
+      }
+      .reviews-sec-heading-wrap {
+        margin-bottom: 34px;
+      }
+      .reviews-sec-title {
+        font-family: var(--font-serif, "Playfair Display", serif);
+        font-size: 32px;
+        font-weight: 500;
+        color: #141715;
+        margin: 0 0 4px;
+      }
+      .reviews-sec-sub {
+        font-size: 14px;
+        color: #666;
+        margin: 0;
+      }
+
+      /* 2-Column Reviews Layout */
+      .reviews-two-column-grid {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 48px;
+        align-items: start;
+      }
+
+      .reviews-left-summary {
+        width: 100%;
+      }
+      .score-large-number {
+        font-size: 46px;
+        font-weight: 700;
+        color: #141715;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+      .score-stars-row {
+        letter-spacing: 2px;
+        font-size: 15px;
+        color: #102518;
+      }
+      .score-based-sub {
+        font-size: 12px;
+        color: #777;
+        margin-top: 4px;
+        margin-bottom: 24px;
+      }
+
+      .reviews-right-list {
+        display: flex;
+        flex-direction: column;
+      }
+      .reviews-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #222;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #eae9e2;
+        margin-bottom: 24px;
+      }
+      .review-item-block {
+        padding-bottom: 24px;
+        border-bottom: 1px solid #eae9e2;
+        margin-bottom: 24px;
+      }
+      .review-item-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .stars-group-dark {
+        letter-spacing: 2px;
+        font-size: 14px;
+        color: #102518;
+      }
+      .date-group-gray {
+        font-size: 12px;
+        color: #888;
+      }
+      .reviewer-author-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #141715;
+        margin-bottom: 10px;
+      }
+      .tag-verified {
+        font-size: 11px;
+        font-weight: 600;
+        color: #2b6c3e;
+      }
+      .review-content-body {
+        font-size: 13.5px;
+        color: #444;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+      .review-images-strip {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .review-img-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 3px;
+        overflow: hidden;
+        border: 1px solid #e0ded6;
+      }
+      .review-img-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* Empty Reviews State Card */
+      .empty-reviews-state-card {
+        background-color: #ffffff;
+        border: 1px solid #e8e7e1;
+        border-radius: 6px;
+        padding: 48px 24px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .empty-reviews-icon {
+        margin-bottom: 14px;
+      }
+      .empty-reviews-title {
+        font-family: var(--font-serif, "Playfair Display", serif);
+        font-size: 20px;
+        font-weight: 600;
+        color: #141715;
+        margin: 0 0 6px;
+      }
+      .empty-reviews-text {
+        font-size: 13.5px;
+        color: #777;
+        max-width: 420px;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      /* ========================================================
+         RELATED PRODUCTS ("You May Also Like")
+         ======================================================== */
+      .related-section-wrap {
+        border-top: 1px solid #e8e7e1;
+        padding-top: 60px;
+      }
+      .related-heading-title {
+        font-family: var(--font-serif, "Playfair Display", serif);
+        font-size: 26px;
+        font-weight: 500;
+        color: #141715;
+        margin: 0 0 30px;
+      }
+      .related-products-row-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+      }
+      .related-item-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .related-item-img {
+        aspect-ratio: 1;
+        background-color: #f2f1eb;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 12px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .related-item-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.25s ease;
+      }
+      .related-item-img:hover img {
+        transform: scale(1.03);
+      }
+      .empty-related-box {
+        font-size: 12px;
+        color: #999;
+        font-style: italic;
+      }
+      .related-item-cat {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: 4px;
+      }
+      .related-item-link-title {
+        font-family: var(--font-serif, "Playfair Display", serif);
+        font-size: 16px;
+        font-weight: 500;
+        color: #141715;
+        text-decoration: none;
+        margin-bottom: 6px;
+      }
+      .related-item-link-title:hover {
+        color: #235937;
+      }
+      .related-item-price {
+        font-size: 14px;
+        font-weight: 600;
+        color: #141715;
+      }
+
+      /* Site Footer */
+      .site-footer {
+        background-color: #8e9488 !important;
+        color: #ffffff !important;
+        margin-top: 80px;
+      }
+      .site-footer .footer-logo,
+      .site-footer .footer-heading,
+      .site-footer .footer-link,
+      .site-footer .footer-tagline {
+        color: #ffffff !important;
+      }
+      .site-footer .footer-link:hover {
+        color: #f0f4f1 !important;
+      }
+
+      @media (max-width: 900px) {
+        .product-showcase-section {
+          grid-template-columns: 1fr;
+          gap: 36px;
+        }
+        .reviews-two-column-grid {
+          grid-template-columns: 1fr;
+        }
+        .related-products-row-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+    <!-- Top Site Header -->
+    <header class="site-header" role="banner">
+      <div class="header-container">
+        <!-- Logo -->
+        <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L12 22"></path>
+            <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+            <path d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"></path>
+            <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+          </svg>
+          <span class="logo-text">VERDÉ</span>
+        </a>
+
+        <!-- Center Nav -->
+        <nav class="main-nav" aria-label="Primary Navigation">
+          <ul class="nav-list">
+            <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="{% url 'product_list' %}" class="nav-link active">Shop</a></li>
+            <li class="nav-item"><a href="#offers" class="nav-link">Offers</a></li>
+            <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
+          </ul>
+        </nav>
+
+        <!-- Right Header Actions -->
+        <div class="header-actions">
+          <a href="{% url 'product_list' %}" class="action-btn" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </a>
+          <a href="/wishlist/" class="action-btn" id="wishlistBtn" aria-label="Wishlist" title="Wishlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <span class="badge-count js-wishlist-count-badge" id="wishlistCountBadge" style="{% if not wishlist_count %}display:none;{% endif %}">{% if wishlist_count %}{{ wishlist_count }}{% else %}0{% endif %}</span>
+          </a>
+          <a href="{% url 'cart:cart_page' %}" data-cart-api="{% url 'cart:view_cart' %}" class="action-btn" aria-label="Cart">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="page-main-wrap">
+      <!-- Breadcrumb -->
+      <nav class="page-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="{% url 'product_list' %}">Shop</a>
+        <span class="sep">/</span>
+        <a href="{% url 'product_list' %}?category={{ product.category.id }}">{{ product.category.name }}</a>
+        <span class="sep">/</span>
+        <span class="current">{{ product.name }}</span>
+      </nav>
+
+      <!-- ========================================================
+           1. PRODUCT SHOWCASE SECTION
+           ======================================================== -->
+      <section class="product-showcase-section">
+        <!-- Left: Image Viewport + Separate Product & Variant Thumbnails -->
+        <div>
+          <!-- Main Showcase Image Viewport -->
+          <div class="showcase-media-box" id="showcaseMediaContainer">
+            {% if product.is_featured %}
+            <span class="badge-featured-pill">FEATURED</span>
+            {% elif product.product_offer and product.product_offer > 0 %}
+            <span class="badge-discount-pill">{{ product.product_offer|floatformat:0 }}% OFF</span>
+            {% endif %}
+
+            {% if product.product_images.first %}
+              <img id="mainShowcaseImg" src="{{ product.product_images.first.image_url.url }}" alt="{{ product.name }}" />
+            {% elif product.variants.first.images.first %}
+              <img id="mainShowcaseImg" src="{{ product.variants.first.images.first.image_url.url }}" alt="{{ product.name }}" />
+            {% else %}
+              <div class="empty-media-box" id="emptyMediaBox">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <p>No image in database</p>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- A. PRODUCT IMAGES (Fetched separately from product.product_images) -->
+          <div class="media-group-wrap">
+            <div class="media-group-heading">
+              <span class="media-group-title">Product Images</span>
+              <span class="media-group-count">({{ product.product_images.count }})</span>
+            </div>
+            {% if product.product_images.all %}
+            <div class="showcase-thumbnails-row">
+              {% for img in product.product_images.all %}
+              <button
+                type="button"
+                class="thumb-small-btn product-thumb-btn {% if forloop.first %}active{% endif %}"
+                data-img-src="{{ img.image_url.url }}"
+                onclick="setMainImage('{{ img.image_url.url }}', this)"
+                title="Product Image {{ forloop.counter }}"
+              >
+                <img src="{{ img.image_url.url }}" alt="Product Image {{ forloop.counter }}" />
+              </button>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-field-msg">No product images in database</div>
+            {% endif %}
+          </div>
+
+          <!-- B. VARIANT IMAGES (Fetched separately from product.variants -> images) -->
+          {% if product.variants.all %}
+          <div class="media-group-wrap">
+            <div class="media-group-heading">
+              <span class="media-group-title">Variant Images</span>
+            </div>
+            <div class="showcase-thumbnails-row variant-thumbnails-row">
+              {% for variant in product.variants.all %}
+                {% for vimg in variant.images.all %}
+                <button
+                  type="button"
+                  class="thumb-small-btn variant-thumb-btn"
+                  data-variant-id="{{ variant.id }}"
+                  data-variant-color="{{ variant.color }}"
+                  data-variant-size="{{ variant.size }}"
+                  data-variant-price="{{ variant.price }}"
+                  data-variant-stock="{{ variant.stock_quantity }}"
+                  data-img-src="{{ vimg.image_url.url }}"
+                  onclick="selectVariantByThumb(this)"
+                  title="{{ variant.color }} - {{ variant.size }}"
+                >
+                  <img src="{{ vimg.image_url.url }}" alt="{{ variant.color }} {{ variant.size }}" />
+                  <span class="variant-thumb-chip">{{ variant.color }}</span>
+                </button>
+                {% endfor %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Right: Information & Purchasing -->
+        <div class="showcase-info-box">
+          {% if 'pot' in product.category.name.lower or 'pot' in product.category.parent.name.lower %}
+            <!-- ========================================================
+                 POT SHOWCASE (Details, Ratings, Variants from DB)
+                 ======================================================== -->
+            <div class="showcase-category-tag">{{ product.category.name }}</div>
+            <h1 class="showcase-title">{{ product.name }}</h1>
+            
+            <!-- Price dynamically updated when variant selected -->
+            <div class="showcase-price-row">
+              <span class="price-main-val" id="potPriceTarget">₹{{ product.variants.first.price|default:product.regular_price }}</span>
+            </div>
+
+            <!-- Stock status from DB -->
+            <div class="showcase-stock-row">
+              <span class="stock-status-pill in-stock" id="potStockTarget">
+                {% if product.variants.first %}
+                  ● In Stock ({{ product.variants.first.stock_quantity }} available)
+                {% elif product.stock_quantity > 0 %}
+                  ● In Stock ({{ product.stock_quantity }} available)
+                {% else %}
+                  ● Out of Stock
+                {% endif %}
+              </span>
+            </div>
+
+            <p class="showcase-desc-text">
+              {{ product.description }}
+            </p>
+
+            <!-- POT VARIANTS (Only rendered if variants exist in DB) -->
+            {% if product.variants.all %}
+            <div class="pot-variants-container">
+              <!-- POT SIZE -->
+              <div>
+                <div class="pot-variant-header-row">POT SIZE</div>
+                <div class="pot-sizes-list" id="potSizesList">
+                  {% for variant in product.variants.all %}
+                  <button
+                    type="button"
+                    class="pot-size-button {% if forloop.first %}active{% endif %}"
+                    data-variant-id="{{ variant.id }}"
+                    data-size="{{ variant.size }}"
+                    data-color="{{ variant.color }}"
+                    data-price="{{ variant.price }}"
+                    data-stock="{{ variant.stock_quantity }}"
+                    {% if variant.images.first %}data-img-src="{{ variant.images.first.image_url.url }}"{% endif %}
+                    onclick="onPotVariantBtnClick(this)"
+                  >
+                    {{ variant.size }}
+                  </button>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- POT COLOR -->
+              <div>
+                <div class="pot-variant-header-row">
+                  POT COLOR <span class="active-color-name" id="colorNameLabel">{{ product.variants.first.color }}</span>
+                </div>
+                <div class="pot-colors-list" id="potColorsList">
+                  {% for variant in product.variants.all %}
+                  <div
+                    class="pot-color-item {% if forloop.first %}active{% endif %}"
+                    data-variant-id="{{ variant.id }}"
+                    data-color="{{ variant.color }}"
+                    data-size="{{ variant.size }}"
+                    data-price="{{ variant.price }}"
+                    data-stock="{{ variant.stock_quantity }}"
+                    {% if variant.images.first %}data-img-src="{{ variant.images.first.image_url.url }}"{% endif %}
+                    onclick="onPotVariantBtnClick(this)"
+                    title="{{ variant.color }} ({{ variant.size }})"
+                  >
+                    <div
+                      class="pot-color-item-inner"
+                      style="background-color: {% if 'bone' in variant.color.lower or 'white' in variant.color.lower %}#f0ede4{% elif 'black' in variant.color.lower or 'charcoal' in variant.color.lower %}#2b2b2b{% elif 'blue' in variant.color.lower or 'slate' in variant.color.lower %}#6d8299{% elif 'terracotta' in variant.color.lower or 'rust' in variant.color.lower %}#c8644e{% elif 'green' in variant.color.lower %}#4b6b54{% else %}#a8a49c{% endif %};"
+                    ></div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <div class="empty-field-msg" style="margin-bottom: 20px;">No variants in database for this pot</div>
+            {% endif %}
+
+            <!-- POT ACTION ROW: Quantity + Add to Cart -->
+            <div class="pot-actions-row">
+              <div class="pot-qty-box">
+                <button type="button" class="pot-qty-btn" onclick="adjustQty(-1)">−</button>
+                <input type="text" id="potQtyInp" value="1" readonly class="pot-qty-input" />
+                <button type="button" class="pot-qty-btn" onclick="adjustQty(1)">+</button>
+              </div>
+
+              <button type="button" class="btn-pot-add-cart js-add-product-to-cart" data-product-id="{{ product.id }}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                Add to Cart
+              </button>
+            </div>
+
+          {% else %}
+            <!-- ========================================================
+                 PLANTS & EQUIPMENTS SHOWCASE (No Variants)
+                 ======================================================== -->
+            <h1 class="showcase-title">{{ product.name }}</h1>
+            <div class="showcase-subtitle-variety">{{ product.category.name }}</div>
+
+            <!-- Price with real offer calculation if available in DB -->
+            <div class="showcase-price-row">
+              {% if sale_price and sale_price < product.regular_price %}
+                <span class="price-main-val">₹{{ sale_price }}</span>
+                <span class="price-struck-val">₹{{ product.regular_price }}</span>
+                {% if product.product_offer and product.product_offer > 0 %}
+                  <span class="badge-discount-tag">{{ product.product_offer|floatformat:0 }}% OFF</span>
+                {% endif %}
+              {% else %}
+                <span class="price-main-val">₹{{ product.regular_price }}</span>
+              {% endif %}
+            </div>
+
+            <!-- Stock status from DB -->
+            <div class="showcase-stock-row">
+              {% if product.stock_quantity > 0 %}
+                <span class="stock-status-pill in-stock">● In Stock ({{ product.stock_quantity }} available)</span>
+              {% else %}
+                <span class="stock-status-pill out-of-stock">● Out of Stock</span>
+              {% endif %}
+            </div>
+
+            <hr class="showcase-rule" />
+
+            <p class="showcase-desc-text">
+              {{ product.description }}
+            </p>
+
+            <!-- Reviews Teaser (Only rendered with actual DB review count) -->
+            {% if rating_summary.review_count and rating_summary.review_count > 0 %}
+            <div class="showcase-reviews-row">
+              <span>Reviews</span>
+              <span class="stars-span">★</span>
+              <span class="score-span">{{ rating_summary.average_rating|floatformat:1 }}/5</span>
+              <span class="count-span">Based on {{ rating_summary.review_count }} review{{ rating_summary.review_count|pluralize }}</span>
+            </div>
+            <a href="#customerReviewsSection" class="btn-scroll-reviews">
+              VIEW ALL REVIEWS ∨
+            </a>
+            {% else %}
+            <div class="showcase-reviews-row empty-reviews-teaser">
+              <span>No reviews yet</span>
+            </div>
+            {% endif %}
+
+            <!-- Action Row: ADD TO CART → + Wishlist -->
+            <div class="showcase-action-row">
+              <button type="button" class="btn-add-cart-arrow js-add-product-to-cart" data-product-id="{{ product.id }}">
+                ADD TO CART <span>→</span>
+              </button>
+              <button
+                type="button"
+                class="btn-square-wishlist js-detail-wishlist-btn {% if product.id in wishlist_product_ids %}active in-wishlist{% endif %}"
+                data-product-id="{{ product.id }}"
+                aria-label="{% if product.id in wishlist_product_ids %}Remove from wishlist{% else %}Add to wishlist{% endif %}"
+                title="{% if product.id in wishlist_product_ids %}Remove from wishlist{% else %}Add to wishlist{% endif %}"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="{% if product.id in wishlist_product_ids %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="1.8">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+              </button>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- ========================================================
+           2. CUSTOMER REVIEWS SECTION: INLINE
+           ======================================================== -->
+      <section class="customer-reviews-section" id="customerReviewsSection">
+        <div class="reviews-sec-heading-wrap">
+          <h2 class="reviews-sec-title">Customer Reviews</h2>
+          <p class="reviews-sec-sub">Real experiences from verified VERDÉ buyers.</p>
+        </div>
+
+        {% if rating_summary.review_count and rating_summary.review_count > 0 %}
+        <!-- Two-column reviews section when reviews exist in DB -->
+        <div class="reviews-two-column-grid">
+          <!-- Left: Aggregate Score -->
+          <div class="reviews-left-summary">
+            <div class="score-large-number">{{ rating_summary.average_rating|floatformat:1 }}</div>
+            <div class="score-stars-row">★★★★★</div>
+            <div class="score-based-sub">Based on {{ rating_summary.review_count }} review{{ rating_summary.review_count|pluralize }}</div>
+          </div>
+
+          <!-- Right: Actual Reviews List from DB -->
+          <div class="reviews-right-list">
+            <div class="reviews-top-bar">
+              <span>{{ rating_summary.review_count }} REVIEW{{ rating_summary.review_count|pluralize|upper }}</span>
+            </div>
+
+            {% for rev in reviews %}
+            <article class="review-item-block">
+              <div class="review-item-meta">
+                <span class="stars-group-dark">{{ rev.rating }} ★</span>
+                <span class="date-group-gray">{{ rev.created_at|date:"M d, Y" }}</span>
+              </div>
+              <div class="reviewer-author-row">
+                <span>{{ rev.user.full_name|default:rev.user.email }}</span>
+                {% if rev.user.is_verified %}
+                <span class="tag-verified">✓ Verified Buyer</span>
+                {% endif %}
+              </div>
+              {% if rev.review_text %}
+              <div class="review-content-body">
+                {{ rev.review_text }}
+              </div>
+              {% endif %}
+              {% if rev.images.all %}
+              <div class="review-images-strip">
+                {% for rimg in rev.images.all %}
+                <div class="review-img-box">
+                  <img src="{{ rimg.image_url }}" alt="Review photo" />
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <!-- Empty state when 0 reviews exist in database -->
+        <div class="empty-reviews-state-card">
+          <div class="empty-reviews-icon">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#8e9488" stroke-width="1.5">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <h3 class="empty-reviews-title">No Reviews Yet</h3>
+          <p class="empty-reviews-text">There are currently no reviews for this product in the database.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- ========================================================
+           3. RELATED PRODUCTS ("You May Also Like")
+           ======================================================== -->
+      {% if related_products %}
+      <section class="related-section-wrap">
+        <h2 class="related-heading-title">You May Also Like</h2>
+        <div class="related-products-row-grid">
+          {% for rel in related_products %}
+          <article class="related-item-card">
+            <div class="related-item-img">
+              <a href="{% url 'product_detail' rel.id %}">
+                {% with rimg=rel.product_images.first %}
+                  {% if rimg and rimg.image_url %}
+                  <img src="{{ rimg.image_url.url }}" alt="{{ rel.name }}" loading="lazy" />
+                  {% elif rel.variants.first.images.first %}
+                  <img src="{{ rel.variants.first.images.first.image_url.url }}" alt="{{ rel.name }}" loading="lazy" />
+                  {% else %}
+                  <div class="empty-related-box">No image</div>
+                  {% endif %}
+                {% endwith %}
+              </a>
+            </div>
+            <div class="related-item-cat">{{ rel.category.name }}</div>
+            <a href="{% url 'product_detail' rel.id %}" class="related-item-link-title">{{ rel.name }}</a>
+            <div class="related-item-price">₹{{ rel.regular_price }}</div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    </main>
+
+    <!-- Site Footer -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <h2 class="footer-logo">VERDÉ</h2>
+          <p class="footer-tagline">
+            &copy; 2024 VERDÉ. Curating botanical elegance for your domestic spaces.
+          </p>
+        </div>
+
+        <div class="footer-nav-groups">
+          <div class="footer-group">
+            <h3 class="footer-heading">Shop</h3>
+            <ul class="footer-links">
+              <li><a href="{% url 'product_list' %}" class="footer-link">All Products</a></li>
+              <li><a href="{% url 'product_list' %}?category=7" class="footer-link">Plants</a></li>
+              <li><a href="{% url 'product_list' %}?category=9" class="footer-link">Pots</a></li>
+              <li><a href="{% url 'product_list' %}?category=11" class="footer-link">Equipment</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Help</h3>
+            <ul class="footer-links">
+              <li><a href="#contact" class="footer-link">Contact</a></li>
+              <li><a href="#faq" class="footer-link">FAQ</a></li>
+              <li><a href="#shipping" class="footer-link">Shipping</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Account</h3>
+            <ul class="footer-links">
+              <li><a href="/profile/" class="footer-link">Profile</a></li>
+              <li><a href="/orders/" class="footer-link">Orders</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Follow</h3>
+            <ul class="footer-links">
+              <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="footer-link">Instagram</a></li>
+              <li><a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" class="footer-link">Pinterest</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <form id="cartCsrfForm" hidden>{% csrf_token %}</form>
+    <div class="product-cart-toast" id="productCartToast" role="status" aria-live="polite"></div>
+
+    <!-- Interactive Scripts for Gallery and Variants -->
+    <script>
+      (function () {
+        const addToCartUrl = "{% url 'cart:add_to_cart' %}";
+        const csrfInput = document.querySelector('#cartCsrfForm [name="csrfmiddlewaretoken"]');
+        const toast = document.getElementById('productCartToast');
+        let toastTimeout;
+
+        function showCartMessage(message, isError) {
+          toast.textContent = message;
+          toast.classList.toggle('error', isError);
+          toast.classList.add('show');
+          window.clearTimeout(toastTimeout);
+          toastTimeout = window.setTimeout(function () {
+            toast.classList.remove('show');
+          }, 3400);
+        }
+
+        document.querySelectorAll('.js-add-product-to-cart').forEach(function (button) {
+          button.addEventListener('click', function () {
+            const originalContent = button.innerHTML;
+            const productId = Number(button.dataset.productId);
+            const quantityInput = document.getElementById('potQtyInp');
+            const activeVariant = document.querySelector(
+              '#potSizesList .pot-size-button.active, #potColorsList .pot-color-item.active'
+            );
+            const quantity = quantityInput ? Number.parseInt(quantityInput.value, 10) : 1;
+            const payload = {
+              product_id: productId,
+              quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+            };
+
+            if (document.getElementById('potSizesList') && !activeVariant) {
+              showCartMessage('Select a pot size and color before adding it to your cart.', true);
+              return;
+            }
+            if (activeVariant) payload.variant_id = Number(activeVariant.dataset.variantId);
+
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+            button.textContent = 'Adding…';
+
+            fetch(addToCartUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfInput ? csrfInput.value : '',
+              },
+              credentials: 'same-origin',
+              body: JSON.stringify(payload),
+            })
+              .then(function (response) {
+                return response.json().then(function (data) {
+                  if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Could not add this product to your cart.');
+                  }
+                  return data;
+                });
+              })
+              .then(function (data) {
+                showCartMessage(data.message || 'Added to cart.', false);
+                window.dispatchEvent(new Event('verde:cart-updated'));
+              })
+              .catch(function (error) {
+                showCartMessage(error.message || 'Unable to add this product to your cart.', true);
+              })
+              .finally(function () {
+                button.innerHTML = originalContent;
+                button.disabled = false;
+                button.removeAttribute('aria-busy');
+              });
+          });
+        });
+      })();
+
+      function setMainImage(src, btn) {
+        const img = document.getElementById('mainShowcaseImg');
+        if (img) {
+          img.src = src;
+        } else {
+          const container = document.getElementById('showcaseMediaContainer');
+          const emptyBox = document.getElementById('emptyMediaBox');
+          if (emptyBox) emptyBox.remove();
+          const newImg = document.createElement('img');
+          newImg.id = 'mainShowcaseImg';
+          newImg.src = src;
+          container.appendChild(newImg);
+        }
+        document.querySelectorAll('.thumb-small-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+      }
+
+      function selectVariantByThumb(btn) {
+        const imgSrc = btn.dataset.imgSrc;
+        const variantId = btn.dataset.variantId;
+        const color = btn.dataset.variantColor;
+        const size = btn.dataset.variantSize;
+        const price = btn.dataset.variantPrice;
+        const stock = btn.dataset.variantStock;
+
+        // Update image
+        if (imgSrc) {
+          setMainImage(imgSrc, btn);
+        }
+
+        // Update price
+        const priceEl = document.getElementById('potPriceTarget');
+        if (priceEl && price) {
+          priceEl.textContent = '₹' + price;
+        }
+
+        // Update stock
+        const stockEl = document.getElementById('potStockTarget');
+        if (stockEl && stock) {
+          const stockNum = parseInt(stock, 10);
+          if (stockNum > 0) {
+            stockEl.textContent = `● In Stock (${stockNum} available)`;
+            stockEl.className = 'stock-status-pill in-stock';
+          } else {
+            stockEl.textContent = '● Out of Stock';
+            stockEl.className = 'stock-status-pill out-of-stock';
+          }
+        }
+
+        // Update color label
+        const colorLabel = document.getElementById('colorNameLabel');
+        if (colorLabel && color) {
+          colorLabel.textContent = color;
+        }
+
+        // Highlight matching size button
+        document.querySelectorAll('#potSizesList .pot-size-button').forEach(sb => {
+          if (sb.dataset.variantId === variantId || sb.dataset.size === size) {
+            sb.classList.add('active');
+          } else {
+            sb.classList.remove('active');
+          }
+        });
+
+        // Highlight matching color item
+        document.querySelectorAll('#potColorsList .pot-color-item').forEach(cb => {
+          if (cb.dataset.variantId === variantId || cb.dataset.color === color) {
+            cb.classList.add('active');
+          } else {
+            cb.classList.remove('active');
+          }
+        });
+      }
+
+      function onPotVariantBtnClick(btn) {
+        const variantId = btn.dataset.variantId;
+        const size = btn.dataset.size;
+        const color = btn.dataset.color;
+        const price = btn.dataset.price;
+        const stock = btn.dataset.stock;
+        const imgSrc = btn.dataset.imgSrc;
+
+        // Update Price
+        const priceEl = document.getElementById('potPriceTarget');
+        if (priceEl && price) {
+          priceEl.textContent = '₹' + price;
+        }
+
+        // Update Stock
+        const stockEl = document.getElementById('potStockTarget');
+        if (stockEl && stock) {
+          const stockNum = parseInt(stock, 10);
+          if (stockNum > 0) {
+            stockEl.textContent = `● In Stock (${stockNum} available)`;
+            stockEl.className = 'stock-status-pill in-stock';
+          } else {
+            stockEl.textContent = '● Out of Stock';
+            stockEl.className = 'stock-status-pill out-of-stock';
+          }
+        }
+
+        // Update Color Label
+        const colorLabel = document.getElementById('colorNameLabel');
+        if (colorLabel && color) {
+          colorLabel.textContent = color;
+        }
+
+        // Update image if variant has its own image
+        if (imgSrc) {
+          const img = document.getElementById('mainShowcaseImg');
+          if (img) img.src = imgSrc;
+          // Also highlight matching variant thumbnail
+          document.querySelectorAll('.variant-thumb-btn').forEach(tb => {
+            if (tb.dataset.variantId === variantId) {
+              tb.classList.add('active');
+            } else {
+              tb.classList.remove('active');
+            }
+          });
+        }
+
+        // Sync active states between size buttons and color items
+        document.querySelectorAll('#potSizesList .pot-size-button').forEach(sb => {
+          if (sb.dataset.variantId === variantId) {
+            sb.classList.add('active');
+          } else {
+            sb.classList.remove('active');
+          }
+        });
+
+        document.querySelectorAll('#potColorsList .pot-color-item').forEach(cb => {
+          if (cb.dataset.variantId === variantId) {
+            cb.classList.add('active');
+          } else {
+            cb.classList.remove('active');
+          }
+        });
+      }
+
+      function adjustQty(delta) {
+        const inp = document.getElementById('potQtyInp');
+        if (!inp) return;
+        let current = parseInt(inp.value, 10) || 1;
+        current += delta;
+        if (current < 1) current = 1;
+        inp.value = current;
+      }
+      document.addEventListener('DOMContentLoaded', function () {
+        const detailWishlistBtn = document.querySelector('.js-detail-wishlist-btn');
+        if (detailWishlistBtn) {
+          detailWishlistBtn.addEventListener('click', function () {
+            const activeVariant = document.querySelector(
+              '#potSizesList .pot-size-button.active, #potColorsList .pot-color-item.active'
+            );
+            const variantId = activeVariant ? Number(activeVariant.dataset.variantId) : null;
+            if (window.VERDEWishlist) {
+              window.VERDEWishlist.toggle({
+                productId: detailWishlistBtn.dataset.productId,
+                variantId: variantId,
+                buttonEl: detailWishlistBtn,
+              });
+            }
+          });
+        }
+      });
+    </script>
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
+    <script src="{% static 'js/wishlist.js' %}" defer></script>
+  </body>
+</html>

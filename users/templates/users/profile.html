@@ -24,7 +24,7 @@
       }
 
       .profile-main {
-        width: min(100% - 56px, 1240px);
+        width: min(100% - 56px, 1440px);
         margin: 48px auto 72px;
       }
 
@@ -33,7 +33,7 @@
       }
 
       .profile-tabs {
-        width: min(100%, 1200px);
+        width: 100%;
         margin: 0 auto 18px;
         display: grid;
         grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -87,7 +87,7 @@
       }
 
       .profile-card {
-        width: min(100%, 900px);
+        width: min(100%, 1100px);
         margin: 0 auto;
         padding: 0;
         border: 1px solid #e2e8e3;
@@ -204,8 +204,8 @@
       }
 
       .profile-field.email-field {
-        align-self: center;
-        padding-left: 6px;
+        align-self: start;
+        padding-left: 0;
       }
 
       .profile-field input {
@@ -448,6 +448,7 @@
         display: none;
       }
 
+      @media (max-width: 700px) {
         .profile-main {
           width: min(100% - 32px, 900px);
           margin: 32px auto 44px;
@@ -605,6 +606,7 @@
         .profile-footer .footer-heading {
           font-size: 8px;
         }
+      }
       </style>
   </head>
   <body class="profile-page">
@@ -664,12 +666,12 @@
             <span class="badge-count">3</span>
           </button>
 
-          <button
+          <a
+            href="{% url 'cart:cart_page' %}"
+            data-cart-api="{% url 'cart:view_cart' %}"
             class="action-btn"
-            type="button"
             aria-label="Cart"
             title="Cart"
-            disabled
           >
             <svg
               viewBox="0 0 24 24"
@@ -685,7 +687,8 @@
                 d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
               ></path>
             </svg>
-          </button>
+            <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+          </a>
 
         </div>
       </div>
@@ -932,6 +935,7 @@
         </div>
       </div>
     </footer>
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
     <script>
       document.querySelectorAll(".profile-logout").forEach((button) => {
         button.addEventListener("click", async () => {

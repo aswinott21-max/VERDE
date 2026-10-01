@@ -19,12 +19,6 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <link rel="stylesheet" href="{% static 'css/components.css' %}" />
     <style>
-      #cartBtn:disabled {
-        color: var(--color-text-main);
-        opacity: 1;
-        pointer-events: none;
-      }
-
       .header-actions {
         display: flex;
         align-items: center;
@@ -57,6 +51,40 @@
         border-radius: 50%;
         text-decoration: none;
         vertical-align: middle;
+      }
+
+      @media (max-width: 520px) {
+        .header-container {
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          padding: 0 8px;
+        }
+
+        .header-actions {
+          gap: 3px;
+        }
+
+        .btn-signin {
+          padding: 0 11px;
+        }
+
+        .mobile-menu-toggle {
+          padding: 4px;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .header-container {
+          column-gap: 2px;
+          padding: 0 4px;
+        }
+
+        .header-actions {
+          gap: 1px;
+        }
+
+        .btn-signin {
+          padding: 0 6px;
+        }
       }
     </style>
     <link
@@ -98,10 +126,10 @@
         <nav class="main-nav" aria-label="Primary Navigation">
           <ul class="nav-list">
             <li class="nav-item">
-              <a href="#home" class="nav-link active">Home</a>
+              <a href="/" class="nav-link active">Home</a>
             </li>
             <li class="nav-item">
-              <a href="#shop" class="nav-link">Shop</a>
+              <a href="{% url 'product_list' %}" class="nav-link">Shop</a>
             </li>
             <li class="nav-item">
               <a href="#offers" class="nav-link">Offers</a>
@@ -133,7 +161,7 @@
           </button>
 
           <!-- Wishlist Button -->
-          <button class="action-btn" id="wishlistBtn" aria-label="Wishlist">
+          <a href="/wishlist/" class="action-btn" id="wishlistBtn" aria-label="Wishlist" title="Wishlist">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -145,18 +173,11 @@
                 d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
               ></path>
             </svg>
-            <span class="badge-count" id="wishlistCountBadge">3</span>
-          </button>
+            <span class="badge-count js-wishlist-count-badge" id="wishlistCountBadge" style="{% if not wishlist_count %}display:none;{% endif %}">{% if wishlist_count %}{{ wishlist_count }}{% else %}0{% endif %}</span>
+          </a>
 
-          <!-- Cart Button -->
-          <button
-            class="action-btn"
-            id="cartBtn"
-            type="button"
-            aria-label="Cart"
-            title="Cart"
-            disabled
-          >
+          <!-- Cart Page -->
+          <a href="{% url 'cart:cart_page' %}" data-cart-api="{% url 'cart:view_cart' %}" class="action-btn" aria-label="Cart" title="Cart">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -171,37 +192,38 @@
                 d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
               ></path>
             </svg>
-          </button>
+            <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+          </a>
 
           <!-- Sign In Button -->
-            {% if user.is_authenticated %}
-              <!-- Show profile picture for logged-in user -->
-              <a href="/profile/" class="profile-avatar" aria-label="Profile">
-                {% if user.profile_picture %}
-                  <img
-                    src="{{ user.profile_picture.url }}"
-                    alt="{{ user.full_name }}"
-                  >
-                {% else %}
-                <!-- Show generic profile icon when no picture exists -->
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="12" cy="8" r="4"></circle>
-                  <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
-                </svg>
-              {% endif %}
-              </a>
+          {% if user.is_authenticated %}
+          <!-- Show profile picture for logged-in user -->
+          <a href="/profile/" class="profile-avatar" aria-label="Profile">
+            {% if user.profile_picture %}
+            <img
+              src="{{ user.profile_picture.url }}"
+              alt="{{ user.full_name }}"
+            />
             {% else %}
-              <!-- Show Sign In for guests -->
-              <a href="/login-page/" class="btn-signin">Sign In</a>
+            <!-- Show generic profile icon when no picture exists -->
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+            </svg>
             {% endif %}
+          </a>
+          {% else %}
+          <!-- Show Sign In for guests -->
+          <a href="/login-page/" class="btn-signin">Sign In</a>
+          {% endif %}
 
           <!-- Mobile Menu Toggle Button -->
           <button
@@ -261,7 +283,7 @@
               Transform your space with our curated collection of premium
               botanical specimens, designed for the modern sanctuary.
             </p>
-            <a href="#collections" class="hero-btn" role="button"
+            <a href="{% url 'product_list' %}" class="hero-btn" role="button"
               >Shop Plants</a
             >
           </div>
@@ -427,58 +449,6 @@
 
     <!-- Global Backdrop -->
     <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
-    <div class="drawer-backdrop" id="cartBackdrop" aria-hidden="true"></div>
-
-    <!-- Shopping Cart Slide-out Drawer -->
-    <aside
-      class="cart-drawer"
-      id="cartDrawer"
-      aria-label="Shopping Cart Drawer"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div class="cart-header">
-        <h3 class="cart-title">Your Cart</h3>
-        <button
-          class="btn-close"
-          id="cartCloseBtn"
-          aria-label="Close cart drawer"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-
-      <div class="cart-body" id="cartItemsList">
-        <!-- Items dynamically populated by app.js / backend -->
-      </div>
-
-      <div class="cart-footer">
-        <div class="cart-subtotal-row">
-          <span>Subtotal</span>
-          <span class="cart-subtotal-val" id="cartSubtotal">$0.00</span>
-        </div>
-        <button
-          class="btn-checkout"
-          type="button"
-          onclick="alert('Proceeding to checkout with your backend!')"
-        >
-          Proceed to Checkout
-        </button>
-      </div>
-    </aside>
-
     <!-- Sign In / Register Modal -->
     <div
       class="modal-container"
@@ -658,8 +628,8 @@
         </button>
       </div>
       <ul class="mobile-nav-links">
-        <li><a href="#home" class="mobile-nav-link">Home</a></li>
-        <li><a href="#shop" class="mobile-nav-link">Shop</a></li>
+        <li><a href="/" class="mobile-nav-link">Home</a></li>
+        <li><a href="{% url 'product_list' %}" class="mobile-nav-link">Shop</a></li>
         <li><a href="#offers" class="mobile-nav-link">Offers</a></li>
         <li><a href="#about" class="mobile-nav-link">About</a></li>
       </ul>
@@ -671,5 +641,6 @@
     <!-- Scripts -->
     <script src="{% static 'js/data.js' %}"></script>
     <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
   </body>
 </html>

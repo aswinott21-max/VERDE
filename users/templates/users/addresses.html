@@ -99,7 +99,7 @@
 
       /* Main Layout */
       .address-main {
-        width: min(100% - 56px, 1200px);
+        width: min(100% - 56px, 1440px);
         margin: 36px auto 72px;
         flex: 1;
       }
@@ -957,7 +957,7 @@
       }
 
       .profile-footer .footer-container {
-        width: min(100% - 56px, 1200px);
+        width: min(100% - 56px, 1440px);
         margin: 0 auto;
         padding: 56px 0 64px;
         display: flex;
@@ -1107,12 +1107,12 @@
             <span class="badge-count">3</span>
           </button>
 
-          <button
+          <a
+            href="{% url 'cart:cart_page' %}"
+            data-cart-api="{% url 'cart:view_cart' %}"
             class="action-btn"
-            type="button"
             aria-label="Cart"
             title="Cart"
-            disabled
           >
             <svg
               viewBox="0 0 24 24"
@@ -1128,7 +1128,8 @@
                 d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
               ></path>
             </svg>
-          </button>
+            <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+          </a>
 
         </div>
       </div>
@@ -1827,6 +1828,7 @@
     <!-- ========================================================================
          Client Interactions Script
          ======================================================================== -->
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
     <script>
       // Helper function to obtain CSRF token
       function getCookie(name) {

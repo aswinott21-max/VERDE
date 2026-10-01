@@ -1,23 +1,22 @@
 import json
+
+from datetime import datetime
+
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-from users.models import User, Address
+from django.views.decorators.cache import never_cache
 from django.contrib.auth import login as auth_login
-from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from django.core.paginator import Paginator
-from django.views.decorators.cache import never_cache
 
-# User authentication and validation services
+from users.models import User
 from users.services.otp_service import (generate_otp,get_otp_expiry,send_otp_email,)
 from users.services.validation_service import validate_user_password
 
 
 
-# Create your views here.
+
 
 @never_cache
 def admin_login_page(request):
@@ -66,7 +65,6 @@ def admin_login(request): #API
         "email" : user.email
     }, status=200)
 
-
 @csrf_exempt
 @require_POST
 def admin_forgot_password(request):
@@ -103,7 +101,6 @@ def admin_forgot_password(request):
     send_otp_email(user.email, otp, "password_reset")
 
     return JsonResponse({"message" : "Admin password reset OTP sent successfully"}, status=200)
-
 
 
 @csrf_exempt
@@ -188,7 +185,6 @@ def verify_admin_reset_password_otp(request):
     return JsonResponse({"message":"Admin OTP verified succesfully"}, status=200)
 
 
-
 @csrf_exempt
 @require_POST
 def admin_reset_password(request):
@@ -256,17 +252,6 @@ def admin_reset_password(request):
         "message": "Admin password reset successfully"
     }, status=200)
 
-@never_cache
-@login_required(login_url="/admin-login/")
-def admin_dashboard_page(request):
-
-    if not request.user.is_staff:
-        return JsonResponse({
-            "error" : "You are not authorize to access admin dashbaoard"
-        }, status=403)
-
-    return render(request,"adminpanel/admin_dashboard.html")
-
 
 
 @csrf_exempt
@@ -276,81 +261,3 @@ def admin_logout(request):
     request.session.flush()
 
     return redirect("/admin-login/")
-
-
-
-
-@require_POST
-@csrf_exempt
-def toggle_user_status(request, user_id):
-    # Find the user need to block/unblock
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        return JsonResponse({"error" : "User not found"}, status=400)
-    # If the user is currently active, block them
-    if user.is_active:
-        data = json.loads(request.body or "{}")
-        # Get the blocking reason sent by the frontend
-        block_reason = data.get("reason", "").strip()
-
-        if not block_reason:
-            return JsonResponse({"error": "Blocking reason is required"}, status=400)
-
-        user.is_active=False
-        user.block_reason = block_reason
-        user.blocked_at = timezone.now()
-
-
-    # If the user is currently blocked, unblock them    
-    else:
-        user.is_active=True
-
-        # Clear the previous blocking information
-        user.block_reason = None
-        user.blocked_at=None
-
-    user.save()
-
-    # Return the current status
-    status = "active" if user.is_active else "blocked"
-
-    return JsonResponse({"message" : f"User {status} successfully", "status":status},status=200)
-
-
-@never_cache
-@login_required(login_url= "/admin-login/")
-def admin_users_page(request):
-
-    if not request.user.is_staff:
-        return JsonResponse({
-            "error" : "You are not authorized to access user manaagement"
-        }, status=403)
-
-    #Get the search text from the URL
-    search = request.GET.get("search", "").strip()
-
-    #Get all users except admin
-    users = User.objects.filter(is_staff=False)
-
-    #Filter users by name/email
-    if search:
-        users = users.filter(
-            full_name__icontains=search
-        ) | users.filter(
-            email__icontains=search
-        )
-
-    #Show newest users first
-    users = users.order_by("-created_at")
-
-    # Divide users into pages
-    paginator = Paginator(users, 5)
-
-    #Get requested page
-    page_number = request.GET.get("page")
-
-    #Get the users for that page
-    users = paginator.get_page(page_number)
-
-    return render(request, "adminpanel/admin_users.html", {"users" : users})
