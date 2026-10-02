@@ -5,6 +5,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Cart | VERDÉ</title>
+    {% if not user.is_authenticated %}
+    <meta http-equiv="refresh" content="0;url={% url 'login_page' %}" />
+    {% endif %}
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -486,19 +489,6 @@
         pointer-events: none;
       }
 
-      .cart-guest-note {
-        margin-top: 12px;
-        font-size: 11.5px;
-        color: var(--color-text-muted);
-        text-align: center;
-        line-height: 1.5;
-      }
-      .cart-guest-note a {
-        color: var(--color-accent);
-        font-weight: 600;
-        text-decoration: underline;
-      }
-
       /* ── Loading skeleton ── */
       .cart-loading {
         display: flex;
@@ -621,7 +611,7 @@
           </a>
 
           <!-- Cart icon (current page) -->
-          <a href="{% url 'cart:cart_page' %}" data-cart-api="{% url 'cart:view_cart' %}" class="action-btn" aria-label="Cart" aria-current="page">
+          <a href="{% url 'cart:cart_page' %}" {% if user.is_authenticated %}data-cart-api="{% url 'cart:view_cart' %}"{% endif %} class="action-btn" aria-label="Cart" aria-current="page">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="9" cy="21" r="1"></circle>
               <circle cx="20" cy="21" r="1"></circle>
@@ -787,11 +777,6 @@
               PROCEED TO CHECKOUT
             </a>
 
-            {% if not user.is_authenticated %}
-            <p class="cart-guest-note">
-              <a href="{% url 'login_page' %}">Sign in</a> to save your cart and earn rewards.
-            </p>
-            {% endif %}
           </aside>
 
         </div><!-- /.cart-layout -->
@@ -912,6 +897,7 @@
     <!-- ====================================================================
        Cart Page JavaScript — connects to existing backend API
        ==================================================================== -->
+    {% if user.is_authenticated %}
     <script src="{% static 'js/cart-badge.js' %}" defer></script>
     <script>
     (function () {
@@ -922,10 +908,6 @@
       var API_REMOVE = '/cart/remove/';
       var API_UPDATE = '/cart/update/';
       var PRODUCT_DETAIL_URL_TEMPLATE = "{% url 'product_detail' 0 %}";
-      var productPageRequests = {};
-
-      /* ── Auth flag injected from Django template ── */
-      var IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
 
       /* ── Local state ── */
       var cartItems    = [];
@@ -1035,65 +1017,11 @@
         }, 0);
       }
 
-      /* ─── Resolve guest item images from the existing product page ─── */
-      function getProductPage(productId) {
-        if (!productPageRequests[productId]) {
-          var productUrl = PRODUCT_DETAIL_URL_TEMPLATE.replace(/0\/$/, encodeURIComponent(productId) + '/');
-          productPageRequests[productId] = fetch(productUrl, { credentials: 'same-origin' })
-            .then(function (response) {
-              if (!response.ok) throw new Error('Unable to load product image.');
-              return response.text();
-            })
-            .then(function (html) {
-              return new DOMParser().parseFromString(html, 'text/html');
-            })
-            .catch(function (error) {
-              console.warn('[Cart] product image lookup failed:', error);
-              return null;
-            });
-        }
-        return productPageRequests[productId];
-      }
-
-      function resolveCartItemImage(item) {
-        if (item.image_url || IS_AUTHENTICATED) return Promise.resolve();
-
-        return getProductPage(item.product_id).then(function (productPage) {
-          if (!productPage) return;
-
-          var variantId = item.variant_id === null || item.variant_id === undefined
-            ? ''
-            : String(item.variant_id);
-          var imageButtons = productPage.querySelectorAll('[data-variant-id][data-img-src]');
-
-          if (variantId) {
-            for (var i = 0; i < imageButtons.length; i++) {
-              if (imageButtons[i].dataset.variantId === variantId && imageButtons[i].dataset.imgSrc) {
-                item.image_url = imageButtons[i].dataset.imgSrc;
-                return;
-              }
-            }
-          }
-
-          var productImage = productPage.querySelector('.product-thumb-btn[data-img-src]');
-          if (productImage && productImage.dataset.imgSrc) {
-            item.image_url = productImage.dataset.imgSrc;
-            return;
-          }
-
-          var mainImage = productPage.querySelector('#mainShowcaseImg');
-          if (mainImage && mainImage.getAttribute('src')) {
-            item.image_url = mainImage.getAttribute('src');
-          }
-        });
-      }
-
       /* ─── Render one item row ─── */
       function buildItemEl(item) {
         var el = document.createElement('div');
         el.className = 'cp-item';
         el.setAttribute('data-cart-item-id', item.cart_item_id !== null && item.cart_item_id !== undefined ? item.cart_item_id : '');
-        el.setAttribute('data-guest-item-id', item.guest_item_id !== null && item.guest_item_id !== undefined ? item.guest_item_id : '');
         el.setAttribute('data-product-id',  item.product_id);
         el.setAttribute('data-variant-id',  item.variant_id || '');
         el.setAttribute('data-name',        item.product_name);
@@ -1176,7 +1104,7 @@
             cartItems    = r.data.items || [];
             cartSubtotal = parseFloat(r.data.subtotal) || 0;
             totalQty     = parseInt(r.data.total_items, 10) || 0;
-            return Promise.all(cartItems.map(resolveCartItemImage)).then(renderItems);
+            renderItems();
           })
           .catch(function (err) {
             loadingSkeleton.style.display = 'none';
@@ -1195,15 +1123,11 @@
 
         if (removeBtn) { removeBtn.disabled = true; removeBtn.style.opacity = '0.35'; }
 
-        var payload = IS_AUTHENTICATED
-          ? { cart_item_id: parseInt(cartItemId, 10) }
-          : { product_id: parseInt(productId, 10), variant_id: variantId ? parseInt(variantId, 10) : null };
-
         fetch(API_REMOVE, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
           credentials: 'same-origin',
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ cart_item_id: parseInt(cartItemId, 10) }),
         })
         .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
         .then(function (r) {
@@ -1211,6 +1135,9 @@
             throw new Error(r.data.message || 'Could not remove item.');
           }
           // Animate out
+          if (window.VERDEProductStock) {
+            window.VERDEProductStock.update(productId, variantId, Number(itemEl.getAttribute('data-quantity')));
+          }
           itemEl.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
           itemEl.style.opacity    = '0';
           itemEl.style.transform  = 'translateX(12px)';
@@ -1218,10 +1145,7 @@
             if (itemEl.parentNode) itemEl.parentNode.removeChild(itemEl);
             // Remove from local state
             cartItems = cartItems.filter(function (i) {
-              return IS_AUTHENTICATED
-                ? String(i.cart_item_id) !== String(cartItemId)
-                : !(String(i.product_id) === String(productId) &&
-                    String(i.variant_id  || '') === String(variantId || ''));
+              return String(i.cart_item_id) !== String(cartItemId);
             });
             recalcLocals();
             renderItems();
@@ -1255,15 +1179,11 @@
         if (incBtn) incBtn.disabled = true;
         if (errorEl) errorEl.classList.remove('visible');
 
-        var payload = IS_AUTHENTICATED
-          ? { cart_item_id: parseInt(cartItemId, 10), quantity: newQty }
-          : { product_id: parseInt(productId, 10), variant_id: variantId ? parseInt(variantId, 10) : null, quantity: newQty };
-
         fetch(API_UPDATE, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
           credentials: 'same-origin',
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ cart_item_id: parseInt(cartItemId, 10), quantity: newQty }),
         })
         .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
         .then(function (r) {
@@ -1272,21 +1192,25 @@
             qtyValEl.textContent = prevQty;
             itemEl.setAttribute('data-quantity', prevQty);
             var errMsg = r.data.message || 'Could not update quantity.';
+            var isMaxPurchaseLimit = errMsg.trim().replace(/\.+$/, '') === 'Requested quantity exceeds the maximum allowed quantity';
+            if (isMaxPurchaseLimit) {
+              errMsg = 'Maximum purchase limit reached.';
+            }
             if (errorEl) { errorEl.textContent = errMsg; errorEl.classList.add('visible'); }
-            showToast(errMsg, 'error');
+            if (!isMaxPurchaseLimit) showToast(errMsg, 'error');
           } else {
             var confirmedQty = r.data.quantity !== undefined ? r.data.quantity : newQty;
             qtyValEl.textContent = confirmedQty;
             itemEl.setAttribute('data-quantity', confirmedQty);
+            if (window.VERDEProductStock) {
+              window.VERDEProductStock.update(productId, variantId, prevQty - confirmedQty);
+            }
 
             // Update local state
             var localItem = null;
             for (var j = 0; j < cartItems.length; j++) {
               var ci = cartItems[j];
-              var match = IS_AUTHENTICATED
-                ? String(ci.cart_item_id) === String(cartItemId)
-                : String(ci.product_id) === String(productId) &&
-                  String(ci.variant_id || '') === String(variantId || '');
+              var match = String(ci.cart_item_id) === String(cartItemId);
               if (match) { localItem = ci; break; }
             }
             if (localItem) {
@@ -1348,14 +1272,18 @@
         confirmClearCartBtn.disabled = true;
 
         var promises = cartItems.map(function (item) {
-          var payload = IS_AUTHENTICATED
-            ? { cart_item_id: item.cart_item_id }
-            : { product_id: item.product_id, variant_id: item.variant_id || null };
           return fetch(API_REMOVE, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
             credentials: 'same-origin',
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ cart_item_id: item.cart_item_id }),
+          }).then(function (response) {
+            return response.json().then(function (data) {
+              if (!response.ok || data.status !== 'success') return;
+              if (window.VERDEProductStock) {
+                window.VERDEProductStock.update(item.product_id, item.variant_id || null, item.quantity);
+              }
+            });
           });
         });
 
@@ -1445,5 +1373,7 @@
 
     }());
     </script>
+    {% endif %}
+    <script src="{% static 'js/product-stock.js' %}" defer></script>
   </body>
 </html>

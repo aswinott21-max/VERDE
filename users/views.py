@@ -5,7 +5,6 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from .services.validation_service import(validate_user_email,validate_user_phone,validate_user_name,validate_user_password,is_phone_taken,is_email_taken,validate_pin,validate_address_line,validate_city)
 from .services.otp_service import generate_otp, get_otp_expiry, send_otp_email
-from cart.services.cart_service import merge_guest_cart_to_user_cart
 from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -301,7 +300,6 @@ def login(request): # to process login credentials
 
     auth_login(request, user)
 
-    merge_guest_cart_to_user_cart(request, user)
 
     return JsonResponse({
         "message" : "Login successful",

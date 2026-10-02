@@ -48,9 +48,14 @@ def add_category(request):
     description = request.POST.get("description")
     parent_id = request.POST.get("parent_id")
 
-    #Validate required field
-    if not name:
-        return JsonResponse({"success":False, "message":"Category name is required.",}, status=400)
+    #validate required field
+    error = validate_category_data(name or "", description or "")
+    if error:
+        return JsonResponse({
+            "success": False,
+            "message": error,
+        }, status=400)
+
 
     # If a parent category was selected, make sure it exists
     parent = None
@@ -89,7 +94,7 @@ def edit_category(request, category_id):
     parent_id = request.POST.get("parent_id")
 
     #Validate
-    error = validate_category_data(name)
+    error = validate_category_data(name or "", description or "")
 
     if error:
         return JsonResponse({"success": False,"message": error, "data":None}, status=400)

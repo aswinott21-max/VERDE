@@ -1329,6 +1329,23 @@
         gap: 16px;
       }
 
+      .plant-inventory-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .plant-inventory-grid .form-label {
+        display: flex;
+        align-items: flex-end;
+        min-height: 28px;
+      }
+      .equipment-inventory-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .equipment-inventory-grid .form-label {
+        display: flex;
+        align-items: flex-end;
+        min-height: 28px;
+      }
+
       .featured-card {
         background-color: #f7f8f6;
         border: 1px solid #edf0eb;
@@ -1469,7 +1486,8 @@
 
       @media (max-width: 580px) {
         .form-grid-2col,
-        .form-grid-half {
+        .form-grid-half,
+        .equipment-inventory-grid {
           grid-template-columns: 1fr;
         }
         .modal-plant-container,
@@ -2950,22 +2968,22 @@
 
                   <!-- Offer -->
                   <td class="text-center" id="offer-cell-{{ product.id }}">
-                    {% if product.product_offer > 0 %}
+                    {% if product.has_active_offer %}
                       <button
                         type="button"
                         class="offer-trigger product-offer"
                         data-product-id="{{ product.id }}"
                         data-product-name="{{ product.name|escape }}"
                         data-discount="{{ product.product_offer }}"
-                        data-offer-start="{% if product.offer_start_at %}{{ product.offer_start_at|date:'Y-m-d\TH:i' }}{% endif %}"
-                        data-offer-end="{% if product.offer_ends_at %}{{ product.offer_ends_at|date:'Y-m-d\TH:i' }}{% endif %}"
+                        data-offer-start="{% if product.offer_start_at %}{{ product.offer_start_at|date:'c' }}{% endif %}"
+                        data-offer-end="{% if product.offer_ends_at %}{{ product.offer_ends_at|date:'c' }}{% endif %}"
                         data-has-product-offer="true"
                         onclick="openProductOfferModal(this)"
                         title="Product offer: {{ product.product_offer|floatformat:0 }}%. Click to edit."
                       >
-                        {{ product.product_offer|floatformat:0 }}%
+                        {{ product.product_offer }}%
                       </button>
-                    {% elif product.category.discount_value > 0 %}
+                    {% elif product.sale_price < product.regular_price and product.category.discount_value > 0 %}
                       <button
                         type="button"
                         class="offer-trigger category-offer"
@@ -2993,7 +3011,7 @@
                         onclick="openProductOfferModal(this)"
                         title="Add product offer"
                       >
-                        -
+                        Add Offer
                       </button>
                     {% endif %}
                   </td>
@@ -3275,7 +3293,7 @@
             </svg>
           </button>
         </div>
-        <form id="addPlantForm" onsubmit="handleAddPlant(event)">
+        <form id="addPlantForm" novalidate onsubmit="handleAddPlant(event)">
           {% csrf_token %}
           <input type="hidden" id="editPlantProductId" name="product_id" value="" />
           <div class="modal-body">
@@ -3339,7 +3357,7 @@
             </div>
 
             <!-- Row 4: Quantity & Low Stock Threshold -->
-            <div class="form-grid-2col">
+            <div class="form-grid-2col plant-inventory-grid">
               <div class="form-group">
                 <label class="form-label" for="addPlantQuantity">QUANTITY</label>
                 <input
@@ -3367,6 +3385,20 @@
                   required
                 />
                 <span class="field-error" id="addPlantLowStockError"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="addPlantMaxPurchase">MAX PURCHASE QUANTITY</label>
+                <input
+                  type="number"
+                  min="1"
+                  id="addPlantMaxPurchase"
+                  name="max_purchase_quantity"
+                  class="form-input"
+                  value="5"
+                  placeholder="5"
+                  required
+                />
+                <span class="field-error" id="addPlantMaxPurchaseError"></span>
               </div>
             </div>
 
@@ -3485,7 +3517,7 @@
             </svg>
           </button>
         </div>
-        <form id="addEquipmentForm" onsubmit="handleAddEquipment(event)">
+        <form id="addEquipmentForm" novalidate onsubmit="handleAddEquipment(event)">
           {% csrf_token %}
           <div class="modal-body">
             <!-- Row 1: Product Name & Category -->
@@ -3548,7 +3580,7 @@
             </div>
 
             <!-- Row 4: Quantity & Low Stock Threshold -->
-            <div class="form-grid-2col">
+            <div class="form-grid-2col equipment-inventory-grid">
               <div class="form-group">
                 <label class="form-label" for="addEquipmentQuantity">QUANTITY</label>
                 <input
@@ -3576,6 +3608,19 @@
                   required
                 />
                 <span class="field-error" id="addEquipmentLowStockError"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="addEquipmentMaxPurchase">MAX PURCHASE QUANTITY</label>
+                <input
+                  type="number"
+                  min="1"
+                  id="addEquipmentMaxPurchase"
+                  name="max_purchase_quantity"
+                  class="form-input"
+                  value="5"
+                  placeholder="5"
+                  required
+                />
               </div>
             </div>
 
@@ -3694,7 +3739,7 @@
             </svg>
           </button>
         </div>
-        <form id="editEquipmentForm" onsubmit="handleEditEquipment(event)">
+        <form id="editEquipmentForm" novalidate onsubmit="handleEditEquipment(event)">
           {% csrf_token %}
           <input type="hidden" id="editEquipmentProductId" name="product_id" value="" />
           <div class="modal-body">
@@ -3758,7 +3803,7 @@
             </div>
 
             <!-- Row 4: Quantity & Low Stock Threshold -->
-            <div class="form-grid-2col">
+            <div class="form-grid-2col equipment-inventory-grid">
               <div class="form-group">
                 <label class="form-label" for="editEquipmentQuantity">QUANTITY</label>
                 <input
@@ -3786,6 +3831,19 @@
                   required
                 />
                 <span class="field-error" id="editEquipmentLowStockError"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editEquipmentMaxPurchase">MAX PURCHASE QUANTITY</label>
+                <input
+                  type="number"
+                  min="1"
+                  id="editEquipmentMaxPurchase"
+                  name="max_purchase_quantity"
+                  class="form-input"
+                  value="5"
+                  placeholder="5"
+                  required
+                />
               </div>
             </div>
 
@@ -3902,7 +3960,7 @@
             </svg>
           </button>
         </div>
-        <form id="addPotForm" onsubmit="handleAddPot(event)">
+        <form id="addPotForm" novalidate onsubmit="handleAddPot(event)">
           {% csrf_token %}
           <div class="modal-body">
             <!-- Two Column Layout -->
@@ -4131,7 +4189,7 @@
             </svg>
           </button>
         </div>
-        <form id="editPotForm" onsubmit="handleEditPot(event)">
+        <form id="editPotForm" novalidate onsubmit="handleEditPot(event)">
           {% csrf_token %}
           <input type="hidden" id="editPotProductId" name="product_id" value="" />
           <div class="modal-body">
@@ -4637,6 +4695,18 @@
                 value="5"
               />
             </div>
+            <div class="form-group">
+              <label class="form-label" for="modalVariantMaxPurchase" style="font-size: 10px;">MAX PURCHASE QUANTITY</label>
+              <input
+                type="number"
+                id="modalVariantMaxPurchase"
+                class="form-input"
+                style="padding: 7px 10px; font-size: 13px;"
+                min="1"
+                value="5"
+                required
+              />
+            </div>
           </div>
         </div>
         <div class="modal-footer" style="padding: 14px 22px; background: #fafbfa;">
@@ -4905,7 +4975,7 @@
             </svg>
           </button>
         </div>
-        <form id="editProductForm" onsubmit="handleEditProduct(event)">
+        <form id="editProductForm" novalidate onsubmit="handleEditProduct(event)">
           {% csrf_token %}
           <input type="hidden" id="editProductId" name="product_id" />
           <div class="modal-body">
@@ -5014,7 +5084,7 @@
             </svg>
           </button>
         </div>
-        <form id="productOfferForm" onsubmit="handleProductOffer(event)">
+        <form id="productOfferForm" novalidate onsubmit="handleProductOffer(event)">
           {% csrf_token %}
           <input type="hidden" id="productOfferProductId" />
           <div class="modal-body">
@@ -5039,7 +5109,9 @@
                 id="productOfferStart"
                 name="offer_start_at"
                 class="form-input"
+                oninput="clearFieldError('productOfferStartError')"
               />
+              <span class="field-error" id="productOfferStartError"></span>
             </div>
             <div class="form-group">
               <label class="form-label" for="productOfferEnd">OFFER END</label>
@@ -5048,8 +5120,9 @@
                 id="productOfferEnd"
                 name="offer_end_at"
                 class="form-input"
+                oninput="clearFieldError('productOfferEndError')"
               />
-              <span class="field-error" id="productOfferDateError"></span>
+              <span class="field-error" id="productOfferEndError"></span>
             </div>
           </div>
           <div class="modal-footer">
@@ -5452,6 +5525,246 @@
         error.classList.add("visible");
       }
 
+      function clearFieldError(id) {
+        const error = document.getElementById(id);
+        if (!error) return;
+        error.textContent = "";
+        error.classList.remove("visible");
+      }
+
+      function showPlantBackendError(message, fallbackMessage) {
+        const normalizedMessage = (message || "").toLowerCase();
+        const errorFields = [
+          { keywords: ["image"], fieldId: "addPlantImagesError", inputId: "addPlantImagesInput" },
+          {
+            keywords: ["low-stock", "low stock", "threshold"],
+            fieldId: "addPlantLowStockError",
+            inputId: "addPlantLowStock",
+          },
+          {
+            keywords: ["quantity", "stock quantity"],
+            fieldId: "addPlantQuantityError",
+            inputId: "addPlantQuantity",
+          },
+          { keywords: ["product name", "name"], fieldId: "addPlantNameError", inputId: "addPlantName" },
+          {
+            keywords: ["product description", "description"],
+            fieldId: "addPlantDescriptionError",
+            inputId: "addPlantDescription",
+          },
+          { keywords: ["category"], fieldId: "addPlantCategoryError", inputId: "addPlantCategory" },
+          { keywords: ["regular price", "price"], fieldId: "addPlantPriceError", inputId: "addPlantPrice" },
+          { keywords: ["stock"], fieldId: "addPlantQuantityError", inputId: "addPlantQuantity" },
+        ];
+        const matchingField = errorFields.find(({ keywords }) =>
+          keywords.some((keyword) => normalizedMessage.includes(keyword)),
+        );
+
+        if (!matchingField || !message) {
+          showToast(message || fallbackMessage, true);
+          return;
+        }
+
+        setFieldError(matchingField.fieldId, message);
+        document.getElementById(matchingField.inputId)?.focus();
+      }
+
+      function showPotBackendError(modalPrefix, message, fallbackMessage) {
+        const normalizedMessage = (message || "").toLowerCase();
+        let errorId = null;
+        let focusId = null;
+
+        if (normalizedMessage.includes("product name")) {
+          errorId = `${modalPrefix}NameError`;
+          focusId = `${modalPrefix}Name`;
+        } else if (normalizedMessage.includes("product description")) {
+          errorId = `${modalPrefix}DescriptionError`;
+          focusId = `${modalPrefix}Description`;
+        } else if (normalizedMessage.includes("category")) {
+          errorId = `${modalPrefix}CategoryError`;
+          focusId = `${modalPrefix}Category`;
+        } else if (
+          normalizedMessage.includes("product image") ||
+          normalizedMessage.includes("product images")
+        ) {
+          errorId = `${modalPrefix}ImagesError`;
+          focusId = `${modalPrefix}ImagesInput`;
+        } else if (
+          normalizedMessage.includes("variant") ||
+          normalizedMessage.includes("size") ||
+          normalizedMessage.includes("color") ||
+          normalizedMessage.includes("price") ||
+          normalizedMessage.includes("stock") ||
+          normalizedMessage.includes("threshold")
+        ) {
+          errorId = `${modalPrefix}VariantsError`;
+          focusId = `${modalPrefix}VariantsList`;
+        }
+
+        if (!message || !errorId) {
+          showToast(message || fallbackMessage, true);
+          return;
+        }
+
+        setFieldError(errorId, message);
+        document.getElementById(focusId)?.focus();
+      }
+
+      function showEquipmentBackendError(modalPrefix, message, fallbackMessage) {
+        const normalizedMessage = (message || "").toLowerCase();
+        const errorFields = [
+          { keywords: ["product name"], suffix: "Name" },
+          { keywords: ["product description"], suffix: "Description" },
+          { keywords: ["category"], suffix: "Category" },
+          { keywords: ["regular price", "price"], suffix: "Price" },
+          { keywords: ["low-stock", "low stock", "threshold"], suffix: "LowStock" },
+          { keywords: ["quantity", "stock"], suffix: "Quantity" },
+          { keywords: ["image"], suffix: "Images" },
+        ];
+        const matchingField = errorFields.find(({ keywords }) =>
+          keywords.some((keyword) => normalizedMessage.includes(keyword)),
+        );
+
+        if (!message || !matchingField) {
+          showToast(message || fallbackMessage, true);
+          return;
+        }
+
+        setFieldError(`${modalPrefix}${matchingField.suffix}Error`, message);
+        document.getElementById(`${modalPrefix}${matchingField.suffix}`)?.focus();
+      }
+
+      function showEditProductBackendError(message, fallbackMessage) {
+        const normalizedMessage = (message || "").toLowerCase();
+        let errorId = null;
+        let inputId = null;
+
+        if (normalizedMessage.includes("product name")) {
+          errorId = "editNameError";
+          inputId = "editProductName";
+        } else if (normalizedMessage.includes("regular price")) {
+          errorId = "editPriceError";
+          inputId = "editProductPrice";
+        } else if (normalizedMessage.includes("category")) {
+          errorId = "editCategoryError";
+          inputId = "editProductCategory";
+        }
+
+        if (!message || !errorId) {
+          showToast(message || fallbackMessage, true);
+          return;
+        }
+
+        setFieldError(errorId, message);
+        document.getElementById(inputId)?.focus();
+      }
+
+      function showProductOfferBackendError(message, fallbackMessage) {
+        const normalizedMessage = (message || "").toLowerCase();
+        let errorId = null;
+        let inputId = null;
+
+        if (
+          normalizedMessage.includes("discount") ||
+          normalizedMessage.includes("offer value") ||
+          normalizedMessage.includes("percentage")
+        ) {
+          errorId = "productOfferDiscountError";
+          inputId = "productOfferDiscount";
+        } else if (normalizedMessage.includes("start")) {
+          errorId = "productOfferStartError";
+          inputId = "productOfferStart";
+        } else if (
+          normalizedMessage.includes("end") ||
+          normalizedMessage.includes("date") ||
+          normalizedMessage.includes("offer period")
+        ) {
+          errorId = "productOfferEndError";
+          inputId = "productOfferEnd";
+        }
+
+        if (!message || !errorId) {
+          showToast(message || fallbackMessage, true);
+          return;
+        }
+
+        setFieldError(errorId, message);
+        document.getElementById(inputId)?.focus();
+      }
+
+      const inlineValidationForms = [
+        "#addPlantForm",
+        "#addEquipmentForm",
+        "#editEquipmentForm",
+        "#addPotForm",
+        "#editPotForm",
+        "#editProductForm",
+        "#productOfferForm",
+      ].join(", ");
+
+      document.addEventListener(
+        "submit",
+        (event) => {
+          const form = event.target;
+          if (!(form instanceof HTMLFormElement) || !form.matches(inlineValidationForms)) {
+            return;
+          }
+
+          let firstInvalidField = null;
+          form.querySelectorAll("input[required], select[required], textarea[required]").forEach(
+            (field) => {
+              const group = field.closest(".form-group");
+              let error = group ? group.querySelector(".field-error") : null;
+
+              if (!error) {
+                error = document.createElement("span");
+                error.className = "field-error";
+                field.insertAdjacentElement("afterend", error);
+              }
+
+              if (field.validity.valid) {
+                error.textContent = "";
+                error.classList.remove("visible");
+                return;
+              }
+
+              error.textContent = field.validationMessage;
+              error.classList.add("visible");
+              firstInvalidField ||= field;
+            },
+          );
+
+          if (firstInvalidField) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            firstInvalidField.focus();
+          }
+        },
+        true,
+      );
+
+      const clearInlineFieldError = (event) => {
+        const field = event.target;
+        const form = field.form;
+        if (
+          !form ||
+          !form.matches(inlineValidationForms) ||
+          !field.matches("input[required], select[required], textarea[required]") ||
+          !field.validity.valid
+        ) {
+          return;
+        }
+
+        const error = field.closest(".form-group")?.querySelector(".field-error");
+        if (error) {
+          error.textContent = "";
+          error.classList.remove("visible");
+        }
+      };
+
+      document.addEventListener("input", clearInlineFieldError);
+      document.addEventListener("change", clearInlineFieldError);
+
       function updatePotModalTitle(name) {
         document.getElementById("addPotModalTitle").textContent =
           name.trim() || "ADD POT";
@@ -5836,6 +6149,7 @@
         }
 
         // Add variant to state
+        const maxPurchaseQuantity = document.getElementById("modalVariantMaxPurchase").value;
         potVariants.push({
           id: "var_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
           size: currentVariantState.size,
@@ -5846,6 +6160,7 @@
           price: priceVal,
           stock: stockVal,
           low_stock_threshold: lowStockVal,
+          max_purchase_quantity: maxPurchaseQuantity,
         });
 
         renderPotVariantsList();
@@ -5912,6 +6227,17 @@
                   />
                 </div>
                 <div class="variant-input-group">
+                  <label class="variant-input-label">Max Purchase Quantity</label>
+                  <input
+                    type="number"
+                    min="1"
+                    class="variant-interactive-input"
+                    value="${v.max_purchase_quantity ?? 5}"
+                    data-field="max_purchase_quantity"
+                    oninput="updateVariantField('${v.id}', 'max_purchase_quantity', this.value)"
+                  />
+                </div>
+                <div class="variant-input-group">
                   <label class="variant-input-label">Price (₹)</label>
                   <input
                     type="number"
@@ -5950,6 +6276,8 @@
           updatePotTotalStock();
         } else if (field === "low_stock_threshold") {
           variant.low_stock_threshold = parseInt(val, 10) || 0;
+        } else if (field === "max_purchase_quantity") {
+          variant.max_purchase_quantity = parseInt(val, 10) || 0;
         } else if (field === "price") {
           variant.price = parseFloat(val) || 0;
         }
@@ -6052,6 +6380,7 @@
             price: String(v.price),
             stock: String(v.stock),
             low_stock_threshold: String(v.low_stock_threshold),
+            max_purchase_quantity: String(v.max_purchase_quantity),
           }));
           formData.append("variants", JSON.stringify(variantsPayload));
 
@@ -6077,7 +6406,7 @@
           const data = await response.json();
 
           if (!response.ok || !data.success) {
-            showToast(data.message || "Failed to create pot product.", true);
+            showPotBackendError("addPot", data.message, "Failed to create pot product.");
             submitBtn.disabled = false;
             submitBtn.innerHTML = `
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 4px; vertical-align: -2px;">
@@ -6166,6 +6495,7 @@
                   v.low_stock_threshold !== undefined && v.low_stock_threshold !== null
                     ? parseInt(v.low_stock_threshold, 10)
                     : 5,
+                max_purchase_quantity: v.max_purchase_quantity ?? 5,
                 images: v.images || [],
               };
             });
@@ -6372,6 +6702,16 @@
                   />
                 </div>
                 <div class="variant-input-group">
+                  <label class="variant-input-label">Max Purchase Quantity</label>
+                  <input
+                    type="number"
+                    min="1"
+                    class="variant-interactive-input"
+                    value="${v.max_purchase_quantity ?? 5}"
+                    oninput="updateEditPotVariantField('${v.id}', 'max_purchase_quantity', this.value)"
+                  />
+                </div>
+                <div class="variant-input-group">
                   <label class="variant-input-label">Price (₹)</label>
                   <input
                     type="number"
@@ -6410,6 +6750,8 @@
           updateEditPotTotalStock();
         } else if (field === "low_stock_threshold") {
           variant.low_stock_threshold = parseInt(val, 10) || 0;
+        } else if (field === "max_purchase_quantity") {
+          variant.max_purchase_quantity = parseInt(val, 10) || 0;
         } else if (field === "price") {
           variant.price = parseFloat(val) || 0;
         }
@@ -6518,6 +6860,7 @@
             price: String(v.price),
             stock: String(v.stock),
             low_stock_threshold: String(v.low_stock_threshold),
+            max_purchase_quantity: String(v.max_purchase_quantity ?? 5),
           }));
           formData.append("variants", JSON.stringify(variantsPayload));
 
@@ -6551,7 +6894,7 @@
           const data = await response.json();
 
           if (!response.ok || !data.success) {
-            showToast(data.message || "Failed to update pot product.", true);
+            showPotBackendError("editPot", data.message, "Failed to update pot product.");
             submitBtn.disabled = false;
             submitBtn.innerHTML = `
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 4px; vertical-align: -2px;">
@@ -6658,6 +7001,10 @@
               productData.low_stock_threshold !== null
                 ? productData.low_stock_threshold
                 : "5";
+
+          const maxPurchaseEl = document.getElementById("editEquipmentMaxPurchase");
+          if (maxPurchaseEl)
+            maxPurchaseEl.value = productData.max_purchase_quantity ?? 5;
 
           const featEl = document.getElementById("editEquipmentFeatured");
           if (featEl) featEl.checked = Boolean(productData.is_featured);
@@ -6809,6 +7156,8 @@
           document.getElementById("editEquipmentQuantity").value.trim() || "0";
         const lowStockThreshold =
           document.getElementById("editEquipmentLowStock").value.trim() || "0";
+        const maxPurchaseQuantity =
+          document.getElementById("editEquipmentMaxPurchase").value.trim();
         const isFeatured = document.getElementById("editEquipmentFeatured").checked;
 
         let hasError = false;
@@ -6857,6 +7206,7 @@
           formData.append("regular_price", regularPrice);
           formData.append("stock_quantity", stockQuantity);
           formData.append("low_stock_threshold", lowStockThreshold);
+          formData.append("max_purchase_quantity", maxPurchaseQuantity);
           formData.append("is_featured", isFeatured ? "true" : "false");
 
           // IDs of existing images the admin chose to keep
@@ -6879,7 +7229,11 @@
           const data = await response.json();
 
           if (!response.ok || !data.success) {
-            showToast(data.message || "Failed to update equipment product.", true);
+            showEquipmentBackendError(
+              "editEquipment",
+              data.message,
+              "Failed to update equipment product.",
+            );
             submitBtn.disabled = false;
             submitBtn.textContent = "SAVE CHANGES";
             return;
@@ -7450,6 +7804,10 @@
           formData.append("regular_price", regularPrice);
           formData.append("stock_quantity", stockQuantity);
           formData.append("low_stock_threshold", lowStockThreshold);
+          formData.append(
+            "max_purchase_quantity",
+            document.getElementById("addEquipmentMaxPurchase").value.trim(),
+          );
           formData.append("is_featured", isFeatured ? "true" : "false");
 
           // Append equipment images
@@ -7467,7 +7825,11 @@
           const data = await response.json();
 
           if (!response.ok || !data.success) {
-            showToast(data.message || "Failed to create equipment product.", true);
+            showEquipmentBackendError(
+              "addEquipment",
+              data.message,
+              "Failed to create equipment product.",
+            );
             submitBtn.disabled = false;
             submitBtn.textContent = "ADD PRODUCT";
             return;
@@ -7575,6 +7937,10 @@
             formData.append("regular_price", regularPrice);
             formData.append("stock_quantity", stockQuantity);
             formData.append("low_stock_threshold", lowStockThreshold);
+            formData.append(
+              "max_purchase_quantity",
+              document.getElementById("addPlantMaxPurchase").value.trim(),
+            );
             formData.append("is_featured", isFeatured ? "true" : "false");
 
             // Append newly added (cropped) images under the field name the backend expects
@@ -7592,7 +7958,7 @@
             const data = await response.json();
 
             if (!response.ok || !data.success) {
-              showToast(data.message || "Failed to update plant product.", true);
+              showPlantBackendError(data.message, "Failed to update plant product.");
               submitBtn.disabled = false;
               submitBtn.textContent = "SAVE CHANGES";
               return;
@@ -7613,6 +7979,9 @@
 
           try {
             // 1. Create Product
+            const maxPurchaseQuantity = document
+              .getElementById("addPlantMaxPurchase")
+              .value.trim();
             const formData = new FormData();
             formData.append("name", name);
             formData.append("category_id", categoryId);
@@ -7620,6 +7989,7 @@
             formData.append("regular_price", regularPrice);
             formData.append("stock_quantity", stockQuantity);
             formData.append("low_stock_threshold", lowStockThreshold);
+            formData.append("max_purchase_quantity", maxPurchaseQuantity);
             formData.append("is_featured", isFeatured ? "true" : "false");
 
             const response = await fetch("/products/admin/products/add/", {
@@ -7632,7 +8002,7 @@
             const data = await response.json();
 
             if (!response.ok || !data.success) {
-              showToast(data.message || "Failed to create plant product.", true);
+              showPlantBackendError(data.message, "Failed to create plant product.");
               submitBtn.disabled = false;
               submitBtn.textContent = "ADD PRODUCT";
               return;
@@ -7660,6 +8030,17 @@
               const imgData = await imgResponse.json();
 
               if (!imgResponse.ok || !imgData.success) {
+                if (imgData.message?.toLowerCase().includes("image")) {
+                  document.getElementById("editPlantProductId").value = createdProductId;
+                  document.getElementById("addPlantModalTitle").textContent = "EDIT PLANT";
+                  document.getElementById("addPlantModalSubtitle").textContent =
+                    "Update plant product details in the VERDÉ store.";
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = "SAVE CHANGES";
+                  showPlantBackendError(imgData.message, "Image upload failed.");
+                  return;
+                }
+
                 showToast(
                   "Product created, but failed to upload images: " +
                     (imgData.message || "Unknown error"),
@@ -7756,6 +8137,8 @@
             productData.stock_quantity !== undefined ? productData.stock_quantity : "0";
           document.getElementById("addPlantLowStock").value =
             productData.low_stock_threshold !== undefined ? productData.low_stock_threshold : "5";
+          document.getElementById("addPlantMaxPurchase").value =
+            productData.max_purchase_quantity ?? 5;
           document.getElementById("addPlantFeatured").checked = Boolean(productData.is_featured);
 
           // Existing product images
@@ -7808,6 +8191,20 @@
         return tokenInput ? tokenInput.value : "";
       }
 
+      function formatOfferDateTimeForInput(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return localDate.toISOString().slice(0, 16);
+      }
+
+      function updateOfferStartMinimum() {
+        const startInput = document.getElementById("productOfferStart");
+        startInput.min = formatOfferDateTimeForInput(new Date().toISOString());
+        return startInput.min;
+      }
+
       function openProductOfferModal(trigger) {
         const modal = document.getElementById("productOfferModal");
         const productId = trigger.dataset.productId;
@@ -7818,15 +8215,17 @@
         document.getElementById("productOfferDiscount").value =
           trigger.dataset.discount || "";
         document.getElementById("productOfferStart").value =
-          trigger.dataset.offerStart || "";
+          formatOfferDateTimeForInput(trigger.dataset.offerStart);
         document.getElementById("productOfferEnd").value =
-          trigger.dataset.offerEnd || "";
+          formatOfferDateTimeForInput(trigger.dataset.offerEnd);
+        updateOfferStartMinimum();
         document.getElementById("productOfferModalSubtitle").textContent =
           `Set a product-level discount for ${productName}.`;
         document.getElementById("productOfferRemoveBtn").style.display =
           hasProductOffer ? "block" : "none";
-        document.getElementById("productOfferDiscountError").textContent = "";
-        document.getElementById("productOfferDateError").textContent = "";
+        clearFieldError("productOfferDiscountError");
+        clearFieldError("productOfferStartError");
+        clearFieldError("productOfferEndError");
         modal.classList.add("active");
       }
 
@@ -7836,13 +8235,25 @@
       }
 
       function validateProductOfferDates() {
-        const start = document.getElementById("productOfferStart").value;
+        const startInput = document.getElementById("productOfferStart");
+        const start = startInput.value;
         const end = document.getElementById("productOfferEnd").value;
-        const dateError = document.getElementById("productOfferDateError");
 
-        dateError.textContent = "";
+        const minimumStart = updateOfferStartMinimum();
+        clearFieldError("productOfferStartError");
+        clearFieldError("productOfferEndError");
+        if (start && start < minimumStart) {
+          setFieldError(
+            "productOfferStartError",
+            "The offer start cannot be in the past.",
+          );
+          return false;
+        }
         if (start && end && end < start) {
-          dateError.textContent = "The offer end must be after the start.";
+          setFieldError(
+            "productOfferEndError",
+            "The offer end must be after the start.",
+          );
           return false;
         }
         return true;
@@ -7850,6 +8261,7 @@
 
       async function submitProductOffer(formData, submitButton, successMessage) {
         const productId = document.getElementById("productOfferProductId").value;
+        formData.set("time_zone", Intl.DateTimeFormat().resolvedOptions().timeZone);
         submitButton.disabled = true;
         submitButton.textContent = "Saving...";
 
@@ -7871,7 +8283,10 @@
             showToast(data.message || successMessage);
             setTimeout(() => window.location.reload(), 500);
           } else {
-            showToast(data.message || "Failed to update the product offer.", true);
+            showProductOfferBackendError(
+              data.message,
+              "Failed to update the product offer.",
+            );
           }
         } catch (err) {
           console.error("Product Offer Error:", err);
@@ -7935,6 +8350,7 @@
       // Asynchronous Edit Product
       async function handleEditProduct(event) {
         event.preventDefault();
+        clearModalErrors("#editProductModal");
         const form = event.target;
         const productId = document.getElementById("editProductId").value;
         const submitBtn = document.getElementById("editSubmitBtn");
@@ -7967,7 +8383,7 @@
             }
             setTimeout(() => window.location.reload(), 800);
           } else {
-            showToast(data.message || "Failed to update product.", true);
+            showEditProductBackendError(data.message, "Failed to update product.");
           }
         } catch (err) {
           console.error("Edit Product Error:", err);

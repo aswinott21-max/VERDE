@@ -3,20 +3,15 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from orders.services.order_service import (validate_user_cart_stock,validate_guest_cart_stock,)
+from orders.services.order_service import validate_user_cart_stock
 
 
 
 @require_POST
 def checkout_api(request):
 
-    # Check the latest stock for a logged-in user's database cart.
-    if request.user.is_authenticated:
-        stock_valid, error_message = validate_user_cart_stock(request.user)
-
-    # Check the latest stock for a guest user's session cart.
-    else:
-        stock_valid, error_message = validate_guest_cart_stock(request)
+    # Check the latest stock for the logged-in user's database cart.
+    stock_valid, error_message = validate_user_cart_stock(request.user)
 
     # Stop checkout when the cart is empty or stock is no longer available.
     if not stock_valid:

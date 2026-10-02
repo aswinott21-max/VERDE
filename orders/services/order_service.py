@@ -1,5 +1,4 @@
 from cart.models import Cart, CartItem
-from products.models import Product, ProductVariant
 
 # Check whether all items in a logged-in user's cart,are still available at the latest stock level.
 
@@ -52,52 +51,3 @@ def validate_user_cart_stock(user):
         
     return True, None
 
-
-# Check whether all items in a guest user's session cart,are still available in latest stock level.
-def validate_guest_cart_stock(request):
-    guest_cart = request.session.get("guest_cart", {})
-
-    if not guest_cart:
-        return False, "Your cart is empty."
-
-    # Check every guest cart item against the latest database stock.
-    for item in guest_cart.values():
-
-        product_id = item.get("product_id")
-        variant_id = item.get("variant_id")
-        quantity = item.get("quantity")
-
-        # Find the current active product.
-        product = (Product.objects.filter(id=product_id,is_active=True,category__is_active=True,).select_related("category").first())
-
-        # The product no longer exists or is inactive.
-        if not product:
-            return False, "A product in your cart is no longer available."
-
-        # Guest cart item with a variant.
-        if variant_id:
-
-            variant = (ProductVariant.objects.filter(id=variant_id,product=product,is_active=True,).first())
-            # The variant no longer exists or is inactive.
-            if not variant:
-                return False, (
-                    f"{product.name} has a selected variant "
-                    "that is no longer available."
-                )
-
-            # Compare guest cart quantity with latest variant stock.
-            if int(quantity) > variant.stock_quantity:
-                return False, (
-                    f"{product.name} does not have enough stock "
-                    "for the selected variant."
-                )
-
-        # Guest cart item without a variant.
-        else:
-
-            # Compare guest cart quantity with latest product stock.
-            if int(quantity) > product.stock_quantity:
-                return False, (
-                    f"{product.name} does not have enough stock."
-                )
-    return True, None

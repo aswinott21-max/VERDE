@@ -1,5 +1,5 @@
 from wishlist.models import Wishlist, WishlistItem
-
+from products.services.product_price_service import get_product_sale_price
 
 # Get the user's active wishlist.
 def get_user_wishlist(user):
@@ -23,8 +23,20 @@ def get_user_wishlist_count(user):
     return WishlistItem.objects.filter(wishlist__user=user,is_active=True,).count()
 
 def get_user_wishlist_items(user):
-    # Get all active wishlist items for the logged-in user.
-    return (WishlistItem.objects.filter(wishlist__user=user,is_active=True,).select_related("product","product_variant",).prefetch_related("product__product_images","product_variant__images",))
+
+    #Get all active wishlist items for the logged-in user.
+    wishlist_items = (WishlistItem.objects.filter(wishlist__user=user,is_active=True).select_related("product", "product_variant").prefetch_related("product__product_images","product_variant__images",))
+
+    #Calculate the correct sale price for each wishlist item.
+    for item in wishlist_items:
+        #Use variant price for Pot products.
+        if item.product_variant:
+            item.sale_price = get_product_sale_price(item.product,item.product_variant.price)
+        else:
+            #use the normal product price for Plant/Equipment.
+            item.sale_price = get_product_sale_price(item.product)
+    
+    return wishlist_items
 
 
 

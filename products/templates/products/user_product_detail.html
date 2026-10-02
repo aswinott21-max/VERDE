@@ -117,10 +117,51 @@
         height: 100%;
         object-fit: cover;
         display: block;
-        transition: transform 0.3s ease;
+        transition: transform 0.2s ease;
       }
-      .showcase-media-box:hover img {
-        transform: scale(1.02);
+      .image-zoom-controls {
+        position: absolute;
+        right: 14px;
+        bottom: 14px;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px;
+        border: 1px solid rgba(16, 37, 24, 0.12);
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+      .image-zoom-controls button {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 0;
+        border-radius: 3px;
+        background: transparent;
+        color: var(--verde-dark);
+        font-size: 21px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .image-zoom-controls button:hover:not(:disabled) {
+        background: #f0f2ed;
+      }
+      .image-zoom-controls button:disabled {
+        color: #a6aaa4;
+        cursor: not-allowed;
+      }
+      .image-zoom-controls button:focus-visible {
+        outline: 2px solid var(--verde-dark);
+        outline-offset: 1px;
+      }
+      .image-zoom-level {
+        min-width: 42px;
+        color: #333;
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
       }
       .badge-featured-pill {
         position: absolute;
@@ -922,7 +963,7 @@
           <div class="showcase-media-box" id="showcaseMediaContainer">
             {% if product.is_featured %}
             <span class="badge-featured-pill">FEATURED</span>
-            {% elif product.product_offer and product.product_offer > 0 %}
+            {% elif product.has_active_offer %}
             <span class="badge-discount-pill">{{ product.product_offer|floatformat:0 }}% OFF</span>
             {% endif %}
 
@@ -939,6 +980,34 @@
                 </svg>
                 <p>No image in database</p>
               </div>
+            {% endif %}
+            {% if product.product_images.first or product.variants.first.images.first %}
+            <div class="image-zoom-controls" role="group" aria-label="Product image zoom controls">
+              <button
+                type="button"
+                id="imageZoomOut"
+                aria-label="Zoom out"
+                title="Zoom out"
+                disabled
+                onclick="changeProductImageZoom(-1)"
+              >−</button>
+              <span class="image-zoom-level" id="imageZoomLevel" aria-live="polite">100%</span>
+              <button
+                type="button"
+                id="imageZoomIn"
+                aria-label="Zoom in"
+                title="Zoom in"
+                onclick="changeProductImageZoom(1)"
+              >+</button>
+              <button
+                type="button"
+                id="imageZoomReset"
+                aria-label="Reset image zoom"
+                title="Reset zoom"
+                disabled
+                onclick="resetProductImageZoom()"
+              >↺</button>
+            </div>
             {% endif %}
           </div>
 
@@ -984,6 +1053,7 @@
                   data-variant-size="{{ variant.size }}"
                   data-variant-price="{{ variant.price }}"
                   data-variant-stock="{{ variant.stock_quantity }}"
+                  data-stock="{{ variant.stock_quantity }}"
                   data-img-src="{{ vimg.image_url.url }}"
                   onclick="selectVariantByThumb(this)"
                   title="{{ variant.color }} - {{ variant.size }}"
@@ -1014,9 +1084,22 @@
 
             <!-- Stock status from DB -->
             <div class="showcase-stock-row">
-              <span class="stock-status-pill in-stock" id="potStockTarget">
+              <span
+                class="stock-status-pill {% if product.variants.first.stock_quantity > 0 or not product.variants.first and product.stock_quantity > 0 %}in-stock{% else %}out-of-stock{% endif %}"
+                id="potStockTarget"
+                data-stock-product-id="{{ product.id }}"
                 {% if product.variants.first %}
+                data-stock-variant-id="{{ product.variants.first.id }}"
+                data-stock="{{ product.variants.first.stock_quantity }}"
+                {% else %}
+                data-stock="{{ product.stock_quantity }}"
+                {% endif %}
+                data-stock-status
+              >
+                {% if product.variants.first and product.variants.first.stock_quantity > 0 %}
                   ● In Stock ({{ product.variants.first.stock_quantity }} available)
+                {% elif product.variants.first %}
+                  ● Out of Stock
                 {% elif product.stock_quantity > 0 %}
                   ● In Stock ({{ product.stock_quantity }} available)
                 {% else %}
@@ -1045,6 +1128,7 @@
                     data-color="{{ variant.color }}"
                     data-price="{{ variant.price }}"
                     data-stock="{{ variant.stock_quantity }}"
+                    data-variant-stock="{{ variant.stock_quantity }}"
                     {% if variant.images.first %}data-img-src="{{ variant.images.first.image_url.url }}"{% endif %}
                     onclick="onPotVariantBtnClick(this)"
                   >
@@ -1068,6 +1152,7 @@
                     data-size="{{ variant.size }}"
                     data-price="{{ variant.price }}"
                     data-stock="{{ variant.stock_quantity }}"
+                    data-variant-stock="{{ variant.stock_quantity }}"
                     {% if variant.images.first %}data-img-src="{{ variant.images.first.image_url.url }}"{% endif %}
                     onclick="onPotVariantBtnClick(this)"
                     title="{{ variant.color }} ({{ variant.size }})"
@@ -1115,7 +1200,7 @@
               {% if sale_price and sale_price < product.regular_price %}
                 <span class="price-main-val">₹{{ sale_price }}</span>
                 <span class="price-struck-val">₹{{ product.regular_price }}</span>
-                {% if product.product_offer and product.product_offer > 0 %}
+                {% if product.has_active_offer %}
                   <span class="badge-discount-tag">{{ product.product_offer|floatformat:0 }}% OFF</span>
                 {% endif %}
               {% else %}
@@ -1126,9 +1211,19 @@
             <!-- Stock status from DB -->
             <div class="showcase-stock-row">
               {% if product.stock_quantity > 0 %}
-                <span class="stock-status-pill in-stock">● In Stock ({{ product.stock_quantity }} available)</span>
+                <span
+                  class="stock-status-pill in-stock"
+                  data-stock-product-id="{{ product.id }}"
+                  data-stock="{{ product.stock_quantity }}"
+                  data-stock-status
+                >● In Stock ({{ product.stock_quantity }} available)</span>
               {% else %}
-                <span class="stock-status-pill out-of-stock">● Out of Stock</span>
+                <span
+                  class="stock-status-pill out-of-stock"
+                  data-stock-product-id="{{ product.id }}"
+                  data-stock="{{ product.stock_quantity }}"
+                  data-stock-status
+                >● Out of Stock</span>
               {% endif %}
             </div>
 
@@ -1333,6 +1428,7 @@
     <script>
       (function () {
         const addToCartUrl = "{% url 'cart:add_to_cart' %}";
+        const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
         const csrfInput = document.querySelector('#cartCsrfForm [name="csrfmiddlewaretoken"]');
         const toast = document.getElementById('productCartToast');
         let toastTimeout;
@@ -1349,6 +1445,11 @@
 
         document.querySelectorAll('.js-add-product-to-cart').forEach(function (button) {
           button.addEventListener('click', function () {
+            if (!isAuthenticated) {
+              window.location.href = "{% url 'login_page' %}";
+              return;
+            }
+
             const originalContent = button.innerHTML;
             const productId = Number(button.dataset.productId);
             const quantityInput = document.getElementById('potQtyInp');
@@ -1390,10 +1491,21 @@
               })
               .then(function (data) {
                 showCartMessage(data.message || 'Added to cart.', false);
+                if (isAuthenticated && window.VERDEProductStock) {
+                  window.VERDEProductStock.update(
+                    productId,
+                    activeVariant ? activeVariant.dataset.variantId : null,
+                    -payload.quantity
+                  );
+                }
                 window.dispatchEvent(new Event('verde:cart-updated'));
               })
               .catch(function (error) {
-                showCartMessage(error.message || 'Unable to add this product to your cart.', true);
+                var errorMessage = error.message || 'Unable to add this product to your cart.';
+                if (errorMessage.trim().replace(/\.+$/, '') === 'Requested quantity exceeds the maximum allowed quantity') {
+                  errorMessage = 'Maximum purchase limit reached.';
+                }
+                showCartMessage(errorMessage, true);
               })
               .finally(function () {
                 button.innerHTML = originalContent;
@@ -1404,18 +1516,54 @@
         });
       })();
 
+      let productImageZoom = 1;
+      const productImageZoomStep = 0.25;
+      const productImageZoomMax = 3;
+
+      function updateProductImageZoom() {
+        const img = document.getElementById('mainShowcaseImg');
+        if (img) img.style.transform = `scale(${productImageZoom})`;
+
+        const zoomOutButton = document.getElementById('imageZoomOut');
+        const zoomInButton = document.getElementById('imageZoomIn');
+        const resetButton = document.getElementById('imageZoomReset');
+        const zoomLevel = document.getElementById('imageZoomLevel');
+        if (zoomOutButton) zoomOutButton.disabled = productImageZoom <= 1;
+        if (zoomInButton) zoomInButton.disabled = productImageZoom >= productImageZoomMax;
+        if (resetButton) resetButton.disabled = productImageZoom === 1;
+        if (zoomLevel) zoomLevel.textContent = `${Math.round(productImageZoom * 100)}%`;
+      }
+
+      function changeProductImageZoom(direction) {
+        productImageZoom = Math.max(
+          1,
+          Math.min(productImageZoomMax, productImageZoom + direction * productImageZoomStep),
+        );
+        updateProductImageZoom();
+      }
+
+      function resetProductImageZoom() {
+        productImageZoom = 1;
+        updateProductImageZoom();
+      }
+
+      function setShowcaseImageSource(img, src) {
+        img.src = src;
+        resetProductImageZoom();
+      }
+
       function setMainImage(src, btn) {
         const img = document.getElementById('mainShowcaseImg');
         if (img) {
-          img.src = src;
+          setShowcaseImageSource(img, src);
         } else {
           const container = document.getElementById('showcaseMediaContainer');
           const emptyBox = document.getElementById('emptyMediaBox');
           if (emptyBox) emptyBox.remove();
           const newImg = document.createElement('img');
           newImg.id = 'mainShowcaseImg';
-          newImg.src = src;
           container.appendChild(newImg);
+          setShowcaseImageSource(newImg, src);
         }
         document.querySelectorAll('.thumb-small-btn').forEach(b => b.classList.remove('active'));
         if (btn) btn.classList.add('active');
@@ -1442,7 +1590,11 @@
 
         // Update stock
         const stockEl = document.getElementById('potStockTarget');
-        if (stockEl && stock) {
+        if (stockEl) {
+          stockEl.dataset.stockVariantId = variantId;
+          stockEl.dataset.stock = stock;
+        }
+        if (stockEl && stock !== undefined && stock !== null) {
           const stockNum = parseInt(stock, 10);
           if (stockNum > 0) {
             stockEl.textContent = `● In Stock (${stockNum} available)`;
@@ -1494,7 +1646,11 @@
 
         // Update Stock
         const stockEl = document.getElementById('potStockTarget');
-        if (stockEl && stock) {
+        if (stockEl) {
+          stockEl.dataset.stockVariantId = variantId;
+          stockEl.dataset.stock = stock;
+        }
+        if (stockEl && stock !== undefined && stock !== null) {
           const stockNum = parseInt(stock, 10);
           if (stockNum > 0) {
             stockEl.textContent = `● In Stock (${stockNum} available)`;
@@ -1514,7 +1670,7 @@
         // Update image if variant has its own image
         if (imgSrc) {
           const img = document.getElementById('mainShowcaseImg');
-          if (img) img.src = imgSrc;
+          if (img) setShowcaseImageSource(img, imgSrc);
           // Also highlight matching variant thumbnail
           document.querySelectorAll('.variant-thumb-btn').forEach(tb => {
             if (tb.dataset.variantId === variantId) {
@@ -1552,6 +1708,21 @@
         inp.value = current;
       }
       document.addEventListener('DOMContentLoaded', function () {
+        const initialPotVariant = document.querySelector(
+          '#potSizesList .pot-size-button.active, #potColorsList .pot-color-item.active'
+        );
+        const potStockEl = document.getElementById('potStockTarget');
+        if (initialPotVariant && potStockEl) {
+          const stockNum = parseInt(initialPotVariant.dataset.stock, 10);
+          if (stockNum > 0) {
+            potStockEl.textContent = `● In Stock (${stockNum} available)`;
+            potStockEl.className = 'stock-status-pill in-stock';
+          } else {
+            potStockEl.textContent = '● Out of Stock';
+            potStockEl.className = 'stock-status-pill out-of-stock';
+          }
+        }
+
         const detailWishlistBtn = document.querySelector('.js-detail-wishlist-btn');
         if (detailWishlistBtn) {
           detailWishlistBtn.addEventListener('click', function () {
@@ -1570,6 +1741,7 @@
         }
       });
     </script>
+    <script src="{% static 'js/product-stock.js' %}" defer></script>
     <script src="{% static 'js/cart-badge.js' %}" defer></script>
     <script src="{% static 'js/wishlist.js' %}" defer></script>
   </body>

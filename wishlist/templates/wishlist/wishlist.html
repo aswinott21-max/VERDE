@@ -540,26 +540,6 @@
         <div class="wishlist-meta-item">
           <span><strong id="wishlistTotalItems">{{ wishlist_items|length }}</strong> Items</span>
         </div>
-        <span class="wishlist-meta-sep">|</span>
-        <div class="wishlist-meta-item">
-          <label for="wishlistSort">Sort By:</label>
-          <select id="wishlistSort" class="wishlist-sort-select">
-            <option value="default">Date Added</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="name">Name: A to Z</option>
-          </select>
-        </div>
-        <span class="wishlist-meta-sep">|</span>
-        <div class="wishlist-meta-item">
-          <button type="button" class="btn-clear-wishlist" id="clearWishlistBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-            Clear
-          </button>
-        </div>
       </div>
 
       <!-- Wishlist Grid -->
@@ -618,16 +598,6 @@
           <div class="wishlist-card-content">
             <div class="wishlist-category-row">
               <span class="wishlist-cat-name">{{ item.product.category.name }}</span>
-              <span class="wishlist-rating-badge">
-                <span class="star-icon">★</span>
-                <span>
-                  {% if item.product.reviews.count > 0 %}
-                    4.9
-                  {% else %}
-                    5.0
-                  {% endif %}
-                </span>
-              </span>
             </div>
 
             <h3 class="wishlist-product-name">
@@ -644,11 +614,18 @@
 
             <div class="wishlist-price-stock-row">
               <div class="wishlist-price-wrap">
-                <span class="wishlist-price-current">
-                  ₹{% if item.product_variant %}{{ item.product_variant.price }}{% else %}{{ item.product.regular_price }}{% endif %}
-                </span>
-                {% if item.product.product_offer and item.product.product_offer > 0 %}
-                <span class="wishlist-price-strike">₹{{ item.product.regular_price }}</span>
+                {% if item.product_variant %}
+                  {% if item.sale_price < item.product_variant.price %}
+                    <span class="wishlist-price-current">₹{{ item.sale_price }}</span>
+                    <span class="wishlist-price-strike">₹{{ item.product_variant.price }}</span>
+                  {% else %}
+                    <span class="wishlist-price-current">₹{{ item.product_variant.price }}</span>
+                  {% endif %}
+                {% elif item.sale_price < item.product.regular_price %}
+                  <span class="wishlist-price-current">₹{{ item.sale_price }}</span>
+                  <span class="wishlist-price-strike">₹{{ item.product.regular_price }}</span>
+                {% else %}
+                  <span class="wishlist-price-current">₹{{ item.product.regular_price }}</span>
                 {% endif %}
               </div>
 
@@ -806,9 +783,8 @@
         const metaRow = document.getElementById('wishlistMetaRow');
         const emptyState = document.getElementById('wishlistEmptyState');
         const countDisplay = document.getElementById('wishlistTotalItems');
-        const clearBtn = document.getElementById('clearWishlistBtn');
-        const sortSelect = document.getElementById('wishlistSort');
         const addToCartUrl = "{% url 'cart:add_to_cart' %}";
+        const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
         const csrfToken = document.querySelector('#wishlistCsrfForm [name="csrfmiddlewaretoken"]')?.value || '';
 
         function updateStateAfterRemoval() {
@@ -891,6 +867,9 @@
                 })
                 .then(function (data) {
                   window.VERDEWishlist.showToast('Added to cart.');
+                  if (isAuthenticated && window.VERDEProductStock) {
+                    window.VERDEProductStock.update(productId, variantId, -1);
+                  }
                   window.dispatchEvent(new Event('verde:cart-updated'));
                   const card = cartBtn.closest('.wishlist-card');
                   const remainingCount = Math.max(
@@ -909,76 +888,17 @@
                   removeWishlistCard(card);
                 })
                 .catch(function (error) {
-                  window.VERDEWishlist.showToast(error.message || 'Failed to add to cart.', true);
+                  const errorMessage = error.message || 'Failed to add to cart.';
+                  window.VERDEWishlist.showToast(
+                    errorMessage.trim().replace(/\.+$/, '') === 'Requested quantity exceeds the maximum allowed quantity'
+                      ? 'Maximum purchase limit reached.'
+                      : errorMessage,
+                    true
+                  );
                   cartBtn.textContent = originalText;
                   cartBtn.disabled = false;
                 });
             }
-          });
-        }
-
-        // Clear All Wishlist Items
-        if (clearBtn) {
-          clearBtn.addEventListener('click', function () {
-            const items = Array.from(document.querySelectorAll('.js-wishlist-remove-btn'));
-            if (items.length === 0) return;
-
-            if (!confirm('Are you sure you want to clear your wishlist?')) return;
-
-            clearBtn.disabled = true;
-            clearBtn.textContent = 'Clearing…';
-
-            // Sequentially or parallel remove
-            Promise.all(items.map(function (btn) {
-              return fetch('/wishlist/remove/', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': csrfToken,
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                  product_id: parseInt(btn.dataset.productId, 10),
-                  variant_id: btn.dataset.variantId ? parseInt(btn.dataset.variantId, 10) : null,
-                }),
-              });
-            }))
-              .then(function () {
-                document.querySelectorAll('.wishlist-card').forEach(c => c.remove());
-                window.VERDEWishlist.updateBadges(0);
-                window.VERDEWishlist.showToast('Wishlist cleared.');
-                updateStateAfterRemoval();
-              })
-              .catch(function () {
-                window.VERDEWishlist.showToast('Unable to clear all items.', true);
-              })
-              .finally(function () {
-                clearBtn.disabled = false;
-                clearBtn.textContent = 'Clear';
-              });
-          });
-        }
-
-        // Client-side Sort
-        if (sortSelect && grid) {
-          sortSelect.addEventListener('change', function () {
-            const cards = Array.from(grid.querySelectorAll('.wishlist-card'));
-            const val = sortSelect.value;
-
-            cards.sort(function (a, b) {
-              if (val === 'price-low') {
-                return parseFloat(a.dataset.price || 0) - parseFloat(b.dataset.price || 0);
-              } else if (val === 'price-high') {
-                return parseFloat(b.dataset.price || 0) - parseFloat(a.dataset.price || 0);
-              } else if (val === 'name') {
-                return (a.dataset.name || '').localeCompare(b.dataset.name || '');
-              }
-              return 0;
-            });
-
-            cards.forEach(function (card) {
-              grid.appendChild(card);
-            });
           });
         }
 
@@ -1006,5 +926,6 @@
         }
       })();
     </script>
+    <script src="{% static 'js/product-stock.js' %}" defer></script>
   </body>
 </html>

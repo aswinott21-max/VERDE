@@ -14,9 +14,13 @@ def calculate_discounted_price(regular_price, discount_value):
     return (regular_price - discount_amount).quantize(Decimal("0.01"))
 
 
-def get_product_sale_price(product):
+def get_product_sale_price(product,base_price=None):
 
     current_time = timezone.now()
+
+    #Use the variant price when provided; otherwise use the product price.
+    if base_price is None: 
+        base_price = product.regular_price
 
     # Check whether the product has an active product-level offer.
     if (
@@ -25,7 +29,7 @@ def get_product_sale_price(product):
         and (product.offer_ends_at is None or current_time <= product.offer_ends_at)):
 
         # Calculate the sale price using the product-level discount.
-        return calculate_discounted_price(product.regular_price,product.product_offer)
+        return calculate_discounted_price(base_price,product.product_offer)
 
     #Get the product's category.
     category = product.category
@@ -43,7 +47,7 @@ def get_product_sale_price(product):
         )
     ):
         #calculate the sale price using the category-level discount.
-        return calculate_discounted_price(product.regular_price,category.discount_value)
+        return calculate_discounted_price(base_price,category.discount_value)
 
     # Return the regular price when no active offer exists.
-    return product.regular_price
+    return base_price

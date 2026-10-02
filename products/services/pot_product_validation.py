@@ -1,14 +1,33 @@
+import re
 from decimal import Decimal, InvalidOperation
 
 def validate_pot_product_data(name, description, category_id, variants):
 
-    if not all([name and name.strip(), description and description.strip(), category_id]):
-        return "Product name, description and category are required."
+    name = (name or "").strip()
+    description = (description or "").strip()
+
+    if not name:
+        return "Product name is required"
+
+    if not re.search(r"[A-Za-z]", name):
+        return "Product name must contain letters"
+
+    if not re.fullmatch(r"[A-Za-z0-9 &'\-]+", name):
+        return "Product name contains invalid charecters."
+
+    if not description:
+        return "Product description is required"
+
+    if not re.search(r"[A-Za-z]", description):
+        return "Product description must contain letters."
+
+    if not category_id:
+        return "Product category required"
 
     if not variants:
-        return "At least one product variant is required."
+        return "At least one variant is required"
 
-    seen_combinations = set()
+    seen_combination = set()
 
     for variant in variants:
         size = variant.get("size", "").strip()
@@ -16,37 +35,46 @@ def validate_pot_product_data(name, description, category_id, variants):
         price = variant.get("price")
         stock = variant.get("stock")
         low_stock_threshold = variant.get("low_stock_threshold")
+        max_purchase_quantity = variant.get("max_purchase_quantity")
 
-        if not all([size,color,price not in(None, ""),stock not in (None,""), low_stock_threshold not in (None,"")]):
-            return "Size, color, price, stock and low-stock threshold are required"
-
-        try:
-            if float(price)<=0:
-                return "Variant price must be greater than 0."
-        except (TypeError, ValueError):
-            return "Variant price must be a valid number."
+        if not all([size,color,price not in (None, ""),stock not in (None, ""),low_stock_threshold not in (None,""),max_purchase_quantity not in (None,"")]):
+            return "Size, color, price, stock and low-stock threshold are required."
 
         try:
-            if int(stock)<0:
+            if float(price) <= 0:
+                return "Variant price must be greater than 0"
+        except(TypeError,ValueError):
+            return "Variant price must be a valid number"
+
+        try:
+            if int(stock) < 0:
                 return "Variant stock cannot be negative"
-
-        except (TypeError,ValueError):
+        except(TypeError,ValueError):
             return "Variant stock must be a valid number"
 
         try:
             if int(low_stock_threshold) < 0:
-                return "Low-stock threshold cannot be negative." 
-        except (TypeError, ValueError):
-            return "Low-stock threshold must be a valid number."
+                return "Low stock threshold cannot be negative"
+        except(TypeError,ValueError):
+            return "Low stock threshold must be a valid number"
 
-        #prevent duplicate size and color combinations within the same product.
-        combination = (size.lower(), color.lower())
+        try :
+            if int(max_purchase_quantity) < 1:
+                return "Maximum purchase quantity must be at least 1"
+        except(TypeError, ValueError):
+            return "maximum purchase quantity must be a valid whole number"
 
-        if combination in seen_combinations:
+        # Prevent duplicate size and color combinations.
+        combination =(size.lower(), color.lower())
+
+        if combination in seen_combination:
             return f"Duplicate variant found: {size}/{color}."
-        
-        seen_combinations.add(combination)
+
+        seen_combination.add(combination)
+
     return None
+ 
+
 
 def validate_pot_images(product_images, variant_images):
     #validate that at least 3 common product images are provided.

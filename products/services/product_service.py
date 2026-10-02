@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db.models import Avg, Count
+from django.utils import timezone
 
 from products.models import Product, Review
 from products.services.product_price_service import get_product_sale_price
@@ -48,6 +49,17 @@ def get_active_products(search_query=None,category_id=None,min_price=None,max_pr
 
     page_object = paginator.get_page(page)
 
+    # Get the current time once for checking active offers.
+    current_time = timezone.now()
+
+    #calculate the current sale price and offer status for each product.
+    for product in page_object:
+        product.sale_price = get_product_sale_price(product)
+
+        #check product currently has active product offer.
+        product.has_active_offer = (product.product_offer > 0 and (product.offer_start_at is None or current_time >= product.offer_start_at) and (product.offer_ends_at is None or current_time <= product.offer_ends_at) )
+
+
     return {
         "products": page_object.object_list,
         "page": page_object.number,
@@ -68,6 +80,12 @@ def get_product_details(product_id):
 
     if product:
         product.sale_price = get_product_sale_price(product)
+
+        #Check the product offer is active.
+        current_time = timezone.now()
+
+        product.has_active_offer = (product.product_offer >0 and (product.offer_start_at is None or current_time>= product.offer_start_at) and (product.offer_ends_at is None or current_time <= product.offer_ends_at))
+        
 
     return product
 
@@ -119,18 +137,8 @@ def get_product_modal_data(product_id):
 
 def get_related_products(product_id, limit=4):
 
-    #Returns active products from the same category,excluding the current product.
-
-    product = (
-        Product.objects
-        .filter(
-            id=product_id,
-            is_active=True,
-            category__is_active=True,
-        )
-        .select_related("category")
-        .first()
-    )
+    #Returns active products from the same category,excluding the current product
+    product = (Product.objects.filter(id=product_id,is_active=True,category__is_active=True,).select_related("category").first())
 
     if product is None:
         return Product.objects.none()

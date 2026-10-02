@@ -426,6 +426,15 @@
       .item-name-heading:hover {
         color: #102518;
       }
+      .item-stock-status {
+        display: block;
+        margin: 0 0 4px;
+        color: #2e6930;
+        font-size: 11px;
+      }
+      .item-stock-status.out-of-stock {
+        color: #a3271c;
+      }
       .item-price-action-row {
         display: flex;
         align-items: center;
@@ -451,8 +460,9 @@
         font-weight: 400;
       }
       .btn-quick-plus {
-        width: 32px;
+        width: auto;
         height: 32px;
+        padding: 0 10px;
         border-radius: 5px;
         background: #f0eee8;
         border: none;
@@ -460,8 +470,9 @@
         align-items: center;
         justify-content: center;
         color: #333333;
-        font-size: 18px;
-        font-weight: 400;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
         cursor: pointer;
         transition: background-color 0.15s ease;
       }
@@ -970,8 +981,10 @@
               {% for product in products %}
               <article class="item-product-card">
                 <div class="item-media-box">
-                  {% if product.product_offer and product.product_offer > 0 %}
+                  {% if product.has_active_offer %}
                   <span class="item-badge-pill badge-discount-red">{{ product.product_offer|floatformat:0 }}% OFF</span>
+                  {% elif product.sale_price < product.regular_price and product.category.discount_value > 0 %}
+                  <span class="item-badge-pill badge-discount-red">{{ product.category.discount_value|floatformat:0 }}% OFF</span>
                   {% elif product.is_featured %}
                   <span class="item-badge-pill badge-neutral">FEATURED</span>
                   {% endif %}
@@ -1010,9 +1023,22 @@
                 <a href="{% url 'product_detail' product.id %}" class="item-title-link">
                   <h3 class="item-name-heading">{{ product.name }}</h3>
                 </a>
+                {% if not product.variants.all %}
+                <span
+                  class="item-stock-status {% if product.stock_quantity <= 0 %}out-of-stock{% endif %}"
+                  data-stock-product-id="{{ product.id }}"
+                  data-stock="{{ product.stock_quantity }}"
+                  data-stock-status
+                >{% if product.stock_quantity > 0 %}● In Stock ({{ product.stock_quantity }} available){% else %}● Out of Stock{% endif %}</span>
+                {% endif %}
                 <div class="item-price-action-row" style="margin-top: 6px;">
                   <div>
-                    <span class="price-regular-val">₹{{ product.regular_price }}</span>
+                    {% if product.sale_price < product.regular_price %}
+                      <span class="price-discounted-val">₹{{ product.sale_price }}</span>
+                      <span class="price-struck-val">₹{{ product.regular_price }}</span>
+                    {% else %}
+                      <span class="price-regular-val">₹{{ product.regular_price }}</span>
+                    {% endif %}
                   </div>
                   <button
                     type="button"
@@ -1020,7 +1046,7 @@
                     data-product-id="{{ product.id }}"
                     aria-label="Add {{ product.name }} to cart"
                     title="Add to cart"
-                  >+</button>
+                  >Add to cart</button>
                 </div>
               </article>
               {% empty %}
@@ -1225,6 +1251,7 @@
         var toastContainer = document.getElementById('toastContainer');
         var csrfInput = document.querySelector('#cartCsrfForm [name="csrfmiddlewaretoken"]');
         var addToCartUrl = "{% url 'cart:add_to_cart' %}";
+        var isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
 
         function showCartMessage(message, isError) {
           if (!toastContainer) return;
@@ -1266,6 +1293,11 @@
             var button = event.target.closest('.btn-quick-plus');
             if (!button || !productGrid.contains(button)) return;
 
+            if (!isAuthenticated) {
+              window.location.href = "{% url 'login_page' %}";
+              return;
+            }
+
             button.disabled = true;
             button.textContent = '…';
 
@@ -1291,21 +1323,36 @@
               })
               .then(function () {
                 showCartMessage('Added to cart.');
+                if (isAuthenticated && window.VERDEProductStock) {
+                  window.VERDEProductStock.update(button.dataset.productId, null, -1);
+                }
                 window.dispatchEvent(new Event('verde:cart-updated'));
                 button.textContent = '✓';
                 window.setTimeout(function () {
-                  button.textContent = '+';
+                  button.textContent = 'Add to cart';
                   button.disabled = false;
                 }, 1200);
               })
               .catch(function (error) {
-                showCartMessage(error.message || 'Unable to add this product to your cart.', true);
-                button.textContent = '+';
+                var errorMessage = error.message || 'Unable to add this product to your cart.';
+                var normalizedErrorMessage = errorMessage.trim().replace(/\.+$/, '');
+                if (
+                  normalizedErrorMessage === 'Requested quantity exceeds the maximum allowed quantity' ||
+                  normalizedErrorMessage === 'Invalid product or variant'
+                ) {
+                  showCartMessage('Maximum purchase limit reached.', true);
+                } else if (normalizedErrorMessage === 'Product is out of stock') {
+                  showCartMessage('Product is out of stock.', true);
+                } else {
+                  showCartMessage(errorMessage, true);
+                }
+                button.textContent = 'Add to cart';
                 button.disabled = false;
               });
           });
         }
       })();
     </script>
+    <script src="{% static 'js/product-stock.js' %}" defer></script>
   </body>
 </html>

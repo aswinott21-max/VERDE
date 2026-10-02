@@ -13,6 +13,7 @@ def get_product_edit_data(product):
         "regular_price" : str(product.regular_price),
         "stock_quantity":product.stock_quantity,
         "low_stock_threshold" : product.low_stock_threshold, 
+        "max_purchase_quantity": product.max_purchase_quantity,
         "is_featured" : product.is_featured,
         "product_type" : product_type,
         "images" : [],
@@ -49,6 +50,7 @@ def get_product_edit_data(product):
                 "price" :str(variant.price),
                 "stock_quantity" : variant.stock_quantity,
                 "low_stock_threshold" : variant.low_stock_threshold,
+                "max_purchase_quantity": variant.max_purchase_quantity,
                 "images" : [
                     {
                         "id" : image.id,

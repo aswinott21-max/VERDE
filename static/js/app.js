@@ -197,14 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // --- Hero Button Click ---
-  const heroBtn = document.querySelector('.hero-btn');
-  heroBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    document.querySelector('.collections-section')?.scrollIntoView({ behavior: 'smooth' });
-    showToast('Viewing curated botanical collections');
-  });
-
   // --- Mobile Navigation Drawer ---
   mobileMenuToggle?.addEventListener('click', () => {
     mobileNavDrawer?.classList.add('open');

@@ -1,5 +1,5 @@
 from decimal import Decimal
-
+from django.db import transaction
 from cart.models import Cart, CartItem
 from products.models import Product, ProductVariant
 from products.services.product_price_service import get_product_sale_price
@@ -46,83 +46,121 @@ def _get_unit_price(product, variant=None):
 
 # Add a product or variant to a logged-in user's cart
 def add_to_cart(user, product_id, product_variant_id=None, quantity=1):
-    product, variant = _get_product_and_variant(
-        product_id,
-        product_variant_id,
-    )
+    with transaction.atomic():
 
-    # Stop if the product or variant is invalid
-    if not product:
-        return None
+        product, variant = _get_product_and_variant(product_id,product_variant_id,)
+        #Stop if the product or variant is invalid
+        if not product:
+            return None, "Invalid product or variant."
 
-    # Convert quantity to an integer
-    quantity = int(quantity)
+        # Convert quantity to an integer
+        quantity = int(quantity)
 
-    # Quantity must be greater than zero
-    if quantity <= 0:
-        return None
+        # Quantity must be greater than zero
+        if quantity <= 0:
+            return None, "Invalid quantity"
 
-    # Get the available stock for the product or variant
-    if variant:
-        available_stock = variant.stock_quantity
-    else:
-        available_stock = product.stock_quantity
+        # Get the available stock and maximum purchase limit
+        if variant:
+            available_stock = variant.stock_quantity
+            max_purchase_quantity = variant.max_purchase_quantity
+        else:
+            available_stock = product.stock_quantity
+            max_purchase_quantity = product.max_purchase_quantity
 
+        # Product has no stock
+        if available_stock <= 0:
+            return None, "Product is out of stock"
 
-    #Get or create the user's active cart
-    cart = get_or_create_user_cart(user)
+        # Get or create the user's active cart
+        cart = get_or_create_user_cart(user)
 
-    # Get the current unit price
-    unit_price = _get_unit_price(product, variant)
+        # Check whether the same product/variant is already in the cart
+        cart_item = (
+            CartItem.objects.filter(cart=cart,product=product, product_variant=variant,).first())
 
-    # Check whether the same product/variant is already in the cart
-    cart_item = (CartItem.objects.filter(cart=cart,product=product,product_variant=variant,).first())
+        #Get the current quantity already reserved in the cart
+        current_quantity = cart_item.quantity if cart_item else 0
 
-    # Calculate the quantity that would be in the cart after adding
-    current_quantity = cart_item.quantity if cart_item else 0
-    requested_quantity = current_quantity + quantity
+        #calculate the new total cart quantity
+        requested_quantity = current_quantity + quantity
 
-    # Do not allow the cart quantity to exceed available stock
-    if requested_quantity > available_stock:
-        return None
+        #check the maximum purchase limit
+        if requested_quantity > max_purchase_quantity:
+            return None, "Requested quantity exceeds the maximum allowed quantity"
 
-    # If the item already exists, increase its quantity
-    if cart_item:
-        cart_item.quantity += quantity
-        cart_item.unit_price = unit_price
-        cart_item.save(update_fields=["quantity", "unit_price", "updated_at"])
+        #check whether enough currently available stock exists
+        if quantity > available_stock:
+            return None, "Requested quantity exceeds available stock"
 
-    #create a new cart item
-    else:
-        cart_item = CartItem.objects.create(
-            cart=cart,
-            product=product,
-            product_variant=variant,
-            quantity=quantity,
-            unit_price=unit_price,
-        )
+        #get the current unit price
+        unit_price = _get_unit_price(product, variant)
 
-    # Remove the product/variant from the wishlist,only after the cart addition success
-    remove_from_wishlist(
-        user,
-        product.id,
-        variant.id if variant else None,
-    )
+        #reserve the newly added quantity from inventory
+        if variant:
+            variant.stock_quantity -= quantity
+            variant.save(update_fields=["stock_quantity", "updated_at"])
+        else:
+            product.stock_quantity -= quantity
+            product.save(update_fields=["stock_quantity", "updated_at"])
 
-    return cart_item
+        # If the item already exists, increase its quantity
+        if cart_item:
+            cart_item.quantity += quantity
+            cart_item.unit_price = unit_price
+            cart_item.save(
+                update_fields=[
+                    "quantity",
+                    "unit_price",
+                    "updated_at",
+                ]
+            )
+
+        # Otherwise create a new cart item
+        else:
+            cart_item = CartItem.objects.create(
+                cart=cart,
+                product=product,
+                product_variant=variant,
+                quantity=quantity,
+                unit_price=unit_price,
+            )
+
+        # Remove the product/variant from the wishlist only
+        # after the cart addition succeeds
+        remove_from_wishlist(user,product.id,variant.id if variant else None,)
+        return cart_item, None
 
 
 # Remove a cart item from a logged-in user's cart
 def remove_from_cart(user, cart_item_id):
-    cart_item = (
-        CartItem.objects.filter(id=cart_item_id,cart__user=user,cart__is_active=True,).first())
+    with transaction.atomic():
 
-    
-    if not cart_item:
-        return False
+        #Find the cart item belonging to the user's active cart
+        cart_item =(CartItem.objects.filter(id=cart_item_id,cart__user=user,cart__is_active=True,).first())
+        
+        
+        if not cart_item:
+            return False
 
-    cart_item.delete()
-    return True
+        #Get the quantity that was reserved in the cart
+        reverved_quantity = cart_item.quantity
+
+        #Restore the reserved stock
+        if cart_item.product_variant:
+            variant = cart_item.product_variant
+            variant.stock_quantity += reverved_quantity
+            variant.save(update_fields=["stock_quantity", "updated_at"])
+        else:
+            product = cart_item.product
+            product.stock_quantity += reverved_quantity
+            product.save(update_fields=["stock_quantity", "updated_at"])
+
+        #Remove from cart
+        cart_item.delete()
+
+        return True
+
 
 
 # Get all cart details for a logged-in user
@@ -192,234 +230,73 @@ def get_cart_details(user):
     return {
         "items": items,
         "subtotal": subtotal,
-        "total_items": sum(item["quantity"] for item in items),
-    }
-
-
-# Add a product or variant to a guest user's session cart
-def add_to_guest_cart(request, product_id, product_variant_id=None, quantity=1):
-    product, variant = _get_product_and_variant(product_id,product_variant_id,)
-
-    if not product:
-        return None
-
-    # Convert quantity to an integer
-    quantity = int(quantity)
-
-    # Quantity must be greater than zero
-    if quantity <= 0:
-        return None
-
-  
-    if variant:
-        available_stock = variant.stock_quantity
-    else:
-        available_stock = product.stock_quantity
-
-    # Create a unique key using product and variant IDs
-    key = f"{product.id}:{variant.id if variant else 'none'}"
-
-    
-    # Get the current unit price
-    unit_price = _get_unit_price(product, variant)
-
-    # Get the guest cart from the session
-    cart = request.session.get("guest_cart", {})
-
-    # Create a unique key using product and variant IDs
-    key = f"{product.id}:{variant.id if variant else 'none'}"
-    
-    current_quantity = cart[key]["quantity"] if key in cart else 0
-    request_quantity = current_quantity + quantity
-    
-    
-    if request_quantity > available_stock:
-            return None
-    
-
-    # If the item already exists, increase its quantity
-    if key in cart:
-        cart[key]["quantity"] += quantity
-        cart[key]["unit_price"] = str(unit_price)
-
-    # Otherwise create a new guest cart item
-    else:
-        cart[key] = {
-            "product_id": product.id,
-            "variant_id": variant.id if variant else None,
-            "quantity": quantity,
-            "unit_price": str(unit_price),
-        }
-
-    # Save the updated cart in the session
-    request.session["guest_cart"] = cart
-    request.session.modified = True
-
-    return cart[key]
-
-
-# Get all cart details for a guest user
-def get_guest_cart(request):
-    
-    cart = request.session.get("guest_cart", {})
-
-    items = []
-    subtotal = Decimal("0.00")
-
-    # Process every guest cart item
-    for item in cart.values():
-        product, variant = _get_product_and_variant(
-            item["product_id"],
-            item["variant_id"],
-        )
-
-        if not product:
-            continue
-
-        quantity = int(item["quantity"])
-        unit_price = Decimal(item["unit_price"])
-        item_total = unit_price * quantity
-
-        subtotal += item_total
-
-        items.append({
-            "product": product,
-            "variant": variant,
-            "quantity": quantity,
-            "unit_price": unit_price,
-            "item_total": item_total,
-        })
-
-    return {
-        "items": items,
-        "subtotal": subtotal,
-        "total_items": sum(item["quantity"] for item in items),
-    }
-
-
-# Remove an item from a guest user's session cart
-def remove_from_guest_cart(request, product_id, product_variant_id=None):
-   
-    cart = request.session.get("guest_cart", {})
-
-    # Create the same key used when adding the item
-    key = f"{product_id}:{product_variant_id if product_variant_id else 'none'}"
-
-    # Check whether the item exists
-    if key not in cart:
-        return False
-
-    del cart[key]
-
-    #Save
-    request.session["guest_cart"] = cart
-    request.session.modified = True
-
-    return True
-
-
-# Update the quantity of an item in the guest cart
-def update_guest_cart_quantity(request,product_id,product_variant_id=None,quantity=1,):
-
-    cart = request.session.get("guest_cart", {})
-
-    
-    key = f"{product_id}:{product_variant_id if product_variant_id else 'none'}"
-
-    # Check whether the item exists in the guest cart
-    if key not in cart:
-        return None, "Cart item not found."
-
-    # Convert quantity to an integer
-    try:
-        quantity = int(quantity)
-    except (ValueError, TypeError):
-        return None, "Invalid quantity."
-
-    # Quantity must be at least one
-    if quantity <= 0:
-        return None, "Quantity must be at least 1."
-
-    # Get the current product and variant
-    product, variant = _get_product_and_variant(
-        product_id,
-        product_variant_id,
-    )
-
-    # Product or variant is no longer available
-    if not product:
-        return None, "Invalid product or variant."
-
-    # Check stock based on whether the product has a variant
-    if variant:
-        available_stock = variant.stock_quantity
-    else:
-        available_stock = product.stock_quantity
-
-    # Prevent the requested quantity from exceeding available stock
-    if quantity > available_stock:
-        return None, "Requested quantity exceeds available stock."
-
-    # Update the quantity in the guest cart
-    cart[key]["quantity"] = quantity
-
-    # Save the updated cart back to the session
-    request.session["guest_cart"] = cart
-    request.session.modified = True
-
-    return cart[key], None
-
-
-# Merge the guest cart into the user's database cart after login
-def merge_guest_cart_to_user_cart(request, user):
-    # Get the guest cart from the session
-    guest_cart = request.session.get("guest_cart", {})
-
-    # Nothing to merge
-    if not guest_cart:
-        return
-
-    # Add every guest cart item to the user's database cart
-    for item in guest_cart.values():
-        add_to_cart(user=user,product_id=item["product_id"],product_variant_id=item["variant_id"],quantity=item["quantity"],)
-
-    # Remove the guest cart after merging
-    del request.session["guest_cart"]
-    request.session.modified = True
-    request.session.save()
+        "total_items": sum(item["quantity"] for item in items),}
 
 
 # Update the quantity of an item in a logged-in user's cart
 def update_cart_quantity(user, cart_item_id, quantity):
-    # Find the cart item belonging to the logged-in user
-    cart_item = (CartItem.objects.filter(id=cart_item_id,cart__user=user,cart__is_active=True,).select_related("product","product_variant",).first())
+    with transaction.atomic():
 
-    # Cart item was not found
-    if not cart_item:
-        return None, "Cart item not found."
+        # Find the cart item belonging to the logged-in user
+        cart_item = (CartItem.objects.filter(id=cart_item_id,cart__user=user,cart__is_active=True,)
+            .select_related("product", "product_variant").first())
 
-    # Convert quantity to an integer
-    try:
-        quantity = int(quantity)
-    except (ValueError, TypeError):
-        return None, "Invalid quantity."
+        if not cart_item:
+            return None, "Cart item not found."
 
-    # Quantity must be at least one
-    if quantity <= 0:
-        return None, "Quantity must be at least 1."
+        #convert qty to integer
+        try:
+            quantity = int(quantity)
+        except (ValueError, TypeError):
+            return None, "Invalid quantity."
 
-    # Check stock based on whether the product has a variant
-    if cart_item.product_variant:
-        available_stock = cart_item.product_variant.stock_quantity
-    else:
-        available_stock = cart_item.product.stock_quantity
+        
+        if quantity <= 0:
+            return None, "Quantity must be at least 1."
 
-    # Prevent the requested quantity from exceeding available stock
-    if quantity > available_stock:
-        return None, "Requested quantity exceeds available stock."
+        # Get the current quantity already reserved in the cart
+        current_quantity = cart_item.quantity
 
-    # Update the database cart item quantity
-    cart_item.quantity = quantity
-    cart_item.save(update_fields=["quantity", "updated_at"])
+        # Get stock and maximum purchase quantity
+        if cart_item.product_variant:
+            stock_object = cart_item.product_variant
+            available_stock = stock_object.stock_quantity
+            max_purchase_quantity = stock_object.max_purchase_quantity
+        else:
+            stock_object = cart_item.product
+            available_stock = stock_object.stock_quantity
+            max_purchase_quantity = stock_object.max_purchase_quantity
 
-    return cart_item, None
+        # Customer cannot exceed the admin purchase limit
+        if quantity > max_purchase_quantity:
+            return None, "Requested quantity exceeds allowed quantity."
+
+        #calculate how much the reserved quantity is changing
+        quantity_difference = quantity - current_quantity
+
+        # Customer is increasing the cart quantity
+        if quantity_difference > 0:
+
+            if quantity_difference > available_stock:
+                return None, "Requested quantity exceeds allowed quantity."
+
+            #reserve the additional quantity from stock
+            stock_object.stock_quantity -= quantity_difference
+
+        #Customer is decreasing the cart quantity
+        elif quantity_difference < 0:
+
+            # Restore the quantity released from the cart
+            stock_object.stock_quantity += abs(quantity_difference)
+
+        #Save the updated stock
+        if quantity_difference != 0:
+            stock_object.save(
+                update_fields=["stock_quantity", "updated_at"]
+            )
+
+        #Update
+        cart_item.quantity = quantity
+        cart_item.save(update_fields=["quantity", "updated_at"])
+
+        return cart_item, None

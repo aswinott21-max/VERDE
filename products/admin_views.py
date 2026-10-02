@@ -6,12 +6,16 @@ from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+from decimal import Decimal, InvalidOperation
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .models import Product, ProductImage, ProductVariant
 from catalog.models import Category
 
 from adminpanel.decorators import admin_required
-from .services.product_validation import validate_product_data
+
 from .services.product_image_validation import (validate_product_images)
 from .services.plant_product_validation import (validate_plant_product_data)
 from .services.pot_product_validation import (validate_pot_product_data,validate_pot_images)
@@ -26,24 +30,39 @@ from .services.product_price_service import get_product_sale_price
 def product_dashboard(request):
 
     search = request.GET.get("search", "").strip()#get search text from url
-    # Fetch products newest first
+    #products newest first
     products = Product.objects.select_related("category").order_by("-created_at") 
 
     if search:
         products = products.filter(name__icontains=search)
 
-    # Show 5 products per page    
+    #5 products per page    
     paginator = Paginator(products,5)
 
-    # Get requested page number
     page_number = request.GET.get("page")
 
-    # Create the current page object
     page_obj = paginator.get_page(page_number)
 
-    # Calculate sale price for products on the current page
+
+   
+    current_time = timezone.now()
+
+    # Calculate sale price and check offer status for products on the current page.
     for product in page_obj:
-        product.sale_price = get_product_sale_price(product) 
+        product.sale_price = get_product_sale_price(product)
+
+        # Check whether the product currently has an active offer.
+        product.has_active_offer = (
+            product.product_offer > 0
+            and (
+                product.offer_start_at is None
+                or current_time >= product.offer_start_at
+            )
+            and (
+                product.offer_ends_at is None
+                or current_time <= product.offer_ends_at
+            )
+        )
 
     # Fetch active parent categories for selecting product type
     parent_categories = Category.objects.filter(is_active=True, parent__isnull=True).order_by("id")
@@ -76,8 +95,10 @@ def add_product(request):
     stock_quantity = request.POST.get("stock_quantity")
     low_stock_threshold = request.POST.get("low_stock_threshold")
     is_featured = request.POST.get("is_featured") == "true"
+    max_purchase_quantity = request.POST.get("max_purchase_quantity")
 
-    error = validate_product_data(name, regular_price)
+    # Validate Plant product data.
+    error = validate_plant_product_data(name,description,category_id,regular_price,stock_quantity,low_stock_threshold,max_purchase_quantity)
 
     if error:
         return JsonResponse({
@@ -94,6 +115,7 @@ def add_product(request):
         regular_price=regular_price,
         stock_quantity = stock_quantity,
         low_stock_threshold = low_stock_threshold,
+        max_purchase_quantity = max_purchase_quantity,
         is_featured = is_featured,
         category = category
 
@@ -184,7 +206,8 @@ def add_pot_product(request):
                 size = variant["size"].strip(),
                 price = variant["price"],
                 stock_quantity=variant["stock"],
-                low_stock_threshold=variant["low_stock_threshold"]
+                low_stock_threshold=variant["low_stock_threshold"],
+                max_purchase_quantity = variant["max_purchase_quantity"]
             )
 
             # Save the image belonging to this variant.
@@ -241,11 +264,12 @@ def add_equipment_product(request):
     category_id = request.POST.get("category_id")
     stock_quantity = request.POST.get("stock_quantity")
     low_stock_threshold = request.POST.get("low_stock_threshold")
+    max_purchase_quantity = request.POST.get("max_purchase_quantity")
     is_featured = request.POST.get("is_featured") == "true"
 
     product_images = request.FILES.getlist("product_images")
 
-    error = validate_equipment_product_data(name, description, category_id, regular_price, stock_quantity, low_stock_threshold)
+    error = validate_equipment_product_data(name, description, category_id, regular_price, stock_quantity, low_stock_threshold,max_purchase_quantity)
 
     if error:
         return JsonResponse({
@@ -276,6 +300,7 @@ def add_equipment_product(request):
             regular_price = regular_price,
             stock_quantity = stock_quantity,
             low_stock_threshold = low_stock_threshold,
+            max_purchase_quantity = max_purchase_quantity,
             is_featured = is_featured,
             category = category
         )
@@ -298,6 +323,7 @@ def add_equipment_product(request):
             "regular_price": str(product.regular_price),
             "stock_quantity": product.stock_quantity,
             "low_stock_threshold": product.low_stock_threshold,
+            "max_purchase_quantity": product.max_purchase_quantity,
             "category_id": product.category_id,
             "is_featured": product.is_featured,
             "image_count": len(product_images)
@@ -308,7 +334,6 @@ def add_equipment_product(request):
 
     
 
- 
 
 
 
@@ -432,19 +457,13 @@ def edit_product(request, product_id):
         category_id = request.POST.get("category_id")
         stock_quantity = request.POST.get("stock_quantity")
         low_stock_threshold = request.POST.get("low_stock_threshold")
+        max_purchase_quantity = request.POST.get("max_purchase_quantity")
         is_featured = request.POST.get("is_featured") == "true"
 
         # Get newly added product images
         product_images = request.FILES.getlist("product_images")
 
-        error = validate_plant_product_data(
-            name,
-            description,
-            category_id,
-            regular_price,
-            stock_quantity,
-            low_stock_threshold
-        )
+        error = validate_plant_product_data(name,description,category_id,regular_price,stock_quantity,low_stock_threshold, max_purchase_quantity)
 
         if error:
             return JsonResponse({
@@ -490,6 +509,7 @@ def edit_product(request, product_id):
         product.regular_price = regular_price
         product.stock_quantity = stock_quantity
         product.low_stock_threshold = low_stock_threshold
+        product.max_purchase_quantity = max_purchase_quantity
         product.is_featured = is_featured
         product.category = category
 
@@ -673,10 +693,8 @@ def edit_product(request, product_id):
                     variant.size = variant_data["size"].strip()
                     variant.price = variant_data["price"]
                     variant.stock_quantity = variant_data["stock"]
-                    variant.low_stock_threshold = (
-                        variant_data["low_stock_threshold"]
-                    )
-
+                    variant.low_stock_threshold = (variant_data["low_stock_threshold"])
+                    variant.max_purchase_quantity = (variant_data["max_purchase_quantity"])
                     variant.save()
 
                     # Remember that this existing variant is still being used.
@@ -720,10 +738,8 @@ def edit_product(request, product_id):
                         size=variant_data["size"].strip(),
                         price=variant_data["price"],
                         stock_quantity=variant_data["stock"],
-                        low_stock_threshold=variant_data[
-                            "low_stock_threshold"
-                        ]
-                    )
+                        low_stock_threshold=variant_data["low_stock_threshold"],
+                        max_purchase_quantity=variant_data["max_purchase_quantity"])
 
                     # Remember the newly created variant.
                     submitted_variant_ids.add(variant.id)
@@ -792,7 +808,7 @@ def edit_product(request, product_id):
         }, status=200)
 
 
-    elif product_type == "equipment":
+    elif product_type =="equipment":
 
         # Get updated Equipment data.
         name = request.POST.get("name")
@@ -801,6 +817,7 @@ def edit_product(request, product_id):
         category_id = request.POST.get("category_id")
         stock_quantity = request.POST.get("stock_quantity")
         low_stock_threshold = request.POST.get("low_stock_threshold")
+        max_purchase_quantity = request.POST.get("max_purchase_quantity")
         is_featured = request.POST.get("is_featured") == "true"
 
         #Get newly added product images.
@@ -816,7 +833,7 @@ def edit_product(request, product_id):
             existing_image_ids = []
 
         # Validate the basic Equipment data.
-        error = validate_equipment_product_data(name, description, category_id, regular_price, stock_quantity, low_stock_threshold)
+        error = validate_equipment_product_data(name, description, category_id, regular_price, stock_quantity, low_stock_threshold,max_purchase_quantity)
 
         if error:
             return JsonResponse({
@@ -874,6 +891,7 @@ def edit_product(request, product_id):
             product.regular_price = regular_price
             product.stock_quantity = stock_quantity
             product.low_stock_threshold = low_stock_threshold
+            product.max_purchase_quantity = max_purchase_quantity
             product.is_featured = is_featured
             product.category = category
 
@@ -990,6 +1008,7 @@ def set_product_offer(request, product_id):
     discount_value = request.POST.get("discount_value")
     offer_start_at = request.POST.get("offer_start_at")
     offer_end_at = request.POST.get("offer_end_at")
+    time_zone_name = request.POST.get("time_zone")
 
     remove_offer = request.POST.get("remove_offer")
 
@@ -1010,21 +1029,119 @@ def set_product_offer(request, product_id):
             }
         )
 
-    # Apply product offer.
-    product.product_offer = discount_value
-    product.offer_start_at = offer_start_at or None
-    product.offer_ends_at = offer_end_at or None
+    # Check that all offer fields are provided.
+    if not discount_value:
+        return JsonResponse({
+            "success": False,
+            "message": "Discount is required.",
+            "data": None
+        }, status=400)
+
+    if not offer_start_at:
+        return  JsonResponse({
+            "success": False,
+            "message": "Offer start date is required.",
+            "data": None
+        }, status=400)
+    
+    if not offer_end_at:
+        return JsonResponse({
+            "success": False,
+            "message": "Offer end date is required.",
+            "data": None
+        }, status=400)
+
+    try:
+        discount_value = Decimal(discount_value)
+    except(InvalidOperation,TypeError):
+        return JsonResponse({
+            "success": False,
+            "message": "Discount must be a valid number.",
+            "data": None
+        }, status=400)  
+
+    if discount_value <= 0 or discount_value > 100:
+        return JsonResponse({
+            "success": False,
+            "message": "Discount must be between 0.01% and 100%.",
+            "data": None
+        }, status=400)
+
+    # Convert the submitted datetime values into Python datetime objects.
+    start_datetime=parse_datetime(offer_start_at)
+    end_datetime=parse_datetime(offer_end_at)
+
+    if start_datetime is None:
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid offer start date.",
+            "data": None
+        },status=400)
+    if end_datetime is None:
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid offer end date.",
+            "data": None
+        }, status=400)
+    
+    try:
+        offer_timezone = ZoneInfo(time_zone_name) if time_zone_name else timezone.get_current_timezone()
+    except ZoneInfoNotFoundError:
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid offer time zone.",
+            "data": None
+        }, status=400)
+
+    # Interpret datetime-local values in the timezone of the admin's browser.
+    if timezone.is_naive(start_datetime):
+        start_datetime = timezone.make_aware(start_datetime, offer_timezone)
+
+    if timezone.is_naive(end_datetime):
+        end_datetime = timezone.make_aware(end_datetime, offer_timezone)
+
+    current_time = timezone.now()
+
+    if start_datetime <  current_time:
+        return JsonResponse({
+            "success" :False,
+            "message" : "Offer start date cannot be in past",
+            "data" : None
+        }, status=400)
+
+    if end_datetime <  current_time:
+        return JsonResponse({
+            "success": False,
+            "message": "Offer end date cannot be in the past.",
+            "data": None
+        }, status=400)
+
+    
+
+    #check offer has valid time line
+    if end_datetime <= start_datetime:
+        return JsonResponse({
+            "success": False,
+            "message": "Offer end date must be after the start date.",
+            "data": None
+        }, status=400)
+    
+    #save validated offer
+    product.product_offer= discount_value
+    product.offer_start_at = start_datetime
+    product.offer_ends_at = end_datetime
     product.save()
 
     return JsonResponse(
         {
-            "success": True,
+          "success": True,
             "message": "Product offer applied successfully.",
             "data": {
                 "product_id": product.id,
-                "discount_value": discount_value,
-                "offer_start_at": offer_start_at,
-                "offer_end_at": offer_end_at
-            }
+                "discount_value": str(discount_value),
+                "offer_start_at": start_datetime.isoformat(),
+                "offer_end_at": end_datetime.isoformat()
+            }  
         }
     )
+  
