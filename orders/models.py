@@ -4,10 +4,8 @@ from users.models import User
 from products.models import Product, ProductVariant
 
 
-# Stores the main order information.
 class Order(models.Model):
-    # Logged-in users are connected to the order.
-    # Guest orders keep this field empty.
+
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -16,8 +14,6 @@ class Order(models.Model):
         related_name="orders",
     )
 
-    # Points to the saved delivery-address snapshot.
-    # This is nullable because the address is created as part of checkout.
     address = models.ForeignKey(
         "OrderAddress",
         on_delete=models.SET_NULL,
@@ -26,8 +22,6 @@ class Order(models.Model):
         related_name="address_orders",
     )
 
-    # Stores the coupon ID used for the order.
-    # Coupon functionality will be connected later.
     coupon_id = models.BigIntegerField(null=True, blank=True)
 
     order_number = models.CharField(max_length=100, unique=True)
@@ -89,9 +83,8 @@ class OrderAddress(models.Model):
         return f"{self.full_name} - {self.city}"
 
 
-# Stores every status change made to an order.
+
 class OrderStatusHistory(models.Model):
-    # Connect the status history entry to its order.
     id = models.AutoField(primary_key=True)
     order = models.ForeignKey(Order,on_delete=models.CASCADE,related_name="status_history",)
     status = models.CharField(max_length=50)

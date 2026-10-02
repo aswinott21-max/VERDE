@@ -9,11 +9,8 @@ from orders.services.order_service import validate_user_cart_stock
 
 @require_POST
 def checkout_api(request):
-
-    # Check the latest stock for the logged-in user's database cart.
     stock_valid, error_message = validate_user_cart_stock(request.user)
 
-    # Stop checkout when the cart is empty or stock is no longer available.
     if not stock_valid:
         return JsonResponse(
             {
@@ -24,15 +21,12 @@ def checkout_api(request):
     try:
         data = json.loads(request.body)
 
-    # Handle invalid JSON.
     except json.JSONDecodeError:
         return JsonResponse(
             {
                 "status": "error",
                 "message": "Invalid JSON payload.",
-            },
-            status=400,
-        )
+            },status=400,)
 
     # These fields will be required to continue checkout.
     required_fields = [
@@ -47,10 +41,8 @@ def checkout_api(request):
         "payment_method",
     ]
 
-    # Check that every required checkout field was supplied.
     for field in required_fields:
 
-        # Stop when a required field is missing or empty.
         if not data.get(field):
             return JsonResponse(
                 {
@@ -60,8 +52,6 @@ def checkout_api(request):
                 status=400,
             )
 
-    # Return the validated checkout information for now.
-    # Order creation will be added in the next step.
     return JsonResponse(
         {
             "status": "success",

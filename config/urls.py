@@ -33,6 +33,7 @@ urlpatterns = [
     path("cart/", include("cart.urls",namespace="cart")),
     path("orders/", include("orders.urls")),
     path("wishlist/", include("wishlist.urls")),
+    path("practice/",include("practice.urls")),
     
 ]
 # Serve uploaded media files during development

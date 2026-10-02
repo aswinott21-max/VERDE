@@ -53,11 +53,9 @@ def product_list(request):
 
 
 def product_detail(request, product_id):
-
-    # Get all data required for the product detail page.
     product_data = get_product_modal_data(product_id)
 
-    # Redirect unavailable products back to the product listing.
+    #redirect unavailable products back to the product listing
     if product_data is None:
         return redirect("product_list")
 

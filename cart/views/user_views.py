@@ -23,7 +23,7 @@ def view_cart_api(request):
 
     serialized_items = []
 
-    # Convert database cart items into API-friendly data
+    #Convert database cart items into API-friendly data
     for item in cart_data["items"]:
         variant = item["variant"]
         primary_image = item["primary_image"]
@@ -54,9 +54,7 @@ def view_cart_api(request):
             "items": serialized_items,
             "subtotal": str(cart_data["subtotal"]),
             "total_items": cart_data["total_items"],
-        },
-        status=200,
-    )
+        },status=200,)
 
 
 # Add a product to the logged-in user's cart
@@ -64,7 +62,6 @@ def view_cart_api(request):
 @require_POST
 def add_to_cart_api(request):
 
-    # Read the JSON request data
     try:
         data = json.loads(request.body)
 
@@ -72,31 +69,26 @@ def add_to_cart_api(request):
         variant_id = data.get("variant_id")
         quantity = int(data.get("quantity", 1))
 
-    # Handle invalid JSON or invalid quantity data
+    #handle invalid JSON or invalid quantity data
     except (json.JSONDecodeError, ValueError, TypeError):
         return JsonResponse(
             {
                 "status": "error",
                 "message": "Invalid JSON payload.",
-            },
-            status=400,
-        )
+            },status=400,)
 
-    # Product ID is required
     if not product_id:
         return JsonResponse(
             {
                 "status": "error",
                 "message": "product_id is required.",
-            },
-            status=400,
-        )
+            },status=400,)
 
     
-    # Add the product to the user's database cart
+    #add the product to the user database cart
     cart_item, error_message = add_to_cart(request.user,product_id,variant_id,quantity,)
 
-    # Product or variant is invalid
+   
     if not cart_item:
         return JsonResponse(
             {
@@ -118,11 +110,10 @@ def add_to_cart_api(request):
 def remove_from_cart_api(request):
 # Remove an item from the logged-in user's cart
     
-    # Read the JSON request data
     try:
         data = json.loads(request.body)
 
-    # Handle invalid JSON
+
     except json.JSONDecodeError:
         return JsonResponse(
             {
@@ -132,7 +123,7 @@ def remove_from_cart_api(request):
 
     
 
-    # Get the database cart item ID
+    #get the database cart item id
     cart_item_id = data.get("cart_item_id")
 
     if not cart_item_id:
@@ -142,63 +133,50 @@ def remove_from_cart_api(request):
                 "message": "cart_item_id is required.",
             },status=400,)
 
-    # Remove the item from the user's database cart
+    #remove the item from the user's database cart
     success = remove_from_cart(request.user,cart_item_id,)
 
-    # Item was not found in the cart
+  
     if not success:
         return JsonResponse(
             {
                 "status": "error",
                 "message": "Cart item not found.",
-            },
-            status=404,
-        )
+            },status=404,)
 
-    # Return successful removal response
     return JsonResponse(
         {
             "status": "success",
             "message": "Item removed from cart.",
-        },
-        status=200,
-    )
+        },status=200,)
 
 # Update cart quantity for the logged-in user
 @login_required
 @require_POST
 def update_cart_quantity_api(request):
 
-    # Read the JSON request data
     try:
         data = json.loads(request.body)
 
         cart_item_id = data.get("cart_item_id")
         quantity = data.get("quantity")
 
-    # Handle invalid JSON
+
     except (json.JSONDecodeError, ValueError, TypeError):
         return JsonResponse(
             {
                 "status": "error",
                 "message": "Invalid JSON payload.",
-            },
-            status=400,
-        )
+            },status=400,)
 
-    # Quantity is required
     if quantity is None:
         return JsonResponse(
             {
                 "status": "error",
                 "message": "quantity is required.",
-            },
-            status=400,
-        )
+            },status=400,)
 
    
-
-    # Database cart requires cart item ID
     if not cart_item_id:
         return JsonResponse(
             {
@@ -209,7 +187,6 @@ def update_cart_quantity_api(request):
     #Update the database cart item
     cart_item, error_message = update_cart_quantity(request.user,cart_item_id,quantity,)
 
-    # Return the update error
     if not cart_item:
         return JsonResponse(
             {
@@ -217,7 +194,6 @@ def update_cart_quantity_api(request):
                 "message": error_message,
             },status=400,)
 
-    # Return successful database-cart response
     return JsonResponse(
         {
             "status": "success",

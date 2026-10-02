@@ -46,12 +46,11 @@ def product_dashboard(request):
 
    
     current_time = timezone.now()
-
-    # Calculate sale price and check offer status for products on the current page.
+    #calculate sale price and check offer status for products on the current page.
     for product in page_obj:
         product.sale_price = get_product_sale_price(product)
 
-        # Check whether the product currently has an active offer.
+        #check whether the product currently has an active offer.
         product.has_active_offer = (
             product.product_offer > 0
             and (
@@ -64,7 +63,7 @@ def product_dashboard(request):
             )
         )
 
-    # Fetch active parent categories for selecting product type
+    #fetch active parent categories for selecting product type
     parent_categories = Category.objects.filter(is_active=True, parent__isnull=True).order_by("id")
 
     # Fetch active sub-categories for the product form
@@ -97,7 +96,7 @@ def add_product(request):
     is_featured = request.POST.get("is_featured") == "true"
     max_purchase_quantity = request.POST.get("max_purchase_quantity")
 
-    # Validate Plant product data.
+    #validate plant product data.
     error = validate_plant_product_data(name,description,category_id,regular_price,stock_quantity,low_stock_threshold,max_purchase_quantity)
 
     if error:
@@ -107,7 +106,7 @@ def add_product(request):
             "data": None
         }, status=400)
 
-    # Product must belong to an active subcategory.
+    #product must belong to an active subcategory.
     category = get_subcategory_by_parent(category_id,"Plant")
     product = Product.objects.create(
         name=name.strip(),
@@ -149,7 +148,6 @@ def add_pot_product(request):
     except (TypeError,json.JSONDecodeError):
         variants = []
 
-    # Get the common product images.
     product_images = request.FILES.getlist("product_images")
 
     # Get one image for each variant.
@@ -158,7 +156,6 @@ def add_pot_product(request):
         for index in range(len(variants))
     ]
 
-    # Validate the basic pot data and variants.
     error = validate_pot_product_data(name,description,category_id,variants)
 
     if error:
@@ -168,7 +165,7 @@ def add_pot_product(request):
             "data" : None
         }, status=400)
 
-    # Validate common product images and variant images.
+    #validate common product images and variant images.
     error = validate_pot_images(product_images,variant_images)
 
     if error:
@@ -179,10 +176,9 @@ def add_pot_product(request):
         }, status=400)
 
 
-    # check the selected category is an active subcategory.
     category = get_subcategory_by_parent(category_id,"Pot")
 
-    # Create the pot and all related records as one transaction.
+    #create the pot and all related records as one transaction.
     with transaction.atomic():
 
         product = Product.objects.create(
@@ -197,7 +193,7 @@ def add_pot_product(request):
         total_stock = 0
         lowest_price = None
 
-        # Create every variant belonging to this pot.
+        #create every variant belonging to this pot.
         for index,variant in enumerate(variants):
 
             product_variant = ProductVariant.objects.create(
@@ -210,7 +206,7 @@ def add_pot_product(request):
                 max_purchase_quantity = variant["max_purchase_quantity"]
             )
 
-            # Save the image belonging to this variant.
+            #save the image belonging to this variant.
             ProductImage.objects.create(
                 product_variant=product_variant,
                 image_url = variant_images[index],
@@ -218,14 +214,14 @@ def add_pot_product(request):
                 sort_order = 0
             )
 
-            # Add variant stock to the total product quantity.
+            #add variant stock to the total product quantity.
             total_stock += int(variant["stock"])
 
-            # Find the lowest variant price.
+            #find the lowest variant price.
             if lowest_price is None or product_variant.price< lowest_price:
                 lowest_price = product_variant.price
 
-        # Store the calculated total stock and lowest variant price.
+        #store the calculated total stock and lowest variant price.
         product.stock_quantity = total_stock
         product.regular_price = lowest_price
         product.save()
@@ -287,13 +283,13 @@ def add_equipment_product(request):
             "data" : None
         }, status=400)
 
-    # Check that the selected category is an active subcategory.
+   
     category = get_subcategory_by_parent(category_id,"Equipment")
 
-    # Create the equipment product and its images as one transaction.
+    #create the equipment product and its images as one transaction
     with transaction.atomic():
 
-        # Create the main equipment product.
+        #create the main equipment product
         product = Product.objects.create(
             name = name.strip(),
             description = description.strip(),
@@ -304,7 +300,7 @@ def add_equipment_product(request):
             is_featured = is_featured,
             category = category
         )
-        # Save all equipment product images.
+        #save all equipment product images
         for index, image in enumerate(product_images):
             ProductImage.objects.create(
                 product=product,
@@ -341,13 +337,8 @@ def add_equipment_product(request):
 @require_POST
 def upload_variant_images(request, variant_id):
 
-    # Find the product variant
-    variant = get_object_or_404(
-        ProductVariant,
-        id=variant_id
-    )
+    variant = get_object_or_404(ProductVariant,id=variant_id)
 
-    # Get all uploaded images
     images = request.FILES.getlist("images")
 
     error = validate_product_images(images)
@@ -359,7 +350,7 @@ def upload_variant_images(request, variant_id):
             "data": None
         }, status=400)
 
-    # Save images to the variant
+    #save images to the variant
     for index, image in enumerate(images):
         ProductImage.objects.create(
             product_variant=variant,
@@ -381,16 +372,14 @@ def upload_variant_images(request, variant_id):
 @require_POST
 def upload_product_images(request, product_id):
 
-    # Find the product
     product = get_object_or_404(
         Product,
         id=product_id
     )
 
-    # Get uploaded images
+   
     images = request.FILES.getlist("images")
 
-    # Validate image count
     error = validate_product_images(images)
 
     if error:
@@ -400,7 +389,7 @@ def upload_product_images(request, product_id):
             "data": None
         }, status=400)
 
-    # Save images directly to the product
+    #save images directly to the product
     for index, image in enumerate(images):
         ProductImage.objects.create(
             product=product,
@@ -421,11 +410,8 @@ def upload_product_images(request, product_id):
 
 @admin_required
 def get_product_edit_data_view(request, product_id):
-    # Find the product or return 404.
     product = get_object_or_404(Product, id=product_id)
-    # Get all existing data required by the Edit modal.
     data = get_product_edit_data(product)
-
     return JsonResponse({
         "success" : True,
         "message" : "Product edit data fetched successfully.",
@@ -434,23 +420,20 @@ def get_product_edit_data_view(request, product_id):
  
 
 
-
 @admin_required
 @require_POST
 def edit_product(request, product_id):
-    # Find the product or return 404.
     product = get_object_or_404(
         Product,
         id=product_id
     )
 
-    # Identify whether the product is a Plant, Pot, or Equipment.
+    # Identify whether the product is a Plant, Pot, or Equipment
     product_type = get_product_type(product)
 
-    # Handle Plant editing.
+
     if product_type == "plant":
 
-        # Get updated Plant data.
         name = request.POST.get("name")
         description = request.POST.get("description")
         regular_price = request.POST.get("regular_price")
@@ -460,7 +443,7 @@ def edit_product(request, product_id):
         max_purchase_quantity = request.POST.get("max_purchase_quantity")
         is_featured = request.POST.get("is_featured") == "true"
 
-        # Get newly added product images
+        #get newly img
         product_images = request.FILES.getlist("product_images")
 
         error = validate_plant_product_data(name,description,category_id,regular_price,stock_quantity,low_stock_threshold, max_purchase_quantity)
@@ -472,16 +455,13 @@ def edit_product(request, product_id):
                 "data": None
             }, status=400)
 
-        # Count existing images after deletions
+        
         existing_images_count = product.product_images.count()
 
-        # Count newly uploaded images.
         new_images_count = len(product_images)
 
-        # Calculate the final image count
         total_images_count = existing_images_count + new_images_count
 
-        # Validate minimum image count
         if total_images_count < 3:
             return JsonResponse({
                 "success": False,
@@ -489,7 +469,6 @@ def edit_product(request, product_id):
                 "data": None
             }, status=400)
 
-        # Validate maximum image count
         if total_images_count > 4:
             return JsonResponse({
                 "success": False,
@@ -497,13 +476,12 @@ def edit_product(request, product_id):
                 "data": None
             }, status=400)
 
-        # Get the selected active Plant subcategory
         category = get_subcategory_by_parent(
             category_id,
             "Plants"
         )
 
-        # Update Plant product fields
+        #update 
         product.name = name.strip()
         product.description = description
         product.regular_price = regular_price
@@ -515,7 +493,6 @@ def edit_product(request, product_id):
 
         product.save()
 
-        # Save newly added product images.
         for image in product_images:
             ProductImage.objects.create(
                 product=product,
@@ -541,48 +518,39 @@ def edit_product(request, product_id):
             }
         }, status=200)
 
-    # Handle Pot editing.
     elif product_type == "pot":
 
-        # Get updated Pot data.
+    
         name = request.POST.get("name")
         description = request.POST.get("description")
         category_id = request.POST.get("category_id")
         is_featured = request.POST.get("is_featured") == "true"
 
-        # Get the submitted variant data.
+    
         variants_data = request.POST.get("variants", "[]")
 
-        # Convert the variant JSON string into Python data.
         try:
             variants = json.loads(variants_data)
         except (TypeError, json.JSONDecodeError):
             variants = []
 
-        # Get newly added common product images.
         product_images = request.FILES.getlist("product_images")
 
-        # Get the IDs of existing common images that were kept.
         existing_image_ids_data = request.POST.get(
             "existing_image_ids",
             "[]"
         )
-        # Convert the existing image IDs from JSON into a Python list.
         try:
             existing_image_ids = json.loads(existing_image_ids_data)
         except (TypeError, json.JSONDecodeError):
             existing_image_ids = []
 
-        # Count existing common images that will remain.
         existing_images_count = len(existing_image_ids)
 
-        # Count newly uploaded common images.
         new_images_count = len(product_images)
 
-        # Calculate the final common product image count.
         total_images_count = existing_images_count + new_images_count
 
-        # Validate the minimum common image count.
         if total_images_count < 3:
             return JsonResponse({
                 "success" :False,
@@ -590,7 +558,6 @@ def edit_product(request, product_id):
                 "data" : None
             }, status=400)
         
-        # Validate the maximum common image count.
         if total_images_count > 4:
             return JsonResponse({
                 "success" : False,
@@ -598,20 +565,14 @@ def edit_product(request, product_id):
                 "data" : None
             }, status=400)        
 
-        # Get newly added variant images.
         variant_images = {
             key: image
             for key, image in request.FILES.items()
             if key.startswith("variant_image_")
         }
 
-        # Validate the basic Pot data and variants.
-        error = validate_pot_product_data(
-            name,
-            description,
-            category_id,
-            variants
-        )
+
+        error = validate_pot_product_data(name,description,category_id,variants)
 
         if error:
             return JsonResponse({
@@ -620,33 +581,27 @@ def edit_product(request, product_id):
                 "data": None
             }, status=400)
 
-        # Check that the selected category belongs to the active Pots parent.
-        category = get_subcategory_by_parent(
-            category_id,
-            "Pots"
-        )
+        category = get_subcategory_by_parent(category_id,"Pots")
 
-        # Update the Pot and all related variants as one transaction.
         with transaction.atomic():
 
-            # Get all existing common product images for this Pot.
             existing_product_images = product.product_images.all()
 
-            # Delete common images that were removed from the Edit modal.
+            #delete common images that were removed from the Edit modal
             for image in existing_product_images:
 
                 if image.id not in existing_image_ids:
-                    # Delete the image file from storage.
+                    #delete image file from storage.
                     if image.image_url:
                         image.image_url.delete(save=False)
 
-                    # Delete the image record from the database.
+                    #delete the image from the database
                     image.delete()
 
 
-            # Save newly added common product images.
+            #save newly added common product images
             for image in product_images:
-                # Get the next image sort order.
+                #get the next image sort order
                 sort_order = product.product_images.count()
 
                 #Save the new product image
@@ -657,19 +612,16 @@ def edit_product(request, product_id):
                     sort_order=sort_order
                 )
 
-
-
-            # Get all existing variants belonging to this Pot.
             existing_variants = {
                 variant.id: variant
                 for variant in product.variants.all()
             }
 
 
-            # Store the IDs of variants submitted by the Edit modal.
+            # Store the IDs of variants submitted by the Edit modal
             submitted_variant_ids = set()
 
-            # Update existing variants or create new variants.
+            #update existing variants or create new variants
             for variant_data in variants:
 
                 variant_id = variant_data.get("id")
@@ -681,7 +633,7 @@ def edit_product(request, product_id):
                         int(variant_id)
                     )
 
-                    # Reject a variant ID that does not belong to this product.
+                    #reject a variant ID that does not belong to this product
                     if not variant:
                         return JsonResponse({
                             "success": False,
@@ -697,23 +649,23 @@ def edit_product(request, product_id):
                     variant.max_purchase_quantity = (variant_data["max_purchase_quantity"])
                     variant.save()
 
-                    # Remember that this existing variant is still being used.
+                    #remember that this existing variant is still being used
                     submitted_variant_ids.add(variant.id)
 
-                    # Get a newly uploaded image for this existing variant.
+                    #get a newly uploaded image for this existing variant.
                     new_variant_image = variant_images.get(
                         f"variant_image_{variant.id}"
                     )
 
-                    # Replace the existing variant image when a new image is uploaded.
+                    #replace the existing variant image when a new image is uploaded.
                     if new_variant_image:
 
-                        # Get the existing variant images.
+                        
                         existing_images = variant.images.all().order_by(
                             "sort_order"
                         )
 
-                        # Delete the existing variant images.
+                        #delete the existing variant images.
                         for image in existing_images:
 
                             if image.image_url:
@@ -741,15 +693,15 @@ def edit_product(request, product_id):
                         low_stock_threshold=variant_data["low_stock_threshold"],
                         max_purchase_quantity=variant_data["max_purchase_quantity"])
 
-                    # Remember the newly created variant.
+                    #remember the newly created variant
                     submitted_variant_ids.add(variant.id)
 
-                    # Get the newly uploaded image for this new variant.
+                    #get the newly uploaded image for this new variant
                     new_variant_image = variant_images.get(
                         f"variant_image_{variant_data.get('temp_id')}"
                     )
 
-                    # Save the image for the newly created variant.
+                    #save the image for the newly created variant
                     if new_variant_image:
 
                         ProductImage.objects.create(
@@ -759,24 +711,22 @@ def edit_product(request, product_id):
                             sort_order=0
                         )
 
-            # Delete variants that were removed from the Edit modal.
+            #delete variants that were removed from the Edit modal
             for variant_id, variant in existing_variants.items():
 
                 if variant_id not in submitted_variant_ids:
                     variant.delete()
 
-            # Get all active variants after the updates.
-            active_variants = product.variants.filter(
-                is_active=True
-            )
+            #get all active variants after the updates
+            active_variants = product.variants.filter(is_active=True)
 
-            # Calculate the total stock of all active variants.
+            #calculate the total stock of all active variants
             total_stock = sum(
                 variant.stock_quantity
                 for variant in active_variants
             )
 
-            # Find the lowest price among active variants.
+            #find the lowest price among active variants.
             lowest_price = min(
                 variant.price
                 for variant in active_variants
@@ -810,7 +760,6 @@ def edit_product(request, product_id):
 
     elif product_type =="equipment":
 
-        # Get updated Equipment data.
         name = request.POST.get("name")
         description = request.POST.get("description")
         regular_price = request.POST.get("regular_price")
@@ -820,19 +769,17 @@ def edit_product(request, product_id):
         max_purchase_quantity = request.POST.get("max_purchase_quantity")
         is_featured = request.POST.get("is_featured") == "true"
 
-        #Get newly added product images.
+        #get newly added product images
         product_images = request.FILES.getlist("product_images")
 
-        #Get the IDs of existing common images that were kept.
         existing_image_ids_data = request.POST.get("existing_image_ids", "[]")
 
-        # Convert the existing image IDs from JSON into a Python list
+        #convert the existing image IDs from JSON into a Python list
         try:
             existing_image_ids = json.loads(existing_image_ids_data)
         except (TypeError, json.JSONDecodeError):
             existing_image_ids = []
 
-        # Validate the basic Equipment data.
         error = validate_equipment_product_data(name, description, category_id, regular_price, stock_quantity, low_stock_threshold,max_purchase_quantity)
 
         if error:
@@ -842,16 +789,16 @@ def edit_product(request, product_id):
                 "data" : None
             }, status=400)
 
-        # Count existing images that will remain.
+        #count existing images that will remain
         existing_images_count = len(existing_image_ids)
 
-        # Count newly uploaded images.
+        #count newly uploaded images
         new_images_count = len(product_images)
 
-        # Calculate the final image count.
+        #calculate the final image count
         total_images_count = existing_images_count + new_images_count
 
-        # Validate minimum image count.
+        
         if total_images_count<3:
             return JsonResponse({
                 "success" : False,
@@ -859,7 +806,7 @@ def edit_product(request, product_id):
                 "data" : None
             }, status=400)
 
-        # Validate maximum image count.
+      
         if total_images_count > 4:
             return JsonResponse({
                 "succces": False,
@@ -867,25 +814,23 @@ def edit_product(request, product_id):
                 "data" : None
             }, status=400)
 
-        # Check that the selected category belongs to the active Equipments parent.
+        #check that the selected category belongs to the active Equipments parent
         category = get_subcategory_by_parent(category_id, "Equipments")
 
-        # Update the Equipment and its images as one transaction.
+        
         with transaction.atomic():
-            # Get all existing common product images for this Equipment.
+           
             existing_product_images = product.product_images.all()
 
-            # Delete images that were removed from the Edit modal.
             for image in existing_product_images:
                 if image.id not in existing_image_ids:
                     # Delete the image file from storage
                     if image. image_url:
                         image.image_url.delete(save=False)
 
-                    # Delete the image record from the database.
                     image.delete()
 
-            # Update Equipment product fields.
+            
             product.name = name.strip()
             product.description = description.strip()
             product.regular_price = regular_price
@@ -897,10 +842,9 @@ def edit_product(request, product_id):
 
             product.save()
 
-            # Save newly added product images.
+    
             for image in product_images:
 
-                # Get the next image sort order.
                 sort_order = product.product_images.count()
 
                 ProductImage.objects.create(
@@ -927,11 +871,6 @@ def edit_product(request, product_id):
                     
 
 
-
-
-
-
-
     else:
         return JsonResponse({
             "success": False,
@@ -946,10 +885,10 @@ def edit_product(request, product_id):
 @admin_required
 @require_POST
 def delete_product_image_view(request, product_id, image_id):
-    # Find the image belonging to the selected product.
+
     image = get_object_or_404(ProductImage, id=image_id, product_id=product_id)
 
-    # Delete the image file from storage.
+    #delete the image file from storage.
     if image.image_url:
         image.image_url.delete(save=False)
 
@@ -970,10 +909,10 @@ def delete_product_image_view(request, product_id, image_id):
 @admin_required
 @require_POST
 def toggle_product_status(request, product_id):
-    #Find the product
+   
     product = get_object_or_404(Product, id=product_id)
 
-    # Toggle active status
+    #toggle active status
     product.is_active = not product.is_active
 
     product.save() #save changes
@@ -1093,7 +1032,7 @@ def set_product_offer(request, product_id):
             "data": None
         }, status=400)
 
-    # Interpret datetime-local values in the timezone of the admin's browser.
+    #Interpret datetime-local values in the timezone of the admin browser.
     if timezone.is_naive(start_datetime):
         start_datetime = timezone.make_aware(start_datetime, offer_timezone)
 

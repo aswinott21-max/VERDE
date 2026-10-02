@@ -1,10 +1,9 @@
 from .category_service import get_product_type
 
 def get_product_edit_data(product):
-   #check parent
+ 
     product_type = get_product_type(product)
 
-    # Prepare the common product data used by all product types.
     data = {
         "id" : product.id,
         "name" : product.name,
@@ -19,10 +18,9 @@ def get_product_edit_data(product):
         "images" : [],
         "variants" :[]
     }
-    # Get images directly attached to the product.
+  
     product_images = product.product_images.all().order_by("sort_order")
 
-    # Get images directly attached to the product.
     for image in product_images:
         data["images"].append({
             "id":image.id,
@@ -34,13 +32,12 @@ def get_product_edit_data(product):
     
     if product_type == "pot":
 
-        # Get all variants belonging to this pot.
+       
         variants = product.variants.all().order_by("id")
 
-        # Prepare each variant for the Edit modal.
         for variant in variants:
 
-            # Get the images belonging to this variant.
+            
             variant_images = variant.images.all().order_by("sort_order")
 
             data["variants"].append({
@@ -58,7 +55,5 @@ def get_product_edit_data(product):
                         "is_primary" : image.is_primary,
                         "sort_order" : image.sort_order
                     }
-                    for image in variant_images
-                ]
-            })
+                    for image in variant_images]})
     return data
