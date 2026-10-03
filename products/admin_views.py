@@ -20,7 +20,7 @@ from .services.product_image_validation import (validate_product_images)
 from .services.plant_product_validation import (validate_plant_product_data)
 from .services.pot_product_validation import (validate_pot_product_data,validate_pot_images)
 from .services.equipment_product_validation import(validate_equipment_product_data,validate_equipment_images)
-from .services.category_service import (get_subcategories_by_parent,get_subcategory_by_parent, get_product_type)
+from .services.category_service import (get_subcategories_by_parent,get_subcategory_by_parent, get_product_type,_find_parent_category)
 from .services.product_edit_service import get_product_edit_data
 from .services.product_price_service import get_product_sale_price
 
@@ -80,6 +80,38 @@ def product_dashboard(request):
         "pot_categories": pot_categories,
         "equipment_categories": equipment_categories,
     })
+
+
+@admin_required
+@require_POST
+def add_product_by_category(request,parent_category_name):
+
+    parent_category = _find_parent_category(parent_category_name)
+
+    if not parent_category:
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid product category.",
+            "data": None,
+        }, status=400,)
+
+    #decide which existing product creation flow to use
+    category_name = parent_category.name.casefold()
+
+    if category_name in ("plant","plants"):
+        return add_product(request)
+    if category_name in ("pot","pots"):
+        return add_pot_product(request)
+    if category_name in ("equipment","equipments"):
+        return add_equipment_product(request)
+
+    return JsonResponse({
+        "success": False,
+        "message": "Unsupported product category.",
+        "data": None,
+    }, status=400)
+
+
 
 
 

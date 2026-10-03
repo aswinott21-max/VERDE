@@ -5,9 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 
 class Product(models.Model):
-    # Product belongs to a category
     category = models.ForeignKey(Category,on_delete=models.PROTECT, related_name="products")
-
     name = models.CharField(max_length=255)
     description = models.TextField()
     regular_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -26,12 +24,9 @@ class Product(models.Model):
 class ProductVariant(models.Model):
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
-
     color = models.CharField(max_length=100)
     size = models.CharField(max_length=100)
-
     price = models.DecimalField(max_digits=10,decimal_places=2)
-
     stock_quantity = models.IntegerField(default=0)
     low_stock_threshold = models.IntegerField(default=0)
     max_purchase_quantity = models.PositiveIntegerField(default=5)
@@ -41,13 +36,8 @@ class ProductVariant(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class ProductImage(models.Model):
-    # Direct product image — used for Plants and Equipment
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name="product_images", null=True, blank=True)
-
-   
-    # Variant image — used for Pots
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name="images", null=True,blank=True)
-
     image_url = models.ImageField(upload_to="product_images/")
     is_primary = models.BooleanField(default=False)
     sort_order = models.IntegerField(default=0)

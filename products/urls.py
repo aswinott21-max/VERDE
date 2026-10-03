@@ -1,12 +1,11 @@
 from django.urls import path
-from .admin_views import (product_dashboard,add_product,add_pot_product,add_equipment_product,get_product_edit_data_view,edit_product,toggle_product_status,upload_variant_images,upload_product_images,delete_product_image_view,set_product_offer,)
+from .admin_views import (product_dashboard,add_product,add_pot_product,add_equipment_product,add_product_by_category,get_product_edit_data_view,edit_product,toggle_product_status,upload_variant_images,upload_product_images,delete_product_image_view,set_product_offer,)
 from .user_views import (product_list,product_detail)
 urlpatterns = [
     # Admin
     path("admin/products/", product_dashboard, name="product_dashboard"),
-    path("admin/products/add/", add_product, name="add_product"),
-    path("admin/products/add-pot/", add_pot_product, name="add_pot_product"),
-    path("admin/products/add-equipment/", add_equipment_product, name="add_equipment_product"),
+
+    path("admin/products/add/<str:parent_category_name>/",add_product_by_category,name="add_product_by_category"),
     path("admin/products/<int:product_id>/edit/", edit_product, name="edit_product"),
     path("admin/products/<int:product_id>/toggle-status/", toggle_product_status, name="toggle_product_status"),
     path("admin/products/variants/<int:variant_id>/images/", upload_variant_images, name="upload_variant_images"),

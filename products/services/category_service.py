@@ -50,6 +50,20 @@ def get_product_type(product):
 
     return None
 
+def get_product_type_by_parent_name(parent_name):
+    #find the active parent category from the URL name
+    parent_category = _find_parent_category(parent_name)
+    if not parent_category:
+        return None
+    category_name = parent_category.name.casefold()
+    if category_name in ("plant", "plants"):
+        return "Plant"
+    if category_name in ("pot","pots"):
+        return "Pot"
+    if category_name in ("equipment","equipments"):
+        return "equipments"
+    return None
+
 
 def get_category_and_subcategory_ids(category_id):
 

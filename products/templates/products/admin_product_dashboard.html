@@ -3032,7 +3032,7 @@
                       class="action-icon-btn btn-soft-delete"
                       title="Toggle Soft Delete"
                       aria-label="Toggle listing status"
-                      onclick="toggleProductStatus({{ product.id }})"
+                      onclick="requestProductStatusToggle({{ product.id }}, {{ product.is_active|yesno:'true,false' }})"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -3146,7 +3146,7 @@
             >
               <div class="product-type-icon-box">
                 <svg
-                  viewBox="0 0 24 24"
+                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="1.8"
@@ -3155,7 +3155,7 @@
                   width="22"
                   height="22"
                 >
-                  <path d="M7 15h10l-1.5 6h-7z"></path>
+                 <path d="M7 15h10l-1.5 6h-7z"></path>
                   <line x1="5.5" y1="15" x2="18.5" y2="15"></line>
                   <path d="M12 9v6"></path>
                   <path
@@ -5149,6 +5149,43 @@
       </div>
     </div>
 
+    <!-- Product Status Confirmation Modal -->
+    <div
+      class="modal-overlay"
+      id="productStatusConfirmationModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="productStatusConfirmationTitle"
+      onclick="if (event.target === this) closeProductStatusConfirmation();"
+    >
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3 class="modal-title" id="productStatusConfirmationTitle">
+            Change Product Status?
+          </h3>
+        </div>
+        <div class="modal-body">
+          <p id="productStatusConfirmationMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn-modal-cancel"
+            onclick="closeProductStatusConfirmation()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-modal-submit"
+            onclick="confirmProductStatusToggle()"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Notification Banner -->
     <div class="toast-notification" id="toastBanner">
       <span id="toastMessage">Action completed successfully</span>
@@ -6396,13 +6433,16 @@
             }
           });
 
-          const response = await fetch("/products/admin/products/add-pot/", {
-            method: "POST",
-            body: formData,
-            headers: {
-              "X-CSRFToken": getCsrfToken(),
+          const response = await fetch(
+            `/products/admin/products/add/${selectedProductType.name}/`,
+            {
+              method: "POST",
+              body: formData,
+              headers: {
+                "X-CSRFToken": getCsrfToken(),
+              },
             },
-          });
+          );
           const data = await response.json();
 
           if (!response.ok || !data.success) {
@@ -7815,13 +7855,16 @@
             formData.append("product_images", file);
           });
 
-          const response = await fetch("/products/admin/products/add-equipment/", {
-            method: "POST",
-            body: formData,
-            headers: {
-              "X-CSRFToken": getCsrfToken(),
+          const response = await fetch(
+            `/products/admin/products/add/${selectedProductType.name}/`,
+            {
+              method: "POST",
+              body: formData,
+              headers: {
+                "X-CSRFToken": getCsrfToken(),
+              },
             },
-          });
+          );
           const data = await response.json();
 
           if (!response.ok || !data.success) {
@@ -7992,13 +8035,16 @@
             formData.append("max_purchase_quantity", maxPurchaseQuantity);
             formData.append("is_featured", isFeatured ? "true" : "false");
 
-            const response = await fetch("/products/admin/products/add/", {
-              method: "POST",
-              body: formData,
-              headers: {
-                "X-CSRFToken": getCsrfToken(),
+            const response = await fetch(
+              `/products/admin/products/add/${selectedProductType.name}/`,
+              {
+                method: "POST",
+                body: formData,
+                headers: {
+                  "X-CSRFToken": getCsrfToken(),
+                },
               },
-            });
+            );
             const data = await response.json();
 
             if (!response.ok || !data.success) {
@@ -8165,6 +8211,16 @@
       // Close modals on Escape key
       window.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
+          const statusConfirmationModal = document.getElementById(
+            "productStatusConfirmationModal",
+          );
+          if (
+            statusConfirmationModal &&
+            statusConfirmationModal.classList.contains("active")
+          ) {
+            closeProductStatusConfirmation();
+            return;
+          }
           const cropperModal = document.getElementById("imageCropperModal");
           if (cropperModal && cropperModal.classList.contains("active")) {
             cancelImageCrop();
@@ -8392,6 +8448,37 @@
           submitBtn.disabled = false;
           submitBtn.textContent = "Save Changes";
         }
+      }
+
+      let pendingProductStatusId = null;
+
+      function requestProductStatusToggle(productId, isActive) {
+        pendingProductStatusId = productId;
+        const action = isActive ? "deactivate" : "activate";
+        document.getElementById("productStatusConfirmationTitle").textContent =
+          `${isActive ? "Deactivate" : "Activate"} Product?`;
+        document.getElementById(
+          "productStatusConfirmationMessage",
+        ).textContent = `Are you sure you want to ${action} this product?`;
+        document.querySelector(
+          "#productStatusConfirmationModal .btn-modal-submit",
+        ).textContent = `${isActive ? "Deactivate" : "Activate"} Product`;
+        document
+          .getElementById("productStatusConfirmationModal")
+          .classList.add("active");
+      }
+
+      function closeProductStatusConfirmation() {
+        document
+          .getElementById("productStatusConfirmationModal")
+          .classList.remove("active");
+        pendingProductStatusId = null;
+      }
+
+      function confirmProductStatusToggle() {
+        const productId = pendingProductStatusId;
+        closeProductStatusConfirmation();
+        if (productId !== null) toggleProductStatus(productId);
       }
 
       // Asynchronous Toggle Product Status (Soft Delete)

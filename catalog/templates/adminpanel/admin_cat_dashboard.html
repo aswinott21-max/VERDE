@@ -1865,7 +1865,7 @@
                   <td>
                     <button
                       class="action-icon-btn toggle-status-btn"
-                      onclick="toggleCategoryStatus('{{ cat.id }}')"
+                      onclick="requestCategoryStatusToggle('{{ cat.id }}', {% if cat.is_active %}true{% else %}false{% endif %})"
                       title="{% if cat.is_active %}Unlist Category{% else %}List Category{% endif %}"
                     >
                       {% if cat.is_active %}
@@ -2175,6 +2175,40 @@
             <button type="submit" class="btn-modal-save">SAVE OFFER</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Category Status Confirmation Modal -->
+    <div
+      id="categoryStatusConfirmationModal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="categoryStatusConfirmationTitle"
+    >
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 id="categoryStatusConfirmationTitle" class="modal-title"></h3>
+        </div>
+        <div class="modal-body">
+          <p id="categoryStatusConfirmationMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn-modal-cancel"
+            onclick="closeCategoryStatusConfirmation()"
+          >
+            CANCEL
+          </button>
+          <button
+            type="button"
+            class="btn-modal-save"
+            onclick="confirmCategoryStatusToggle()"
+          >
+            CONFIRM
+          </button>
+        </div>
       </div>
     </div>
 
@@ -2688,6 +2722,38 @@
         }
       }
 
+      let pendingCategoryStatusId = null;
+
+      function requestCategoryStatusToggle(id, isActive) {
+        pendingCategoryStatusId = id;
+        const action = isActive ? "unlist" : "list";
+        const actionLabel = isActive ? "Unlist" : "List";
+        document.getElementById("categoryStatusConfirmationTitle").textContent =
+          `${actionLabel} Category?`;
+        document.getElementById(
+          "categoryStatusConfirmationMessage",
+        ).textContent = `Are you sure you want to ${action} this category?`;
+        document.querySelector(
+          "#categoryStatusConfirmationModal .btn-modal-save",
+        ).textContent = `${actionLabel.toUpperCase()} CATEGORY`;
+        document
+          .getElementById("categoryStatusConfirmationModal")
+          .classList.add("open");
+      }
+
+      function closeCategoryStatusConfirmation() {
+        document
+          .getElementById("categoryStatusConfirmationModal")
+          .classList.remove("open");
+        pendingCategoryStatusId = null;
+      }
+
+      function confirmCategoryStatusToggle() {
+        const id = pendingCategoryStatusId;
+        closeCategoryStatusConfirmation();
+        if (id !== null) toggleCategoryStatus(id);
+      }
+
       // Toggle Category Status (List / Unlist)
       async function toggleCategoryStatus(id) {
         try {
@@ -2736,6 +2802,24 @@
         const feedbackModal = document.getElementById("feedbackModal");
         if (event.target === feedbackModal) {
           closeFeedbackModal();
+        }
+        const categoryStatusModal = document.getElementById(
+          "categoryStatusConfirmationModal",
+        );
+        if (event.target === categoryStatusModal) {
+          closeCategoryStatusConfirmation();
+        }
+      });
+
+      window.addEventListener("keydown", (event) => {
+        const categoryStatusModal = document.getElementById(
+          "categoryStatusConfirmationModal",
+        );
+        if (
+          event.key === "Escape" &&
+          categoryStatusModal.classList.contains("open")
+        ) {
+          closeCategoryStatusConfirmation();
         }
       });
     </script>
