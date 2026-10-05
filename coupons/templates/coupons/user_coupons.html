@@ -1,0 +1,1193 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | My Coupons</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Global stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+    <style>
+      /* =========================================================
+         COUPON PAGE — scoped styles
+         ========================================================= */
+      :root {
+        --color-primary: #102518;
+        --color-primary-hover: #1b3825;
+        --color-accent: #2e593d;
+        --color-bg-subtle: #f4f5f2;
+        --color-border: #e2e8e3;
+        --color-text-main: #141715;
+        --color-text-muted: #5e6660;
+        --font-serif: "Playfair Display", Georgia, serif;
+        --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      body.coupon-page {
+        background-color: var(--color-bg-subtle);
+        color: var(--color-text-main);
+        font-family: var(--font-sans);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+      }
+
+      /* ----- Header ----- */
+      .site-header.coupon-header {
+        position: sticky;
+        top: 0;
+        background: #ffffff;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        z-index: 100;
+      }
+
+      .header-container {
+        width: 100%;
+        max-width: none;
+        margin: 0 auto;
+        padding: 0 clamp(16px, 4vw, 40px);
+        height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-sizing: border-box;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .header-actions .action-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        color: var(--color-text-main);
+        transition: background-color var(--transition-fast), color var(--transition-fast);
+      }
+
+      .header-actions .action-btn:hover {
+        background-color: var(--color-bg-subtle);
+        color: var(--color-primary);
+      }
+
+      .header-actions .action-btn svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .header-actions .action-btn:disabled {
+        color: var(--color-text-main);
+        opacity: 1;
+      }
+
+      /* ----- Main Layout ----- */
+      .coupon-main {
+        width: min(100% - 56px, 1440px);
+        margin: 36px auto 72px;
+        flex: 1;
+      }
+
+      /* ----- Navigation Tabs (same as profile/addresses) ----- */
+      .profile-tabs {
+        width: 100%;
+        margin: 0 auto 36px;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid #dfe5df;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .profile-tab {
+        min-height: 62px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid #dfe5df;
+        border-radius: 10px;
+        background: #eceae7;
+        color: #2b312d;
+        font-size: 11px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+          border-color var(--transition-fast),
+          box-shadow var(--transition-fast),
+          color var(--transition-fast),
+          transform var(--transition-fast),
+          background-color var(--transition-fast);
+      }
+
+      .profile-tab:hover {
+        border-color: #c6d2c8;
+        color: #1d3127;
+        background: #f2f6f2;
+        transform: translateY(-1px);
+      }
+
+      .profile-tab svg {
+        width: 15px;
+        height: 15px;
+        stroke-width: 1.7;
+      }
+
+      .profile-tab.active {
+        color: #1d2c24;
+        border-color: #dfe6df;
+        background: #dfeee6;
+        box-shadow: inset 0 0 0 1px rgba(25, 40, 30, 0.04);
+        font-weight: 600;
+      }
+
+      .profile-tab.profile-logout {
+        border-color: #f1dbdb;
+        background: #faf4f4;
+        color: #b91c1c;
+        font-family: var(--font-sans);
+      }
+
+      .profile-tab.profile-logout:hover {
+        border-color: #e5b9b9;
+        background: #f7eaea;
+        color: #8c2626;
+      }
+
+      /* ----- Page Heading ----- */
+      .coupon-page-heading {
+        margin-bottom: 36px;
+      }
+
+      .coupon-page-title {
+        font-family: var(--font-serif);
+        font-size: 38px;
+        font-weight: 600;
+        line-height: 1.15;
+        color: #1a221d;
+        margin: 0 0 8px;
+      }
+
+      .coupon-page-subtitle {
+        font-size: 14px;
+        color: #6a746e;
+        margin: 0;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+
+      /* ----- Section Headers ----- */
+      .offers-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+
+      .offers-section-title {
+        font-family: var(--font-sans);
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a221d;
+        margin: 0;
+        letter-spacing: 0.01em;
+      }
+
+      .offers-count-badge {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #6a746e;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      /* ----- Offers Section Wrapper ----- */
+      .offers-section {
+        margin-bottom: 48px;
+      }
+
+      /* ----- Coupon Cards Grid ----- */
+      .coupons-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      /* ----- Base Coupon Card ----- */
+      .coupon-card {
+        position: relative;
+        border-radius: 14px;
+        padding: 24px 24px 20px;
+        display: flex;
+        flex-direction: column;
+        min-height: 220px;
+        overflow: hidden;
+        transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+      }
+
+      .coupon-card:hover {
+        transform: translateY(-2px);
+      }
+
+      /* ----- Light card variant (default) ----- */
+      .coupon-card.variant-light {
+        background: #ffffff;
+        border: 1px solid #e2e8e3;
+        box-shadow: 0 4px 16px rgba(16, 37, 24, 0.04);
+      }
+
+      .coupon-card.variant-light:hover {
+        box-shadow: 0 8px 28px rgba(16, 37, 24, 0.09);
+        border-color: #c5d1c8;
+      }
+
+      /* ----- Dark (premium) card variant ----- */
+      .coupon-card.variant-dark {
+        background: #112419;
+        border: 1px solid #1c3426;
+        box-shadow: 0 4px 20px rgba(8, 22, 14, 0.3);
+      }
+
+      .coupon-card.variant-dark:hover {
+        box-shadow: 0 8px 32px rgba(8, 22, 14, 0.4);
+      }
+
+      /* ----- Card tag / label ----- */
+      .coupon-tag {
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin: 0 0 10px;
+      }
+
+      .variant-light .coupon-tag {
+        color: #6a746e;
+      }
+
+      .variant-dark .coupon-tag {
+        color: #7faa8e;
+      }
+
+      /* ----- Decorative icon top-right ----- */
+      .coupon-card-icon {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+      }
+
+      .variant-light .coupon-card-icon {
+        background: #edf3ef;
+        color: #4a7059;
+      }
+
+      .variant-dark .coupon-card-icon {
+        background: rgba(255,255,255,0.08);
+        color: #a6c9b2;
+      }
+
+      .coupon-card-icon svg {
+        width: 17px;
+        height: 17px;
+        stroke-width: 1.6;
+      }
+
+      /* ----- Discount headline ----- */
+      .coupon-discount {
+        margin: 0 0 10px;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+      }
+
+      .variant-light .coupon-discount {
+        font-family: var(--font-sans);
+        font-size: 36px;
+        font-weight: 800;
+        color: #131f17;
+      }
+
+      .variant-dark .coupon-discount {
+        font-family: var(--font-serif);
+        font-size: 42px;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      /* ----- Description ----- */
+      .coupon-description {
+        font-size: 12.5px;
+        color: #6a746e;
+        line-height: 1.55;
+        margin: 0 0 auto;
+        flex: 1;
+      }
+
+      .variant-dark .coupon-description {
+        color: #8da898;
+      }
+
+      /* ----- Meta row (expiry, min order) ----- */
+      .coupon-meta {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .coupon-expiry {
+        font-size: 10.5px;
+        font-weight: 500;
+      }
+
+      .variant-light .coupon-expiry {
+        color: #7a8880;
+      }
+
+      .variant-dark .coupon-expiry {
+        color: #7faa8e;
+        font-weight: 600;
+      }
+
+      .coupon-min-order {
+        font-size: 10px;
+        color: #9ba6a0;
+      }
+
+      .variant-dark .coupon-min-order {
+        color: #6a9079;
+      }
+
+      /* ----- Divider ----- */
+      .coupon-divider {
+        border: 0;
+        border-top: 1px dashed #e2e8e3;
+        margin: 14px 0 12px;
+      }
+
+      .variant-dark .coupon-divider {
+        border-top-color: rgba(255,255,255,0.1);
+      }
+
+      /* ----- Copy-code row ----- */
+      .coupon-code-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      /* Code pill */
+      .coupon-code-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        font-family: "Courier New", monospace;
+      }
+
+      .variant-light .coupon-code-pill {
+        background: #f0f4f1;
+        color: #1a3124;
+        border: 1px solid #d5e0d8;
+      }
+
+      .variant-dark .coupon-code-pill {
+        background: rgba(255,255,255,0.1);
+        color: #c8e5d5;
+        border: 1px solid rgba(255,255,255,0.12);
+      }
+
+      /* Copy button */
+      .btn-copy-code {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--font-sans);
+        cursor: pointer;
+        border: none;
+        transition: background-color var(--transition-fast), color var(--transition-fast);
+        white-space: nowrap;
+      }
+
+      .variant-light .btn-copy-code {
+        background: transparent;
+        color: #3b5c47;
+        border: 1px solid #c5d6ca;
+      }
+
+      .variant-light .btn-copy-code:hover {
+        background: #edf4ef;
+        border-color: #a5c0ae;
+      }
+
+      .variant-dark .btn-copy-code {
+        background: rgba(255,255,255,0.08);
+        color: #b5dac5;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+
+      .variant-dark .btn-copy-code:hover {
+        background: rgba(255,255,255,0.14);
+      }
+
+      .btn-copy-code svg {
+        width: 12px;
+        height: 12px;
+        stroke-width: 2;
+        flex-shrink: 0;
+      }
+
+      .btn-copy-code.copied {
+        color: #27774d !important;
+        border-color: #a2d8b4 !important;
+        background: #eaf7f0 !important;
+      }
+
+      .variant-dark .btn-copy-code.copied {
+        color: #7fe8ae !important;
+        border-color: rgba(127, 232, 174, 0.3) !important;
+        background: rgba(127, 232, 174, 0.08) !important;
+      }
+
+      /* ----- Auto-applied row (dark card only) ----- */
+      .coupon-auto-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 4px;
+      }
+
+      .coupon-auto-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #7faa8e;
+        letter-spacing: 0.03em;
+      }
+
+      .coupon-auto-badge svg {
+        width: 11px;
+        height: 11px;
+        stroke-width: 2;
+      }
+
+      /* ----- Apply button (ready for later wiring) ----- */
+      .btn-apply-coupon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 18px;
+        border-radius: 4px;
+        border: 1px solid #102518;
+        background: #102518;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-family: var(--font-sans);
+        cursor: pointer;
+        transition: background-color var(--transition-fast);
+      }
+
+      .btn-apply-coupon:hover {
+        background: #1b3825;
+        border-color: #1b3825;
+      }
+
+      /* ----- Max discount chip ----- */
+      .coupon-max-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 9.5px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 3px;
+        margin-top: 4px;
+        width: fit-content;
+      }
+
+      .variant-light .coupon-max-chip {
+        background: #e8f3eb;
+        color: #336a47;
+      }
+
+      .variant-dark .coupon-max-chip {
+        background: rgba(127, 232, 174, 0.1);
+        color: #7fe8ae;
+      }
+
+      /* =========================================================
+         PAST OFFERS (muted / expired section)
+         ========================================================= */
+      .past-offers-section {
+        margin-top: 8px;
+      }
+
+      .past-offers-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #b0b8b3;
+        margin: 0 0 18px;
+      }
+
+      .past-coupon-card {
+        background: #f0f2f0;
+        border: 1px solid #e2e8e3;
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-width: 320px;
+        opacity: 0.75;
+      }
+
+      .past-tag {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #9ba6a0;
+      }
+
+      .past-tag-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+
+      .expired-badge {
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: #e5e9e6;
+        color: #8e9c94;
+      }
+
+      .past-discount {
+        font-family: var(--font-sans);
+        font-size: 26px;
+        font-weight: 800;
+        color: #b0b8b3;
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+
+      .past-expiry {
+        font-size: 10.5px;
+        color: #9ba6a0;
+        margin-top: 6px;
+      }
+
+      /* =========================================================
+         EMPTY STATE
+         ========================================================= */
+      .coupon-empty-state {
+        background: #ffffff;
+        border: 1px solid #e2e8e3;
+        border-radius: 14px;
+        padding: 64px 24px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(16, 37, 24, 0.02);
+      }
+
+      .coupon-empty-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #edf5f0;
+        color: #2e593d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      .coupon-empty-icon svg {
+        width: 28px;
+        height: 28px;
+        stroke-width: 1.5;
+      }
+
+      .coupon-empty-title {
+        font-family: var(--font-serif);
+        font-size: 22px;
+        font-weight: 600;
+        color: #1a221d;
+        margin: 0 0 10px;
+      }
+
+      .coupon-empty-desc {
+        color: #6a746e;
+        font-size: 13.5px;
+        max-width: 380px;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* =========================================================
+         FOOTER
+         ========================================================= */
+      .profile-footer {
+        background: #0d2217;
+        color: #ffffff;
+        margin-top: auto;
+      }
+
+      .profile-footer .footer-container {
+        width: min(100% - 56px, 1440px);
+        margin: 0 auto;
+        padding: 56px 0 64px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 40px;
+      }
+
+      .profile-footer .footer-logo {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      .profile-footer .footer-tagline {
+        margin-top: 14px;
+        color: #8ea394;
+        font-size: 11px;
+        line-height: 1.8;
+      }
+
+      .profile-footer .footer-nav-groups {
+        display: flex;
+        gap: 64px;
+      }
+
+      .profile-footer .footer-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .profile-footer .footer-heading {
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .profile-footer .footer-link {
+        color: #8ea394;
+        font-size: 11px;
+        text-decoration: none;
+      }
+
+      .profile-footer .footer-link:hover {
+        color: #ffffff;
+      }
+
+      /* =========================================================
+         RESPONSIVE
+         ========================================================= */
+      @media (max-width: 1024px) {
+        .coupons-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 768px) {
+        .profile-tabs {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .coupons-grid {
+          grid-template-columns: 1fr;
+        }
+        .coupon-page-title {
+          font-size: 28px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .coupon-main {
+          width: min(100% - 32px, 900px);
+          margin: 24px auto 48px;
+        }
+        .profile-tabs {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .profile-tab {
+          min-height: 50px;
+          font-size: 9px;
+        }
+        .profile-tab svg {
+          width: 13px;
+          height: 13px;
+        }
+        .coupon-page-title {
+          font-size: 24px;
+        }
+        .profile-footer .footer-container {
+          flex-direction: column;
+          gap: 32px;
+        }
+        .profile-footer .footer-nav-groups {
+          flex-wrap: wrap;
+          gap: 28px;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="coupon-page">
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header class="site-header coupon-header" role="banner">
+      <div class="header-container">
+        <!-- Brand logo -->
+        <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+          <svg
+            class="logo-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2" />
+          </svg>
+          <span class="logo-text">VERDÉ</span>
+        </a>
+
+        <!-- Center navigation -->
+        <nav class="main-nav" aria-label="Primary Navigation">
+          <ul class="nav-list">
+            <li><a href="/" class="nav-link">Home</a></li>
+            <li><a href="{% url 'product_list' %}" class="nav-link">Shop</a></li>
+            <li><a href="/#offers" class="nav-link">Offers</a></li>
+            <li><a href="/#about" class="nav-link">About</a></li>
+          </ul>
+        </nav>
+
+        <!-- Right action icons -->
+        <div class="header-actions">
+          <a href="{% url 'product_list' %}" class="action-btn" id="searchBtn" aria-label="Search" title="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </a>
+
+          <a href="/wishlist/" class="action-btn" id="wishlistBtn" aria-label="Wishlist" title="Wishlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <span class="badge-count js-wishlist-count-badge" id="wishlistCountBadge" style="{% if not wishlist_count %}display:none;{% endif %}">{% if wishlist_count %}{{ wishlist_count }}{% else %}0{% endif %}</span>
+          </a>
+
+          <a
+            href="{% url 'cart:cart_page' %}"
+            {% if user.is_authenticated %}data-cart-api="{% url 'cart:view_cart' %}"{% endif %}
+            class="action-btn"
+            aria-label="Cart"
+            title="Cart"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+          </a>
+
+          {% if user.is_authenticated %}
+          <a href="{% url 'profile' %}" class="action-btn profile-avatar" aria-label="Profile" title="Profile">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+            {% else %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 20a8 8 0 0 1 16 0"></path>
+            </svg>
+            {% endif %}
+          </a>
+          {% else %}
+          <a href="{% url 'login_page' %}" class="btn-signin">Sign In</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================================
+         MAIN
+         ============================================================ -->
+    <main class="coupon-main">
+
+      <!-- ---- Account navigation tabs ---- -->
+      <nav class="profile-tabs" aria-label="Account navigation">
+        <a class="profile-tab" href="{% url 'profile' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <circle cx="12" cy="8" r="3" />
+            <path d="M5 21a7 7 0 0 1 14 0" />
+          </svg>
+          Profile
+        </a>
+        <a class="profile-tab" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h4" />
+          </svg>
+          Orders
+        </a>
+        <a class="profile-tab active" href="{% url 'user_coupons_page' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+            <rect x="9" y="3" width="6" height="4" rx="1" />
+            <path d="M9 12h6M9 16h4" />
+          </svg>
+          Coupons
+        </a>
+        <a class="profile-tab" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M15 13h3" />
+          </svg>
+          Wallet
+        </a>
+        <a class="profile-tab" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <circle cx="9" cy="8" r="3" />
+            <circle cx="17" cy="9" r="2.5" />
+            <path d="M3 20a6 6 0 0 1 12 0M15 15a5 5 0 0 1 6 5" />
+          </svg>
+          Referrals
+        </a>
+        <a class="profile-tab" href="{% url 'address_page' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" />
+            <circle cx="12" cy="9" r="2.5" />
+          </svg>
+          Addresses
+        </a>
+        <button class="profile-tab profile-logout" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M10 17l5-5-5-5M15 12H3M21 3v18" />
+          </svg>
+          Logout
+        </button>
+      </nav>
+
+      <!-- ---- Page heading ---- -->
+      <div class="coupon-page-heading">
+        <h1 class="coupon-page-title">Your Privileges</h1>
+        <p class="coupon-page-subtitle">Curated botanical offerings and seasonal discounts, exclusively for your collection.</p>
+      </div>
+
+      <!-- ====================================================
+           ACTIVE OFFERS
+           ==================================================== -->
+      {% if coupons %}
+      <section class="offers-section" aria-labelledby="active-offers-title">
+        <div class="offers-section-header">
+          <h2 class="offers-section-title" id="active-offers-title">Active Offers</h2>
+          <span class="offers-count-badge">{{ coupons|length }} AVAILABLE</span>
+        </div>
+
+        <div class="coupons-grid">
+          {% for coupon in coupons %}
+          {# Alternate between light and dark card; every 3rd card gets a dark variant #}
+          {% if forloop.counter|divisibleby:3 %}
+          <!-- DARK / PREMIUM card -->
+          <article class="coupon-card variant-dark" aria-label="{{ coupon.coupon_name }} coupon">
+
+            <!-- Decorative icon -->
+            <div class="coupon-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13" rx="2" />
+                <path d="M16 8h4l3 5v3h-7V8z" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+            </div>
+
+            <!-- Tag -->
+            <p class="coupon-tag">{{ coupon.coupon_name }}</p>
+
+            <!-- Discount headline -->
+            <h3 class="coupon-discount">
+              {% if coupon.discount_type == "percentage" %}
+                {{ coupon.discount_value|floatformat:0 }}% OFF
+              {% else %}
+                &#8377;{{ coupon.discount_value|floatformat:0 }} OFF
+              {% endif %}
+            </h3>
+
+            <!-- Description -->
+            <p class="coupon-description">
+              Min. order &#8377;{{ coupon.minimum_order_amount|floatformat:0 }}.
+              {% if coupon.max_discount_amount %}
+                Max discount &#8377;{{ coupon.max_discount_amount|floatformat:0 }}.
+              {% endif %}
+            </p>
+
+            <hr class="coupon-divider" />
+
+            <!-- Expiry + auto-applied -->
+            <div class="coupon-auto-row">
+              <span class="coupon-expiry">
+                Expires {{ coupon.expiry_date|date:"M j, Y" }}
+              </span>
+              <span class="coupon-auto-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Auto-Applied
+              </span>
+            </div>
+
+          </article>
+
+          {% else %}
+          <!-- LIGHT card -->
+          <article class="coupon-card variant-light" aria-label="{{ coupon.coupon_name }} coupon">
+
+            <!-- Decorative icon -->
+            <div class="coupon-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                <line x1="7" y1="7" x2="7.01" y2="7" />
+              </svg>
+            </div>
+
+            <!-- Tag -->
+            <p class="coupon-tag">{{ coupon.coupon_name }}</p>
+
+            <!-- Discount headline -->
+            <h3 class="coupon-discount">
+              {% if coupon.discount_type == "percentage" %}
+                {{ coupon.discount_value|floatformat:0 }}% OFF
+              {% else %}
+                &#8377;{{ coupon.discount_value|floatformat:0 }} OFF
+              {% endif %}
+            </h3>
+
+            <!-- Description / meta -->
+            <p class="coupon-description">
+              Valid on orders above &#8377;{{ coupon.minimum_order_amount|floatformat:0 }}.
+              {% if coupon.max_discount_amount %}
+                Max discount &#8377;{{ coupon.max_discount_amount|floatformat:0 }}.
+              {% endif %}
+            </p>
+
+            <!-- Meta row -->
+            <div class="coupon-meta">
+              <span class="coupon-expiry">Expires {{ coupon.expiry_date|date:"M j, Y" }}</span>
+            </div>
+
+            <hr class="coupon-divider" />
+
+            <!-- Code + copy button -->
+            <div class="coupon-code-row">
+              <span class="coupon-code-pill" data-coupon-code="{{ coupon.code }}">{{ coupon.code }}</span>
+              <button
+                class="btn-copy-code"
+                type="button"
+                data-code="{{ coupon.code }}"
+                aria-label="Copy coupon code {{ coupon.code }}"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy Code
+              </button>
+            </div>
+
+            <!-- Apply button (ready for future wiring) -->
+            <div style="margin-top: 10px;">
+              <button class="btn-apply-coupon" type="button" data-coupon-code="{{ coupon.code }}" disabled>
+                Apply Coupon
+              </button>
+            </div>
+
+          </article>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+
+      {% else %}
+      <!-- ====================================================
+           EMPTY STATE — no valid coupons
+           ==================================================== -->
+      <section class="offers-section" aria-label="No active offers">
+        <div class="offers-section-header">
+          <h2 class="offers-section-title">Active Offers</h2>
+          <span class="offers-count-badge">0 AVAILABLE</span>
+        </div>
+        <div class="coupon-empty-state">
+          <div class="coupon-empty-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+              <line x1="7" y1="7" x2="7.01" y2="7" />
+            </svg>
+          </div>
+          <h3 class="coupon-empty-title">No Active Offers</h3>
+          <p class="coupon-empty-desc">
+            You have no active coupons right now. Check back soon — exclusive botanical offers are curated just for your collection.
+          </p>
+        </div>
+      </section>
+      {% endif %}
+
+    </main>
+
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+    <footer class="profile-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <div class="footer-logo">VERDÉ</div>
+          <p class="footer-tagline">
+            &copy; 2024 VERDÉ. Curating botanical elegance for<br />your domestic spaces.
+          </p>
+        </div>
+        <div class="footer-nav-groups">
+          <div class="footer-group">
+            <strong class="footer-heading">Shop</strong>
+            <a class="footer-link" href="#">Indoor</a>
+            <a class="footer-link" href="#">Outdoor</a>
+            <a class="footer-link" href="#">Accessories</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Help</strong>
+            <a class="footer-link" href="#">Contact</a>
+            <a class="footer-link" href="#">FAQ</a>
+            <a class="footer-link" href="#">Shipping</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Account</strong>
+            <a class="footer-link" href="{% url 'profile' %}">Profile</a>
+            <a class="footer-link" href="#">Orders</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Follow</strong>
+            <a class="footer-link" href="https://instagram.com">Instagram</a>
+            <a class="footer-link" href="https://pinterest.com">Pinterest</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Cart badge script (reused from other profile pages) -->
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
+
+    <!-- Logout -->
+    <script>
+      document.querySelectorAll(".profile-logout").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const response = await fetch("/logout/", { method: "POST" });
+          if (response.ok) window.location.href = "/login-page/";
+        });
+      });
+    </script>
+
+    <!-- Copy Coupon Code -->
+    <script>
+      (function () {
+        function copyCouponCode(btn) {
+          const code = btn.dataset.code;
+          if (!code) return;
+
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(() => showCopied(btn));
+          } else {
+            // Fallback for non-HTTPS contexts
+            const ta = document.createElement("textarea");
+            ta.value = code;
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+              document.execCommand("copy");
+              showCopied(btn);
+            } catch (e) {
+              console.warn("Copy failed:", e);
+            }
+            document.body.removeChild(ta);
+          }
+        }
+
+        function showCopied(btn) {
+          const original = btn.innerHTML;
+          btn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Copied!
+          `;
+          btn.classList.add("copied");
+          btn.disabled = true;
+          setTimeout(() => {
+            btn.innerHTML = original;
+            btn.classList.remove("copied");
+            btn.disabled = false;
+          }, 2000);
+        }
+
+        document.querySelectorAll(".btn-copy-code").forEach((btn) => {
+          btn.addEventListener("click", () => copyCouponCode(btn));
+        });
+      })();
+    </script>
+  </body>
+</html>

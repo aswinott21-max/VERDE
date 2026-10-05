@@ -473,10 +473,10 @@
               <a href="{% url 'product_list' %}" class="nav-link">Shop</a>
             </li>
             <li class="nav-item">
-              <a href="#offers" class="nav-link">Offers</a>
+              <a href="/#offers" class="nav-link">Offers</a>
             </li>
             <li class="nav-item">
-              <a href="#about" class="nav-link">About</a>
+              <a href="/#about" class="nav-link">About</a>
             </li>
           </ul>
         </nav>
@@ -484,12 +484,12 @@
         <!-- Right: Utility Actions & Sign In -->
         <div class="header-actions">
           <!-- Search Button -->
-          <button class="action-btn" id="searchBtn" aria-label="Search botanicals">
+          <a href="{% url 'product_list' %}" class="action-btn" id="searchBtn" aria-label="Search botanicals" title="Search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-          </button>
+          </a>
 
           <!-- Wishlist Button -->
           <a href="/wishlist/" class="action-btn active" id="wishlistBtn" aria-label="Wishlist" aria-current="page">
@@ -500,7 +500,7 @@
           </a>
 
           <!-- Cart Button -->
-          <a href="{% url 'cart:cart_page' %}" data-cart-api="{% url 'cart:view_cart' %}" class="action-btn" aria-label="Cart" title="Cart">
+          <a href="{% url 'cart:cart_page' %}" {% if user.is_authenticated %}data-cart-api="{% url 'cart:view_cart' %}"{% endif %} class="action-btn" aria-label="Cart" title="Cart">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="9" cy="21" r="1"></circle>
               <circle cx="20" cy="21" r="1"></circle>
@@ -511,18 +511,18 @@
 
           <!-- Sign In / Profile Avatar -->
           {% if user.is_authenticated %}
-          <a href="/profile/" class="profile-avatar" aria-label="Profile">
+          <a href="{% url 'profile' %}" class="action-btn profile-avatar" aria-label="Profile" title="Profile">
             {% if user.profile_picture %}
-            <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" />
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
             {% else %}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="8" r="4"></circle>
-              <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+              <path d="M4 20a8 8 0 0 1 16 0"></path>
             </svg>
             {% endif %}
           </a>
           {% else %}
-          <a href="/login-page/" class="btn-signin">Sign In</a>
+          <a href="{% url 'login_page' %}" class="btn-signin">Sign In</a>
           {% endif %}
         </div>
       </div>

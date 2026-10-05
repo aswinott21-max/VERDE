@@ -1,0 +1,1872 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout | VERDÉ</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Global stylesheet -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+  <style>
+    /* ========================================================
+       CHECKOUT PAGE — scoped styles
+       ======================================================== */
+    :root {
+      --co-primary: #102518;
+      --co-primary-hover: #1b3825;
+      --co-bg: #f6f7f5;
+      --co-card: #ffffff;
+      --co-border: #e2e8e3;
+      --co-text: #141715;
+      --co-muted: #5e6660;
+      --co-green-light: #edf5f0;
+      --co-green-mid: #2e593d;
+      --font-serif: "Playfair Display", Georgia, serif;
+      --font-sans: "Plus Jakarta Sans", -apple-system, sans-serif;
+      --tr: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.checkout-page {
+      background: var(--co-bg);
+      color: var(--co-text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .co-header {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      z-index: 200;
+    }
+    .co-header .header-container {
+      width: 100%;
+      max-width: none;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 4vw, 40px);
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+    .co-header .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .co-header .action-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      color: var(--co-text);
+      transition: background var(--tr), color var(--tr);
+    }
+    .co-header .action-btn:hover { background: var(--co-bg); color: var(--co-primary); }
+    .co-header .action-btn svg { width: 18px; height: 18px; }
+
+    .main-nav .nav-link.active {
+      color: var(--co-primary);
+      font-weight: 700;
+      position: relative;
+    }
+    .main-nav .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--co-primary);
+      border-radius: 1px;
+    }
+
+    /* ---- Main layout ---- */
+    .co-main {
+      flex: 1;
+      width: min(100% - 48px, 1180px);
+      margin: 36px auto 72px;
+    }
+
+    .co-page-title {
+      font-family: var(--font-serif);
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--co-primary);
+      margin: 0 0 28px;
+    }
+
+    .co-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ---- Card shell ---- */
+    .co-card {
+      background: var(--co-card);
+      border: 1px solid var(--co-border);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(16,37,24,.04);
+      margin-bottom: 20px;
+    }
+    .co-card:last-child { margin-bottom: 0; }
+
+    .co-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--co-text);
+      letter-spacing: .02em;
+      margin: 0 0 20px;
+    }
+
+    /* ---- Address list ---- */
+    .co-addr-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .co-addr-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px 18px;
+      border: 1.5px solid var(--co-border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color var(--tr), background var(--tr);
+    }
+    .co-addr-item:hover { border-color: #b0c8b8; background: #fbfdfb; }
+    .co-addr-item.selected {
+      border-color: var(--co-primary);
+      background: #d6ded9;
+    }
+
+    .co-addr-radio {
+      margin-top: 2px;
+      flex-shrink: 0;
+      width: 16px; height: 16px;
+      accent-color: var(--co-primary);
+      cursor: pointer;
+    }
+
+    .co-addr-body { flex: 1; min-width: 0; }
+
+    .co-addr-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .co-addr-label {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--co-text);
+    }
+    .co-addr-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .co-addr-default-badge {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: #112419;
+      color: #ffffff;
+    }
+    .co-addr-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--co-text);
+      margin-bottom: 2px;
+    }
+    .co-addr-lines {
+      font-size: 12px;
+      color: var(--co-muted);
+      line-height: 1.5;
+    }
+    .co-addr-edit-btn {
+      margin-top: 2px;
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--co-green-mid);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      font-family: var(--font-sans);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .co-addr-edit-btn:hover { color: var(--co-primary); }
+
+    /* Add address button */
+    .co-add-addr-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      padding: 12px;
+      border: 1.5px dashed #c5d6ca;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--co-green-mid);
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: border-color var(--tr), background var(--tr), color var(--tr);
+    }
+    .co-add-addr-btn:hover {
+      border-color: var(--co-primary);
+      background: var(--co-green-light);
+      color: var(--co-primary);
+    }
+    .co-add-addr-btn svg { width: 13px; height: 13px; stroke-width: 2.5; }
+
+    /* No-address empty */
+    .co-addr-empty {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--co-muted);
+      font-size: 13px;
+    }
+
+    /* ---- Payment options ---- */
+    .co-payment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .co-pay-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      border: 1.5px solid var(--co-border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color var(--tr), background var(--tr);
+    }
+    .co-pay-item:hover { border-color: #b0c8b8; background: #fbfdfb; }
+    .co-pay-item.selected {
+      border-color: var(--co-primary);
+      background: #d6ded9;
+    }
+
+    .co-pay-radio {
+      flex-shrink: 0;
+      width: 16px; height: 16px;
+      accent-color: var(--co-primary);
+      cursor: pointer;
+    }
+
+    .co-pay-body { flex: 1; }
+    .co-pay-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--co-text);
+      margin-bottom: 2px;
+    }
+    .co-pay-desc {
+      font-size: 11.5px;
+      color: var(--co-muted);
+    }
+
+    .co-pay-icon {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: #f4f6f4;
+      color: #5a7060;
+    }
+    .co-pay-icon svg { width: 18px; height: 18px; stroke-width: 1.6; }
+
+    /* Proceed to Pay button */
+    .co-proceed-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 52px;
+      background: var(--co-primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: background var(--tr);
+    }
+    .co-proceed-btn:hover { background: var(--co-primary-hover); }
+    .co-proceed-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .co-proceed-btn svg { width: 15px; height: 15px; stroke-width: 2; }
+
+    /* ---- Right column: Order Summary ---- */
+    .co-right { display: flex; flex-direction: column; gap: 0; }
+
+    /* Order items */
+    .co-item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .co-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .co-item-img-wrap {
+      width: 60px; height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f0f2ef;
+      flex-shrink: 0;
+    }
+    .co-item-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .co-item-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #b0b8b0;
+    }
+    .co-item-img-placeholder svg { width: 22px; height: 22px; }
+
+    .co-item-body { flex: 1; min-width: 0; }
+    .co-item-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--co-text);
+      margin-bottom: 2px;
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .co-item-variant {
+      font-size: 11px;
+      color: var(--co-muted);
+      margin-bottom: 2px;
+    }
+    .co-item-qty {
+      font-size: 11px;
+      color: var(--co-muted);
+    }
+    .co-item-price {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--co-primary);
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    .co-divider {
+      border: 0;
+      border-top: 1px solid var(--co-border);
+      margin: 0 0 18px;
+    }
+
+    /* Summary rows */
+    .co-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .co-summary-label { color: var(--co-muted); font-weight: 500; }
+    .co-summary-value { color: var(--co-text); font-weight: 500; }
+    .co-summary-value.discount { color: #27774d; font-weight: 600; }
+    .co-summary-value.free { color: #27774d; font-weight: 600; }
+
+    .co-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--co-border);
+    }
+    .co-total-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--co-primary);
+    }
+    .co-total-value {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--co-primary);
+    }
+
+    /* ---- Delivery Method ---- */
+    .co-delivery-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .co-delivery-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--co-border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color var(--tr), background var(--tr);
+    }
+    .co-delivery-item:hover { border-color: #b0c8b8; background: #fbfdfb; }
+    .co-delivery-item.selected {
+      border-color: var(--co-primary);
+      background: #f3fbf5;
+    }
+
+    .co-delivery-radio {
+      margin-top: 2px;
+      flex-shrink: 0;
+      width: 16px; height: 16px;
+      accent-color: var(--co-primary);
+    }
+
+    .co-delivery-body { flex: 1; }
+    .co-delivery-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--co-text);
+      margin-bottom: 2px;
+    }
+    .co-delivery-sub {
+      font-size: 11.5px;
+      color: var(--co-muted);
+    }
+    .co-delivery-price {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--co-primary);
+      flex-shrink: 0;
+    }
+
+    /* ---- Error banner ---- */
+    .co-error-banner {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      font-size: 12.5px;
+    }
+    .co-error-banner.visible { display: flex; }
+    .co-error-banner svg { flex-shrink: 0; width: 15px; height: 15px; }
+
+    /* ---- Order success dialog ---- */
+    #co-order-success-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(10,23,15,.52);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+      overflow-y: auto;
+    }
+    #co-order-success-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .co-order-success-dialog {
+      width: min(100%, 460px);
+      max-height: 88vh;
+      overflow-y: auto;
+      border: 1px solid #cfd5d0;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 24px 60px rgba(0,0,0,.22);
+      padding: 28px;
+      transform: translateY(-12px) scale(.98);
+      transition: transform .26s cubic-bezier(.16,1,.3,1);
+    }
+    #co-order-success-backdrop.open .co-order-success-dialog {
+      transform: translateY(0) scale(1);
+    }
+    .co-order-success-icon {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      margin-bottom: 14px;
+      border-radius: 50%;
+      background: #edf7ef;
+      color: #27774d;
+    }
+    .co-order-success-icon svg { width: 24px; height: 24px; }
+    .co-order-success-title {
+      margin: 0 0 6px;
+      color: #1a2c20;
+      font-family: var(--font-serif);
+      font-size: 23px;
+      font-weight: 600;
+    }
+    .co-order-success-subtitle {
+      margin: 0 0 20px;
+      color: var(--co-muted);
+      font-size: 12.5px;
+    }
+    .co-order-details {
+      margin: 0;
+      padding: 14px 16px;
+      border: 1px solid var(--co-border);
+      border-radius: 7px;
+      background: #fbfcfb;
+    }
+    .co-order-detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 7px 0;
+      font-size: 12.5px;
+    }
+    .co-order-detail-row[hidden] { display: none; }
+    .co-order-detail-row:first-child { padding-top: 0; }
+    .co-order-detail-row:last-child { padding-bottom: 0; }
+    .co-order-detail-row dt { color: var(--co-muted); }
+    .co-order-detail-row dd {
+      margin: 0;
+      color: var(--co-text);
+      font-weight: 600;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+    .co-order-detail-row.total {
+      margin-top: 7px;
+      padding-top: 12px;
+      border-top: 1px solid var(--co-border);
+      font-size: 14px;
+    }
+    .co-order-detail-row.total dd { color: var(--co-primary); }
+    .co-order-success-ok {
+      width: 100%;
+      height: 42px;
+      margin-top: 20px;
+      border: 0;
+      border-radius: 5px;
+      background: var(--co-primary);
+      color: #fff;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .co-order-success-ok:hover { background: var(--co-primary-hover); }
+
+    /* ---- Address modal ---- */
+    #co-addr-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(10,23,15,.52);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+      overflow-y: auto;
+    }
+    #co-addr-modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .co-modal {
+      position: relative;
+      width: min(100%, 480px);
+      max-height: 88vh;
+      border: 1px solid #cfd5d0;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 24px 60px rgba(0,0,0,.22);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(-12px) scale(.98);
+      transition: transform .26s cubic-bezier(.16,1,.3,1);
+    }
+    #co-addr-modal-backdrop.open .co-modal { transform: translateY(0) scale(1); }
+
+    .co-modal-header {
+      padding: 24px 26px 14px;
+      border-bottom: 1px solid transparent;
+      flex-shrink: 0;
+      background: #fff;
+      z-index: 2;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .co-modal-header.scrolled {
+      border-bottom-color: #e5eae6;
+      box-shadow: 0 4px 14px rgba(16,37,24,.05);
+    }
+    .co-modal-close {
+      position: absolute;
+      top: 18px; right: 20px;
+      width: 28px; height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      color: #6b7770;
+      cursor: pointer;
+      transition: color var(--tr);
+    }
+    .co-modal-close:hover { color: var(--co-text); }
+    .co-modal-close svg { width: 16px; height: 16px; }
+
+    .co-modal-title {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a2c20;
+      margin: 0 32px 4px 0;
+    }
+    .co-modal-subtitle {
+      font-size: 12px;
+      color: #667269;
+      margin: 0;
+    }
+
+    .co-modal-body {
+      padding: 16px 26px 16px;
+      overflow-y: auto;
+      max-height: min(56vh, 420px);
+      scrollbar-width: thin;
+      scrollbar-color: #bac5bd #f1f4f1;
+    }
+    .co-modal-body::-webkit-scrollbar { width: 5px; }
+    .co-modal-body::-webkit-scrollbar-track { background: #f1f4f1; border-radius: 5px; }
+    .co-modal-body::-webkit-scrollbar-thumb { background: #bac5bd; border-radius: 5px; }
+
+    .co-form-group { margin-bottom: 13px; }
+    .co-form-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+    .co-form-label {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #3b453e;
+      margin-bottom: 5px;
+      letter-spacing: .03em;
+    }
+    .co-form-input,
+    .co-form-select {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px;
+      border: 1px solid #d5ded7;
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--co-text);
+      background: #fff;
+      font-family: var(--font-sans);
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .co-form-input:focus,
+    .co-form-select:focus {
+      border-color: #244b32;
+      box-shadow: 0 0 0 2px rgba(36,75,50,.1);
+    }
+    .co-form-input::placeholder { color: #a4aea7; font-size: 12.5px; }
+    .co-form-select {
+      padding-right: 30px;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+    .co-select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .co-select-chevron {
+      position: absolute;
+      top: 50%;
+      right: 11px;
+      width: 14px;
+      height: 14px;
+      transform: translateY(-50%);
+      stroke: #667269;
+      pointer-events: none;
+    }
+    .co-form-error {
+      font-size: 11px;
+      color: #c0392b;
+      margin-top: 4px;
+      display: none;
+    }
+    .co-form-error.visible { display: block; }
+
+    .co-addr-type-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .co-type-btn {
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 4px;
+      border: 1px solid #d5ded7;
+      background: #fff;
+      color: #4a544e;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: all .14s;
+    }
+    .co-type-btn.active {
+      background: #14281b;
+      border-color: #14281b;
+      color: #fff;
+      font-weight: 700;
+    }
+    .co-type-btn:hover:not(.active) { background: #f4f7f4; border-color: #b5c2b8; }
+
+    .co-checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+    .co-checkbox-row input { width: 14px; height: 14px; accent-color: #14281b; cursor: pointer; }
+    .co-checkbox-text { font-size: 12.5px; color: #2b332d; }
+
+    .co-form-feedback {
+      font-size: 12px;
+      display: none;
+      margin-top: 10px;
+    }
+    .co-form-feedback.error { color: #c0392b; display: block; }
+    .co-form-feedback.success { color: #27774d; display: block; }
+
+    .co-modal-footer {
+      background: #f4f6f4;
+      border-top: 1px solid #d8ded9;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-shrink: 0;
+      transition: box-shadow .2s;
+    }
+    .co-modal-footer.shadow { box-shadow: 0 -4px 14px rgba(16,37,24,.06); }
+
+    .co-btn-cancel {
+      height: 36px;
+      padding: 0 18px;
+      border: 1px solid #cfd7d0;
+      border-radius: 3px;
+      background: #fff;
+      color: #28312b;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: background .14s;
+    }
+    .co-btn-cancel:hover { background: #eef2ee; }
+
+    .co-btn-save {
+      height: 36px;
+      padding: 0 20px;
+      border: 1px solid #182c1f;
+      border-radius: 3px;
+      background: #182c1f;
+      color: #fff;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: background .14s;
+    }
+    .co-btn-save:hover { background: #233e2d; }
+    .co-btn-save:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* ---- Footer ---- */
+    .co-footer {
+      background: #0d2217;
+      color: #fff;
+      margin-top: auto;
+    }
+    .co-footer-inner {
+      width: min(100% - 48px, 1180px);
+      margin: 0 auto;
+      padding: 52px 0 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+    }
+    .co-footer-logo {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+    .co-footer-tagline {
+      margin-top: 12px;
+      color: #8ea394;
+      font-size: 11px;
+      line-height: 1.8;
+    }
+    .co-footer-groups {
+      display: flex;
+      gap: 56px;
+    }
+    .co-footer-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .co-footer-heading {
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .co-footer-link {
+      color: #8ea394;
+      font-size: 11px;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .co-footer-link:hover { color: #fff; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 900px) {
+      .co-grid { grid-template-columns: 1fr; }
+      .co-right { order: -1; }
+    }
+    @media (max-width: 520px) {
+      .co-main { width: min(100% - 32px, 900px); margin: 20px auto 48px; }
+      .co-page-title { font-size: 24px; margin-bottom: 20px; }
+      .co-card { padding: 20px 18px; }
+      .co-form-row { grid-template-columns: 1fr; }
+      .co-footer-inner { flex-direction: column; gap: 28px; }
+      .co-footer-groups { flex-wrap: wrap; gap: 28px; }
+    }
+  </style>
+</head>
+
+<body class="checkout-page">
+
+<!-- =====================================================================
+     HEADER
+     ===================================================================== -->
+<header class="site-header co-header" role="banner">
+  <div class="header-container">
+    <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+      <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2"/>
+      </svg>
+      <span class="logo-text">VERDÉ</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Primary Navigation">
+      <ul class="nav-list">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="{% url 'product_list' %}" class="nav-link">Shop</a></li>
+        <li><a href="/#offers" class="nav-link">Offers</a></li>
+        <li><a href="/#about" class="nav-link">About</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="action-btn" aria-label="Search" title="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+
+      <a href="/wishlist/" class="action-btn" aria-label="Wishlist" title="Wishlist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+      </a>
+
+      <a href="{% url 'cart:cart_page' %}" {% if user.is_authenticated %}data-cart-api="{% url 'cart:view_cart' %}"{% endif %} class="action-btn" aria-label="Cart" title="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+      </a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'profile' %}" class="action-btn profile-avatar" aria-label="Profile" title="Profile">
+        {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+        {% else %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>
+        </svg>
+        {% endif %}
+      </a>
+      {% else %}
+      <a href="{% url 'login_page' %}" class="btn-signin">Sign In</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<!-- =====================================================================
+     MAIN
+     ===================================================================== -->
+<main class="co-main">
+  <h1 class="co-page-title">Checkout</h1>
+
+  <!-- Global banners -->
+  <div class="co-error-banner" id="coErrorBanner" role="alert" aria-live="polite">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="coErrorMsg"></span>
+  </div>
+  <div class="co-grid">
+    <!-- ===========================
+         LEFT COLUMN
+         =========================== -->
+    <div class="co-left">
+
+      <!-- ---- Shipping Address ---- -->
+      <div class="co-card" id="coAddressCard">
+        <p class="co-card-title">Shipping Address</p>
+
+        {% if addresses %}
+        <div class="co-addr-list" id="coAddrList">
+          {% for address in addresses %}
+          <label class="co-addr-item {% if address.is_default %}selected{% endif %}" for="coAddr{{ address.id }}">
+            <input
+              class="co-addr-radio"
+              type="radio"
+              id="coAddr{{ address.id }}"
+              name="delivery_address"
+              value="{{ address.id }}"
+              {% if address.is_default %}checked{% endif %}
+            />
+            <div class="co-addr-body">
+              <div class="co-addr-label-row">
+                <span class="co-addr-label">
+                  {% if address.custom_label %}{{ address.custom_label }}{% else %}{{ address.address_label|title }}{% endif %}
+                </span>
+                <div class="co-addr-actions">
+                  {% if address.is_default %}
+                  <span class="co-addr-default-badge">Default</span>
+                  {% endif %}
+                  <button
+                    type="button"
+                    class="co-addr-edit-btn editAddressBtn"
+                    data-address-id="{{ address.id }}"
+                    data-full-name="{{ address.full_name }}"
+                    data-phone="{{ address.phone }}"
+                    data-address-line1="{{ address.address_line1 }}"
+                    data-address-line2="{{ address.address_line2|default:'' }}"
+                    data-city="{{ address.city }}"
+                    data-state="{{ address.state }}"
+                    data-country="{{ address.country }}"
+                    data-pin="{{ address.pin }}"
+                    data-address-label="{{ address.address_label }}"
+                    data-custom-label="{{ address.custom_label|default:'' }}"
+                    data-is-default="{{ address.is_default }}"
+                    aria-label="Edit {{ address.full_name }} address"
+                  >Edit</button>
+                </div>
+              </div>
+              <p class="co-addr-name">{{ address.full_name }}</p>
+              <p class="co-addr-lines">
+                {{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}<br>
+                {{ address.city }}, {{ address.state }} {{ address.pin }}
+              </p>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="co-addr-empty">No saved addresses found. Please add one below.</p>
+        {% endif %}
+
+        <button type="button" class="co-add-addr-btn" id="coAddNewAddrBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add New Address
+        </button>
+      </div>
+
+      <!-- ---- Payment ---- -->
+      <div class="co-card">
+        <p class="co-card-title">Payment</p>
+
+        <div class="co-payment-list">
+          <!-- Cash on Delivery -->
+          <label class="co-pay-item selected" for="payCOD">
+            <input class="co-pay-radio" type="radio" id="payCOD"
+                   name="payment_method" value="Cash on Delivery" checked />
+            <div class="co-pay-body">
+              <p class="co-pay-name">Cash on Delivery</p>
+              <p class="co-pay-desc">Pay at your doorstep</p>
+            </div>
+            <div class="co-pay-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                <circle cx="12" cy="12" r="2"></circle>
+                <path d="M6 12h.01M18 12h.01"></path>
+              </svg>
+            </div>
+          </label>
+
+          <!-- Razorpay -->
+          <label class="co-pay-item" for="payRazorpay">
+            <input class="co-pay-radio" type="radio" id="payRazorpay"
+                   name="payment_method" value="Razorpay" />
+            <div class="co-pay-body">
+              <p class="co-pay-name">RAZORPAY</p>
+              <p class="co-pay-desc">Google Pay, PhonePe, Paytm</p>
+            </div>
+            <div class="co-pay-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="21" x2="21" y2="21"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+                <polyline points="2 10 12 3 22 10"></polyline>
+                <line x1="6" y1="10" x2="6" y2="21"></line>
+                <line x1="10" y1="10" x2="10" y2="21"></line>
+                <line x1="14" y1="10" x2="14" y2="21"></line>
+                <line x1="18" y1="10" x2="18" y2="21"></line>
+              </svg>
+            </div>
+          </label>
+
+          <!-- Wallet -->
+          <label class="co-pay-item" for="payWallet">
+            <input class="co-pay-radio" type="radio" id="payWallet"
+                   name="payment_method" value="Wallet" />
+            <div class="co-pay-body">
+              <p class="co-pay-name">Wallet</p>
+              <p class="co-pay-desc">Pay with your wallet</p>
+            </div>
+            <div class="co-pay-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
+                <rect x="15" y="11" width="5" height="4" rx="1"></rect>
+              </svg>
+            </div>
+          </label>
+        </div>
+
+        <!-- Payment action -->
+        <button type="button" class="co-proceed-btn" id="coPlaceOrderBtn">
+          <span id="coPlaceOrderLabel">PLACE ORDER</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </div>
+
+    </div><!-- /.co-left -->
+
+    <!-- ===========================
+         RIGHT COLUMN
+         =========================== -->
+    <div class="co-right">
+
+      <!-- ---- Order Summary ---- -->
+      <div class="co-card">
+        <p class="co-card-title">Order Summary</p>
+
+        {% if cart_data.items %}
+        <div class="co-item-list">
+          {% for item in cart_data.items %}
+          <div class="co-item">
+            <div class="co-item-img-wrap">
+              {% if item.primary_image and item.primary_image.image_url %}
+              <img
+                src="{{ item.primary_image.image_url.url }}"
+                alt="{{ item.product.name }}"
+                class="co-item-img"
+                loading="lazy"
+              />
+              {% else %}
+              <div class="co-item-img-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </div>
+              {% endif %}
+            </div>
+            <div class="co-item-body">
+              <p class="co-item-name">{{ item.product.name }}</p>
+              {% if item.variant %}
+              <p class="co-item-variant">{{ item.variant.name }}</p>
+              {% endif %}
+              <p class="co-item-qty">Qty: {{ item.quantity }}</p>
+            </div>
+            <span class="co-item-price">&#8377;{{ item.item_total|floatformat:0 }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size:13px;color:#6a746e;text-align:center;padding:16px 0;">Your cart is empty.</p>
+        {% endif %}
+
+        <hr class="co-divider" />
+
+        <div class="co-summary-row">
+          <span class="co-summary-label">Subtotal</span>
+          <span class="co-summary-value" id="coSubtotal">&#8377;{{ cart_data.subtotal|floatformat:0 }}</span>
+        </div>
+        <div class="co-summary-row">
+          <span class="co-summary-label">Shipping</span>
+          <span class="co-summary-value" id="coShipping">&#8377;150</span>
+        </div>
+
+        <div class="co-total-row">
+          <span class="co-total-label">Total</span>
+          <span class="co-total-value" id="coTotal">&#8377;{{ cart_data.subtotal|floatformat:0 }}</span>
+        </div>
+      </div>
+
+      <!-- ---- Delivery Method ---- -->
+      <div class="co-card" style="margin-top:20px;">
+        <p class="co-card-title">Delivery Method</p>
+
+        <div class="co-delivery-list">
+          <!-- Standard -->
+          <label class="co-delivery-item selected" for="delivStandard">
+            <input class="co-delivery-radio" type="radio" id="delivStandard"
+                   name="delivery_method" value="Standard Carbon Neutral" checked />
+            <div class="co-delivery-body">
+              <p class="co-delivery-name">Standard Carbon Neutral</p>
+              <p class="co-delivery-sub">3–5 Business Days</p>
+            </div>
+            <span class="co-delivery-price" style="color:#27774d;">Free</span>
+          </label>
+
+          <!-- Express -->
+          <label class="co-delivery-item" for="delivExpress">
+            <input class="co-delivery-radio" type="radio" id="delivExpress"
+                   name="delivery_method" value="Express Botanical Delivery" />
+            <div class="co-delivery-body">
+              <p class="co-delivery-name">Express Botanical Delivery</p>
+              <p class="co-delivery-sub">1–2 Business Days</p>
+            </div>
+            <span class="co-delivery-price">&#8377;250</span>
+          </label>
+        </div>
+      </div>
+
+    </div><!-- /.co-right -->
+
+  </div><!-- /.co-grid -->
+</main>
+
+<div id="co-order-success-backdrop" aria-hidden="true">
+  <section
+    class="co-order-success-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="coOrderSuccessTitle"
+    aria-describedby="coOrderSuccessSubtitle"
+  >
+    <div class="co-order-success-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <h2 class="co-order-success-title" id="coOrderSuccessTitle">Order Placed Successfully!</h2>
+    <p class="co-order-success-subtitle" id="coOrderSuccessSubtitle">Thank you for shopping with VERDÉ.</p>
+    <dl class="co-order-details">
+      <div class="co-order-detail-row">
+        <dt>Order Number</dt>
+        <dd id="coSuccessOrderNumber"></dd>
+      </div>
+      <div class="co-order-detail-row">
+        <dt>Order Date</dt>
+        <dd id="coSuccessOrderDate"></dd>
+      </div>
+      <div class="co-order-detail-row">
+        <dt>Payment Method</dt>
+        <dd id="coSuccessPaymentMethod"></dd>
+      </div>
+      <div class="co-order-detail-row">
+        <dt>Delivery Method</dt>
+        <dd id="coSuccessDeliveryMethod"></dd>
+      </div>
+      <div class="co-order-detail-row">
+        <dt>Subtotal</dt>
+        <dd id="coSuccessSubtotal"></dd>
+      </div>
+      <div class="co-order-detail-row">
+        <dt>Shipping Charge</dt>
+        <dd id="coSuccessShipping"></dd>
+      </div>
+      <div class="co-order-detail-row" id="coSuccessDiscountRow" hidden>
+        <dt>Discount</dt>
+        <dd id="coSuccessDiscount"></dd>
+      </div>
+      <div class="co-order-detail-row total">
+        <dt>Total Amount</dt>
+        <dd id="coSuccessTotal"></dd>
+      </div>
+    </dl>
+    <button type="button" class="co-order-success-ok" id="coOrderSuccessOk">OK</button>
+  </section>
+</div>
+
+<!-- =====================================================================
+     ADDRESS MODAL (add / edit)
+     ===================================================================== -->
+<div id="co-addr-modal-backdrop" role="dialog" aria-modal="true"
+     aria-labelledby="coModalTitle" aria-hidden="true">
+  <div class="co-modal">
+
+    <div class="co-modal-header" id="coModalHeader">
+      <button class="co-modal-close" type="button" id="coModalCloseBtn" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h2 class="co-modal-title" id="coModalTitle">Add New Address</h2>
+      <p class="co-modal-subtitle">Fill in the delivery details below.</p>
+    </div>
+
+    <div class="co-modal-body" id="coModalBody">
+      <form id="coAddrForm" novalidate>
+
+        <div class="co-form-row">
+          <div class="co-form-group">
+            <label class="co-form-label" for="coFullName">Full Name *</label>
+            <input class="co-form-input" type="text" id="coFullName" name="full_name"
+                   placeholder="Jane Doe" autocomplete="name" required />
+            <p class="co-form-error" id="coFullNameErr"></p>
+          </div>
+          <div class="co-form-group">
+            <label class="co-form-label" for="coPhone">Phone *</label>
+            <input class="co-form-input" type="tel" id="coPhone" name="phone"
+                   placeholder="+91 98765 43210" autocomplete="tel" required />
+            <p class="co-form-error" id="coPhoneErr"></p>
+          </div>
+        </div>
+
+        <div class="co-form-group">
+          <label class="co-form-label" for="coLine1">Address Line 1 *</label>
+          <input class="co-form-input" type="text" id="coLine1" name="address_line1"
+                 placeholder="Street, building, apartment" autocomplete="address-line1" required />
+          <p class="co-form-error" id="coLine1Err"></p>
+        </div>
+
+        <div class="co-form-group">
+          <label class="co-form-label" for="coLine2">Address Line 2</label>
+          <input class="co-form-input" type="text" id="coLine2" name="address_line2"
+                 placeholder="Landmark (optional)" autocomplete="address-line2" />
+        </div>
+
+        <div class="co-form-row">
+          <div class="co-form-group">
+            <label class="co-form-label" for="coCity">City *</label>
+            <input class="co-form-input" type="text" id="coCity" name="city"
+                   placeholder="Mumbai" autocomplete="address-level2" required />
+            <p class="co-form-error" id="coCityErr"></p>
+          </div>
+          <div class="co-form-group">
+            <label class="co-form-label" for="coState">State *</label>
+            <div class="co-select-wrapper">
+              <select class="co-form-select" id="coState" name="state" autocomplete="address-level1" required>
+                <option value="" disabled selected>Select State</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                <option value="Assam">Assam</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Chhattisgarh">Chhattisgarh</option>
+                <option value="Goa">Goa</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                <option value="Jharkhand">Jharkhand</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Manipur">Manipur</option>
+                <option value="Meghalaya">Meghalaya</option>
+                <option value="Mizoram">Mizoram</option>
+                <option value="Nagaland">Nagaland</option>
+                <option value="Odisha">Odisha</option>
+                <option value="Punjab">Punjab</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Sikkim">Sikkim</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Telangana">Telangana</option>
+                <option value="Tripura">Tripura</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Uttarakhand">Uttarakhand</option>
+                <option value="West Bengal">West Bengal</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Chandigarh">Chandigarh</option>
+                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                <option value="Ladakh">Ladakh</option>
+                <option value="Puducherry">Puducherry</option>
+              </select>
+              <svg class="co-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+            <p class="co-form-error" id="coStateErr"></p>
+          </div>
+        </div>
+
+        <div class="co-form-row">
+          <div class="co-form-group">
+            <label class="co-form-label" for="coPin">PIN Code *</label>
+            <input class="co-form-input" type="text" id="coPin" name="pin"
+                   placeholder="400001" autocomplete="postal-code" required />
+            <p class="co-form-error" id="coPinErr"></p>
+          </div>
+          <div class="co-form-group">
+            <label class="co-form-label" for="coCountry">Country *</label>
+            <div class="co-select-wrapper">
+              <select class="co-form-select" id="coCountry" name="country" autocomplete="country-name" required>
+                <option value="India" selected>India</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="UAE">UAE</option>
+                <option value="Singapore">Singapore</option>
+              </select>
+              <svg class="co-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+            <p class="co-form-error" id="coCountryErr"></p>
+          </div>
+        </div>
+
+        <div class="co-form-group">
+          <label class="co-form-label">Address Type *</label>
+          <div class="co-addr-type-row" id="coAddrTypeRow">
+            <button type="button" class="co-type-btn active" data-value="Home">Home</button>
+            <button type="button" class="co-type-btn" data-value="Work">Work</button>
+            <button type="button" class="co-type-btn" data-value="Other">Other</button>
+          </div>
+          <input type="hidden" id="coAddrLabel" name="address_label" value="Home" />
+        </div>
+
+        <div class="co-form-group">
+          <label class="co-form-label" for="coCustomLabel">Custom Label</label>
+          <input class="co-form-input" type="text" id="coCustomLabel" name="custom_label"
+                 placeholder="E.g. Parents, Studio" />
+        </div>
+
+        <div class="co-form-group">
+          <label class="co-checkbox-row">
+            <input type="checkbox" id="coIsDefault" name="is_default" />
+            <span class="co-checkbox-text">Set as default address</span>
+          </label>
+        </div>
+
+        <p class="co-form-feedback" id="coFormFeedback"></p>
+
+      </form>
+    </div>
+
+    <div class="co-modal-footer" id="coModalFooter">
+      <button type="button" class="co-btn-cancel" id="coModalCancelBtn">Cancel</button>
+      <button type="button" class="co-btn-save" id="coSaveAddrBtn">SAVE ADDRESS</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- =====================================================================
+     FOOTER
+     ===================================================================== -->
+<footer class="co-footer">
+  <div class="co-footer-inner">
+    <div class="co-footer-brand">
+      <div class="co-footer-logo">VERDÉ</div>
+      <p class="co-footer-tagline">&copy; 2024 VERDÉ. Curating botanical elegance for<br>your domestic spaces.</p>
+    </div>
+    <div class="co-footer-groups">
+      <div class="co-footer-group">
+        <strong class="co-footer-heading">Shop</strong>
+        <a class="co-footer-link" href="{% url 'product_list' %}">Indoor</a>
+        <a class="co-footer-link" href="{% url 'product_list' %}">Outdoor</a>
+        <a class="co-footer-link" href="{% url 'product_list' %}">Accessories</a>
+      </div>
+      <div class="co-footer-group">
+        <strong class="co-footer-heading">Help</strong>
+        <a class="co-footer-link" href="#">Contact</a>
+        <a class="co-footer-link" href="#">FAQ</a>
+        <a class="co-footer-link" href="#">Shipping</a>
+      </div>
+      <div class="co-footer-group">
+        <strong class="co-footer-heading">Account</strong>
+        <a class="co-footer-link" href="{% url 'profile' %}">Profile</a>
+        <a class="co-footer-link" href="#">Orders</a>
+      </div>
+      <div class="co-footer-group">
+        <strong class="co-footer-heading">Follow</strong>
+        <a class="co-footer-link" href="https://instagram.com">Instagram</a>
+        <a class="co-footer-link" href="https://pinterest.com">Pinterest</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Cart badge -->
+<script src="{% static 'js/cart-badge.js' %}" defer></script>
+
+<!-- =====================================================================
+     CHECKOUT JAVASCRIPT
+     All existing backend API calls are preserved exactly.
+     ===================================================================== -->
+<script>
+(function () {
+  'use strict';
+
+  /* ── CSRF helper ── */
+  function getCookie(name) {
+    var parts = document.cookie.split(';');
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i].trim();
+      if (p.startsWith(name + '=')) return decodeURIComponent(p.substring(name.length + 1));
+    }
+    return null;
+  }
+
+  /* ── DOM refs ── */
+  var subtotalEl    = document.getElementById('coSubtotal');
+  var shippingEl    = document.getElementById('coShipping');
+  var totalEl       = document.getElementById('coTotal');
+  var placeOrderBtn = document.getElementById('coPlaceOrderBtn');
+  var errorBanner   = document.getElementById('coErrorBanner');
+  var errorMsg      = document.getElementById('coErrorMsg');
+  var orderSuccessBackdrop = document.getElementById('co-order-success-backdrop');
+  var orderSuccessOk = document.getElementById('coOrderSuccessOk');
+  var modalBackdrop = document.getElementById('co-addr-modal-backdrop');
+  var modalTitle    = document.getElementById('coModalTitle');
+  var modalBody     = document.getElementById('coModalBody');
+  var modalHeader   = document.getElementById('coModalHeader');
+  var modalFooter   = document.getElementById('coModalFooter');
+  var modalCloseBtn = document.getElementById('coModalCloseBtn');
+  var modalCancelBtn = document.getElementById('coModalCancelBtn');
+  var saveAddrBtn   = document.getElementById('coSaveAddrBtn');
+  var addrForm      = document.getElementById('coAddrForm');
+  var formFeedback  = document.getElementById('coFormFeedback');
+  var addNewAddrBtn = document.getElementById('coAddNewAddrBtn');
+
+  var editingAddressId = null;
+
+  /* ── Shipping / totals calculation
+   * Mirrors checkout_service.py:
+   *   subtotal >= ₹1000 → Free shipping
+   *   subtotal <  ₹1000 → ₹150
+   */
+  function updateTotals() {
+    if (!subtotalEl) return;
+    var raw = subtotalEl.textContent.replace(/[^\d.]/g, '');
+    var subtotal = parseFloat(raw) || 0;
+    var shipping = subtotal >= 1000 ? 0 : 150;
+    var total    = subtotal + shipping;
+
+    if (shipping === 0) {
+      shippingEl.textContent = 'Free';
+      shippingEl.classList.add('free');
+    } else {
+      shippingEl.textContent = '\u20B9' + shipping.toLocaleString('en-IN');
+      shippingEl.classList.remove('free');
+    }
+    totalEl.textContent = '\u20B9' + total.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  }
+  updateTotals();
+
+  /* ── Highlight selected rows ── */
+  function wireHighlight(name) {
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function (radio) {
+      var row = radio.closest('.co-addr-item, .co-pay-item, .co-delivery-item');
+      if (!row) return;
+      if (radio.checked) row.classList.add('selected');
+      radio.addEventListener('change', function () {
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function (r) {
+          var rr = r.closest('.co-addr-item, .co-pay-item, .co-delivery-item');
+          if (rr) rr.classList.toggle('selected', r.checked);
+        });
+      });
+    });
+  }
+  wireHighlight('delivery_address');
+  wireHighlight('payment_method');
+  wireHighlight('delivery_method');
+
+  var placeOrderLabel = document.getElementById('coPlaceOrderLabel');
+  function updatePaymentButton() {
+    var selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+    var isCashOnDelivery = selectedPayment && selectedPayment.value === 'Cash on Delivery';
+    placeOrderLabel.textContent = isCashOnDelivery ? 'PLACE ORDER' : 'PROCEED TO PAY';
+    placeOrderBtn.disabled = !isCashOnDelivery;
+  }
+  document.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
+    radio.addEventListener('change', updatePaymentButton);
+  });
+  updatePaymentButton();
+
+  /* ── Banners ── */
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorBanner.classList.add('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function hideError() {
+    errorBanner.classList.remove('visible');
+    errorMsg.textContent = '';
+  }
+  function showOrderSuccess(data, paymentMethod, deliveryMethod) {
+    var orderDate = data.order_date || data.created_at || new Date();
+    var parsedOrderDate = new Date(orderDate);
+    if (Number.isNaN(parsedOrderDate.getTime())) parsedOrderDate = new Date();
+
+    document.getElementById('coSuccessOrderNumber').textContent = data.order_number || '';
+    document.getElementById('coSuccessOrderDate').textContent = parsedOrderDate.toLocaleString();
+    document.getElementById('coSuccessPaymentMethod').textContent = paymentMethod;
+    document.getElementById('coSuccessDeliveryMethod').textContent = deliveryMethod;
+    document.getElementById('coSuccessSubtotal').textContent = subtotalEl.textContent;
+    document.getElementById('coSuccessShipping').textContent = shippingEl.textContent;
+    document.getElementById('coSuccessTotal').textContent = totalEl.textContent;
+
+    var discountRow = document.getElementById('coSuccessDiscountRow');
+    var discountAmount = Number.parseFloat(data.discount_amount);
+    if (Number.isFinite(discountAmount) && discountAmount > 0) {
+      document.getElementById('coSuccessDiscount').textContent =
+        '\u20B9' + discountAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+      discountRow.hidden = false;
+    } else {
+      discountRow.hidden = true;
+    }
+
+    errorBanner.classList.remove('visible');
+    orderSuccessBackdrop.classList.add('open');
+    orderSuccessBackdrop.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    orderSuccessOk.focus();
+  }
+  orderSuccessOk.addEventListener('click', function () {
+    orderSuccessBackdrop.classList.remove('open');
+    orderSuccessBackdrop.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    window.location.href = "{% url 'product_list' %}";
+  });
+
+  /* ── Modal ── */
+  function openModal() {
+    modalBackdrop.classList.add('open');
+    modalBackdrop.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () {
+      var first = document.getElementById('coFullName');
+      if (first) first.focus();
+    }, 180);
+  }
+  function closeModal() {
+    modalBackdrop.classList.remove('open');
+    modalBackdrop.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    editingAddressId = null;
+    addrForm.reset();
+    formFeedback.className = 'co-form-feedback';
+    formFeedback.textContent = '';
+    setAddrType('Home');
+    clearFieldErrors();
+  }
+  modalCloseBtn.addEventListener('click', closeModal);
+  modalCancelBtn.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', function (e) {
+    if (e.target === modalBackdrop) closeModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modalBackdrop.classList.contains('open')) closeModal();
+  });
+  if (modalBody) {
+    modalBody.addEventListener('scroll', function () {
+      modalHeader.classList.toggle('scrolled', modalBody.scrollTop > 2);
+      modalFooter.classList.toggle('shadow',
+        modalBody.scrollTop < modalBody.scrollHeight - modalBody.clientHeight - 2);
+    });
+  }
+
+  /* ── Address type buttons ── */
+  function setAddrType(val) {
+    document.getElementById('coAddrLabel').value = val;
+    document.querySelectorAll('#coAddrTypeRow .co-type-btn').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.value === val);
+    });
+  }
+  document.querySelectorAll('#coAddrTypeRow .co-type-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { setAddrType(this.dataset.value); });
+  });
+
+  /* ── Field validation helpers ── */
+  function setFieldError(inputId, errId, msg) {
+    var el = document.getElementById(errId);
+    if (el) { el.textContent = msg; el.classList.add('visible'); }
+    var inp = document.getElementById(inputId);
+    if (inp) inp.style.borderColor = '#e74c3c';
+  }
+  function clearFieldErrors() {
+    document.querySelectorAll('.co-form-error').forEach(function (e) {
+      e.textContent = ''; e.classList.remove('visible');
+    });
+    document.querySelectorAll('.co-form-input, .co-form-select').forEach(function (i) {
+      i.style.borderColor = '';
+    });
+  }
+
+  /* ── Open add new address ── */
+  addNewAddrBtn.addEventListener('click', function () {
+    editingAddressId = null;
+    addrForm.reset();
+    setAddrType('Home');
+    document.getElementById('coCountry').value = 'India';
+    modalTitle.textContent = 'Add New Address';
+    saveAddrBtn.textContent = 'SAVE ADDRESS';
+    clearFieldErrors();
+    openModal();
+  });
+
+  /* ── Open edit address ── */
+  document.querySelectorAll('.editAddressBtn').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var d = this.dataset;
+      editingAddressId = d.addressId;
+      document.getElementById('coFullName').value   = d.fullName;
+      document.getElementById('coPhone').value       = d.phone;
+      document.getElementById('coLine1').value       = d.addressLine1;
+      document.getElementById('coLine2').value       = d.addressLine2;
+      document.getElementById('coCity').value        = d.city;
+      document.getElementById('coState').value       = d.state;
+      document.getElementById('coCountry').value     = d.country;
+      document.getElementById('coPin').value         = d.pin;
+      document.getElementById('coCustomLabel').value = d.customLabel;
+      document.getElementById('coIsDefault').checked = d.isDefault === 'True';
+      setAddrType(d.addressLabel || 'Home');
+      modalTitle.textContent = 'Edit Address';
+      saveAddrBtn.textContent = 'UPDATE ADDRESS';
+      clearFieldErrors();
+      openModal();
+    });
+  });
+
+  /* ── Save / update address — uses existing profile address APIs ── */
+  saveAddrBtn.addEventListener('click', async function () {
+    clearFieldErrors();
+    formFeedback.className = 'co-form-feedback';
+    formFeedback.textContent = '';
+
+    var fullName = document.getElementById('coFullName').value.trim();
+    var phone    = document.getElementById('coPhone').value.trim();
+    var line1    = document.getElementById('coLine1').value.trim();
+    var line2    = document.getElementById('coLine2').value.trim();
+    var city     = document.getElementById('coCity').value.trim();
+    var state    = document.getElementById('coState').value.trim();
+    var country  = document.getElementById('coCountry').value.trim();
+    var pin      = document.getElementById('coPin').value.trim();
+    var label    = document.getElementById('coAddrLabel').value;
+    var custom   = document.getElementById('coCustomLabel').value.trim();
+    var isDef    = document.getElementById('coIsDefault').checked;
+
+    var hasErr = false;
+    if (!fullName) { setFieldError('coFullName','coFullNameErr','Please enter your full name.'); hasErr = true; }
+    if (!phone)    { setFieldError('coPhone','coPhoneErr','Please enter your phone number.'); hasErr = true; }
+    else if (!/^[0-9\s\-+]{7,15}$/.test(phone)) { setFieldError('coPhone','coPhoneErr','Enter a valid phone number.'); hasErr = true; }
+    if (!line1)    { setFieldError('coLine1','coLine1Err','Please enter your address.'); hasErr = true; }
+    if (!city)     { setFieldError('coCity','coCityErr','Please enter your city.'); hasErr = true; }
+    if (!state)    { setFieldError('coState','coStateErr','Please enter your state.'); hasErr = true; }
+    if (!pin)      { setFieldError('coPin','coPinErr','Please enter your PIN code.'); hasErr = true; }
+    else if (!/^[0-9A-Za-z\s\-]{3,10}$/.test(pin)) { setFieldError('coPin','coPinErr','Enter a valid PIN code.'); hasErr = true; }
+    if (!country)  { setFieldError('coCountry','coCountryErr','Please enter your country.'); hasErr = true; }
+    if (hasErr) return;
+
+    var payload = {
+      full_name:     fullName,
+      phone:         phone,
+      address_line1: line1,
+      address_line2: line2 || null,
+      city:          city,
+      state:         state,
+      country:       country,
+      pin:           pin,
+      address_label: label,
+      custom_label:  custom || null,
+      is_default:    isDef,
+    };
+
+    /* Uses the existing profile addresses API */
+    var url = editingAddressId
+      ? '/profile/addresses/' + editingAddressId + '/edit/'
+      : '/profile/addresses/add/';
+
+    saveAddrBtn.disabled = true;
+    saveAddrBtn.textContent = editingAddressId ? 'UPDATING\u2026' : 'SAVING\u2026';
+
+    try {
+      var res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(payload),
+      });
+      var data = await res.json();
+
+      if (!res.ok) {
+        formFeedback.textContent = data.error || 'Unable to save address.';
+        formFeedback.className = 'co-form-feedback error';
+        return;
+      }
+
+      formFeedback.textContent = editingAddressId ? 'Address updated!' : 'Address saved!';
+      formFeedback.className = 'co-form-feedback success';
+      setTimeout(function () { closeModal(); window.location.reload(); }, 700);
+
+    } catch (err) {
+      formFeedback.textContent = 'Network error. Please try again.';
+      formFeedback.className = 'co-form-feedback error';
+    } finally {
+      saveAddrBtn.disabled = false;
+      saveAddrBtn.textContent = editingAddressId ? 'UPDATE ADDRESS' : 'SAVE ADDRESS';
+    }
+  });
+
+  /* ── Place Order — uses existing /checkout/place-order/ API ── */
+  placeOrderBtn.addEventListener('click', async function () {
+    hideError();
+
+    var selAddr  = document.querySelector('input[name="delivery_address"]:checked');
+    var selDeliv = document.querySelector('input[name="delivery_method"]:checked');
+    var selPay   = document.querySelector('input[name="payment_method"]:checked');
+
+    if (!selAddr)  { showError('Please select a delivery address.'); return; }
+    if (!selDeliv) { showError('Please select a delivery method.'); return; }
+    if (!selPay)   { showError('Please select a payment method.'); return; }
+    if (selPay.value !== 'Cash on Delivery') return;
+
+    var payload = {
+      address_id:      selAddr.value,
+      delivery_method: selDeliv.value,
+      payment_method:  selPay.value,
+    };
+
+    placeOrderBtn.disabled = true;
+    placeOrderLabel.textContent = 'PLACING ORDER\u2026';
+
+    try {
+      var res = await fetch('/checkout/place-order/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(payload),
+      });
+      var data = await res.json();
+
+      if (res.ok) {
+        showOrderSuccess(data, selPay.value, selDeliv.value);
+        placeOrderBtn.style.display = 'none';
+      } else {
+        showError(data.message || 'Unable to place order. Please try again.');
+        updatePaymentButton();
+      }
+    } catch (err) {
+      showError('Network error. Please check your connection and try again.');
+      updatePaymentButton();
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>

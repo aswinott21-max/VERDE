@@ -1,0 +1,2042 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Management — VERDÉ Admin</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Brand & System Palette */
+            --bg-sidebar: #091a10;
+            --sidebar-hover: rgba(255, 255, 255, 0.06);
+            --sidebar-active: #142a1d;
+            --sidebar-text: #8ea896;
+            --sidebar-text-active: #ffffff;
+            --sidebar-heading: #4b6854;
+
+            --bg-main: #fbfcfb;
+            --bg-card: #ffffff;
+            --card-border: #edf0eb;
+            --table-header-bg: #f5f4f0;
+            --color-text-main: #141715;
+            --color-text-muted: #64746a;
+            --color-text-light: #94a399;
+
+            /* Coupon Status Badge Colors */
+            --badge-active-bg: #e8f5e9;
+            --badge-active-text: #2e7d32;
+            --badge-disabled-bg: #e8eaf6;
+            --badge-disabled-text: #3949ab;
+            --badge-expired-bg: #fce4ec;
+            --badge-expired-text: #c62828;
+
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+            --shadow-subtle: 0 2px 10px rgba(16, 37, 24, 0.03);
+            --shadow-card: 0 4px 20px rgba(16, 37, 24, 0.04);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        /* ── Base Reset ────────────────────────────────────────────────────── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-main);
+            color: var(--color-text-main);
+            min-height: 100vh;
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════════
+           Sidebar Navigation
+           ══════════════════════════════════════════════════════════════════════ */
+        .admin-sidebar {
+            width: 230px;
+            min-width: 230px;
+            background-color: var(--bg-sidebar);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .admin-sidebar::-webkit-scrollbar { width: 4px; }
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        /* Brand Logo */
+        .sidebar-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 24px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+        }
+
+        .brand-logo-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .brand-logo-wrap svg {
+            width: 24px;
+            height: 24px;
+            stroke: #a2c4ac;
+            margin-bottom: 2px;
+        }
+
+        .brand-title {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .brand-subtitle {
+            font-size: 9px;
+            letter-spacing: 3.5px;
+            color: #6b8a74;
+            font-weight: 600;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Navigation Groups */
+        .nav-section { margin-top: 14px; }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--sidebar-heading);
+            padding: 6px 12px 4px;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--sidebar-text);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            color: var(--sidebar-text-active);
+            background-color: var(--sidebar-hover);
+        }
+
+        .nav-item.active a {
+            color: var(--sidebar-text-active);
+            background-color: var(--sidebar-active);
+            font-weight: 600;
+        }
+
+        .nav-item svg {
+            width: 17px;
+            height: 17px;
+            stroke-width: 1.8;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+
+        .nav-item.active svg {
+            opacity: 1;
+            stroke: #72ba88;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════════
+           Main Content Area
+           ══════════════════════════════════════════════════════════════════════ */
+        .admin-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+        }
+
+        /* Top Header */
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 36px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header-title {
+            font-family: var(--font-serif);
+            font-size: 23px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            letter-spacing: -0.2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #434e46;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 4px;
+            border-radius: 50%;
+            transition: color 0.15s ease;
+        }
+
+        .header-icon-btn:hover { color: var(--color-text-main); }
+
+        .header-icon-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            background-color: #e53935;
+            border-radius: 50%;
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown-wrapper { position: relative; }
+
+        .admin-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            padding: 4px 6px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .admin-profile-btn:hover { background-color: #f0f4f1; }
+
+        .admin-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #e2e8e3;
+            color: #35493b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid #d4ded6;
+        }
+
+        .chevron-icon {
+            color: #728477;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-profile-btn[aria-expanded="true"] .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background-color: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 30px rgba(16, 37, 24, 0.1);
+            min-width: 200px;
+            padding: 6px 0;
+            z-index: 100;
+        }
+
+        .profile-dropdown-menu.show {
+            display: block;
+            animation: dropdownFadeIn 0.15s ease-out;
+        }
+
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0);    }
+        }
+
+        .dropdown-header {
+            padding: 8px 16px 6px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dropdown-user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .dropdown-user-role {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: var(--card-border);
+            margin: 4px 0;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-main);
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .dropdown-item svg {
+            width: 15px;
+            height: 15px;
+            color: #637268;
+        }
+
+        .dropdown-item:hover { background-color: #f4f6f4; }
+
+        .dropdown-item.logout-btn { color: #d32f2f; }
+        .dropdown-item.logout-btn svg { color: #d32f2f; }
+        .dropdown-item.logout-btn:hover { background-color: #fdebee; }
+
+        .logout-form { margin: 0; padding: 0; }
+
+        /* ══════════════════════════════════════════════════════════════════════
+           Page Content Container
+           ══════════════════════════════════════════════════════════════════════ */
+        .content-container {
+            padding: 32px 36px 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── Page Header Row ──────────────────────────────────────────────── */
+        .page-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-family: var(--font-serif);
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.15;
+        }
+
+        .page-subtitle {
+            font-size: 13.5px;
+            color: var(--color-text-muted);
+            margin-top: 6px;
+        }
+
+        /* ── Header Controls: Search + Buttons ───────────────────────────── */
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Search Input */
+        .search-form-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            width: 15px;
+            height: 15px;
+            color: #8c9b90;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 240px;
+            padding: 9px 14px 9px 36px;
+            background-color: #ffffff;
+            border: 1px solid #dbe2dc;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--color-text-main);
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .search-input:focus {
+            border-color: #2e593d;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.08);
+        }
+
+        .search-input::placeholder { color: #9aa89e; }
+
+        /* Search Button */
+        .btn-search {
+            padding: 9px 18px;
+            background-color: #1a3326;
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn-search:hover { background-color: #0f2219; }
+
+        /* Clear Button */
+        .btn-clear {
+            padding: 9px 18px;
+            background-color: #ffffff;
+            color: var(--color-text-main);
+            border: 1px solid #cdd6ce;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-clear:hover {
+            background-color: #f4f6f4;
+            border-color: #b0bdb3;
+        }
+
+        /* Add New Coupon Button */
+        .btn-add-coupon {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            background-color: #1c6b44;
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+            white-space: nowrap;
+        }
+
+        .btn-add-coupon:hover { background-color: #155236; }
+        .btn-add-coupon:active { transform: scale(0.98); }
+
+        /* ══════════════════════════════════════════════════════════════════════
+           Coupons Table Card
+           ══════════════════════════════════════════════════════════════════════ */
+        .table-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-subtle);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .coupons-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .coupons-table thead th {
+            background-color: var(--table-header-bg);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #5c6b60;
+            padding: 14px 20px;
+            border-bottom: 1px solid #e7ebe5;
+            white-space: nowrap;
+        }
+
+        .coupons-table thead th.th-center {
+            text-align: center;
+        }
+
+        .coupons-table thead th.th-actions {
+            text-align: center;
+        }
+
+        .coupons-table tbody td {
+            padding: 16px 20px;
+            font-size: 13.5px;
+            color: var(--color-text-main);
+            border-bottom: 1px solid #f0f3ef;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .coupons-table tbody tr:last-child td { border-bottom: none; }
+
+        .coupons-table tbody tr:hover td { background-color: #fafbfa; }
+
+        /* Column specifics */
+        .cell-name {
+            font-weight: 600;
+            color: #141715;
+        }
+
+        .cell-date {
+            color: #4b564e;
+            font-size: 13px;
+        }
+
+        .cell-discount {
+            font-weight: 600;
+        }
+
+        .cell-min-order {
+            color: #4b564e;
+        }
+
+        .cell-used {
+            text-align: center;
+            font-weight: 600;
+            color: #4b564e;
+        }
+
+        .cell-actions {
+            text-align: center;
+        }
+
+        /* Coupon Code Badge */
+        .code-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            background-color: #f0f4f1;
+            border: 1px solid #d8e2da;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #2e4f38;
+        }
+
+        /* Status Pills */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .status-active {
+            background-color: var(--badge-active-bg);
+            color: var(--badge-active-text);
+        }
+
+        .status-disabled {
+            background-color: var(--badge-disabled-bg);
+            color: var(--badge-disabled-text);
+        }
+
+        .status-expired {
+            background-color: var(--badge-expired-bg);
+            color: var(--badge-expired-text);
+        }
+
+        /* Action Icon Buttons */
+        .actions-cell-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .action-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+            color: #637268;
+        }
+
+        .action-icon-btn:hover {
+            transform: scale(1.12);
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .action-icon-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-edit { color: #3e6b4f; }
+        .btn-edit:hover { background-color: rgba(46, 89, 61, 0.08); }
+
+        .btn-toggle-disable { color: #b0611a; }
+        .btn-toggle-disable:hover { background-color: rgba(180, 83, 9, 0.08); }
+
+        .btn-toggle-enable { color: #1f6b2e; }
+        .btn-toggle-enable:hover { background-color: rgba(31, 107, 46, 0.08); }
+
+        /* Inline form for toggle (invisible wrapper) */
+        .toggle-form-inline {
+            display: flex;
+            align-items: center;
+            margin: 0;
+        }
+
+        /* Empty State */
+        .empty-state-row {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--color-text-muted);
+            font-size: 14px;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════════
+           Pagination
+           ══════════════════════════════════════════════════════════════════════ */
+        .pagination-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 24px;
+            gap: 5px;
+            background-color: #ffffff;
+            border-top: 1px solid #f0f3ef;
+            flex-wrap: wrap;
+        }
+
+        .page-link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 30px;
+            height: 30px;
+            padding: 0 8px;
+            border-radius: 4px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: #5c6b60;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .page-link-btn:hover:not(.active):not(.disabled) {
+            background-color: #f0f4f1;
+            color: var(--color-text-main);
+        }
+
+        .page-link-btn.active {
+            background-color: #091a10;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .page-link-btn.disabled {
+            opacity: 0.35;
+            pointer-events: none;
+            cursor: default;
+        }
+
+        .page-link-btn.prev-next {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 0 12px;
+            gap: 4px;
+        }
+
+        .page-ellipsis {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 30px;
+            color: #8fa093;
+            font-size: 12px;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════════
+           Modal Overlay & Container (shared for Add / Edit)
+           ══════════════════════════════════════════════════════════════════════ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(9, 26, 16, 0.5);
+            backdrop-filter: blur(3px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 580px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+            overflow: hidden;
+            transform: translateY(12px) scale(0.98);
+            transition: transform 0.22s ease;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 28px 18px;
+            border-bottom: 1px solid #eef1ed;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-family: var(--font-serif);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            letter-spacing: -0.2px;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: #7a8c80;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s ease;
+        }
+
+        .modal-close-btn:hover { color: var(--color-text-main); }
+        .modal-close-btn svg { width: 20px; height: 20px; }
+
+        .modal-body {
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Form Grid – 2 columns */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #5c7566;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border: 1px solid #d6ded7;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--color-text-main);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: #2e593d;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.08);
+        }
+
+        select.form-control {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2368796e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+
+        /* Django form errors */
+        .form-errors {
+            background-color: #fce4ec;
+            border: 1px solid #f48fb1;
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #c62828;
+        }
+
+        .form-errors ul {
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        /* Add/Edit the coupon_form rendered fields */
+        .add-form-fields p {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .add-form-fields label {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #5c7566;
+        }
+
+        .add-form-fields input,
+        .add-form-fields select,
+        .add-form-fields textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border: 1px solid #d6ded7;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--color-text-main);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .add-form-fields input:focus,
+        .add-form-fields select:focus {
+            border-color: #2e593d;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.08);
+        }
+
+        .add-form-fields .errorlist {
+            color: #c62828;
+            font-size: 12px;
+            padding-left: 0;
+            list-style: none;
+            margin-top: 3px;
+        }
+
+        .modal-footer {
+            padding: 16px 28px;
+            background-color: #fbfcfb;
+            border-top: 1px solid #eef1ed;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn-modal-cancel {
+            background: none;
+            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #5c6b60;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .btn-modal-cancel:hover {
+            background-color: #f0f4f1;
+            color: var(--color-text-main);
+        }
+
+        .btn-modal-submit {
+            background-color: #1c6b44;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 24px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(28, 107, 68, 0.25);
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+
+        .btn-modal-submit:hover { background-color: #155236; }
+        .btn-modal-submit:active { transform: scale(0.98); }
+
+        /* ── Responsive ───────────────────────────────────────────────────── */
+        @media (max-width: 1024px) {
+            .page-header-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .header-controls {
+                flex-wrap: wrap;
+            }
+            .search-input {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .admin-sidebar {
+                width: 100%;
+                min-width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .content-container {
+                padding: 20px 16px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====================================================================
+       Left Sidebar Navigation
+       ==================================================================== -->
+    <aside class="admin-sidebar" aria-label="Admin Navigation">
+        <!-- Logo & Header -->
+        <div class="sidebar-brand">
+            <div class="brand-logo-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L12 22"></path>
+                    <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                    <path d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"></path>
+                    <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+                </svg>
+                <div class="brand-title">VERDÉ</div>
+                <div class="brand-subtitle">ADMIN</div>
+            </div>
+        </div>
+
+        <!-- Section: Overview -->
+        <div class="nav-section">
+            <div class="nav-section-title">OVERVIEW</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="{% url 'admin_dashboard_page' %}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Catalog -->
+        <div class="nav-section">
+            <div class="nav-section-title">CATALOG</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="{% url 'product_dashboard' %}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        <span>Products</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'category_dashboard' %}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                        <span>Categories</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Sales -->
+        <div class="nav-section">
+            <div class="nav-section-title">SALES</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        <span>Orders</span>
+                    </a>
+                </li>
+                <!-- ACTIVE: Coupons -->
+                <li class="nav-item active">
+                    <a href="{% url 'admin_coupons_page' %}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                        </svg>
+                        <span>Coupons</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Customers -->
+        <div class="nav-section">
+            <div class="nav-section-title">CUSTOMERS</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="{% url 'admin_users_page' %}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <span>Referrals</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Content -->
+        <div class="nav-section">
+            <div class="nav-section-title">CONTENT</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span>Banners</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: Analytics -->
+        <div class="nav-section">
+            <div class="nav-section-title">ANALYTICS</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                        <span>Sales &amp; Revenue</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section: System -->
+        <div class="nav-section">
+            <div class="nav-section-title">SYSTEM</div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- ====================================================================
+       Main Content
+       ==================================================================== -->
+    <main class="admin-main">
+
+        <!-- Top Bar Header -->
+        <header class="admin-header">
+            <h1 class="header-title">Coupons</h1>
+            <div class="header-actions">
+                <!-- Search Icon -->
+                <button class="header-icon-btn" aria-label="Search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+
+                <!-- Notifications Icon -->
+                <button class="header-icon-btn" aria-label="Notifications">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="notification-dot"></span>
+                </button>
+
+                <!-- Profile Dropdown -->
+                <div class="profile-dropdown-wrapper" id="profileDropdown">
+                    <button class="admin-profile-btn" id="profileToggleBtn" aria-expanded="false" aria-haspopup="true" onclick="toggleProfileDropdown(event)">
+                        <span class="admin-name">Aswin Admin</span>
+                        <div class="admin-avatar">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown-menu" id="profileMenu">
+                        <div class="dropdown-header">
+                            <span class="dropdown-user-name">Aswin Admin</span>
+                            <span class="dropdown-user-role">Administrator</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Account Settings</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form action="/adminpanel/admin-logout/" method="POST" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item logout-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>Sign Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Coupon Management Content -->
+        <div class="content-container">
+
+            <!-- Title + Search + Add Button Row -->
+            <div class="page-header-row">
+                <div>
+                    <h2 class="page-title">COUPON MANAGEMENT</h2>
+                    <p class="page-subtitle">Manage VERDÉ's promotional coupons</p>
+                </div>
+
+                <!-- Search Form + Action Buttons -->
+                <div class="header-controls">
+                    <form method="get" class="search-form-wrap" id="searchForm">
+                        <!-- Search Icon -->
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input
+                            type="text"
+                            name="search"
+                            class="search-input"
+                            placeholder="Search coupons..."
+                            value="{{ search }}"
+                            autocomplete="off"
+                        >
+                    </form>
+
+                    <!-- SEARCH button submits the form -->
+                    <button type="submit" class="btn-search" form="searchForm">SEARCH</button>
+
+                    <!-- CLEAR navigates to the clean page -->
+                    <a href="{% url 'admin_coupons_page' %}" class="btn-clear">CLEAR</a>
+
+                    <!-- ADD NEW COUPON -->
+                    <button type="button" class="btn-add-coupon" id="openAddCouponModal">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        ADD NEW COUPON
+                    </button>
+                </div>
+            </div>
+
+            <!-- Coupons Table Card -->
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="coupons-table">
+                        <thead>
+                            <tr>
+                                <th>COUPON NAME</th>
+                                <th>CODE</th>
+                                <th>START DATE</th>
+                                <th>EXPIRE DATE</th>
+                                <th>DISCOUNT</th>
+                                <th>MIN ORDER</th>
+                                <th>STATUS</th>
+                                <th class="th-center">USED COUNT</th>
+                                <th class="th-actions">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% now "YmdHis" as current_datetime %}
+                            {% for coupon in coupons %}
+                            <tr>
+                                <!-- Coupon Name -->
+                                <td class="cell-name">{{ coupon.coupon_name }}</td>
+
+                                <!-- Code Badge -->
+                                <td>
+                                    <span class="code-badge">{{ coupon.code }}</span>
+                                </td>
+
+                                <!-- Start Date -->
+                                <td class="cell-date">{{ coupon.start_date|date:"m/d/Y" }}</td>
+
+                                <!-- Expiry Date -->
+                                <td class="cell-date">{{ coupon.expiry_date|date:"m/d/Y" }}</td>
+
+                                <!-- Discount -->
+                                <td class="cell-discount">
+                                    {% if coupon.discount_type == "percentage" %}
+                                        {{ coupon.discount_value }}%
+                                    {% else %}
+                                        &#8377;{{ coupon.discount_value }}
+                                    {% endif %}
+                                </td>
+
+                                <!-- Min Order -->
+                                <td class="cell-min-order">&#8377;{{ coupon.minimum_order_amount }}</td>
+
+                                <!-- Status -->
+                                <td>
+                                    {% if coupon.status == "disabled" %}
+                                        <span class="status-pill status-disabled">DISABLED</span>
+                                    {% elif coupon.status == "active" and coupon.expiry_date|date:"YmdHis" < current_datetime %}
+                                        <span class="status-pill status-expired">EXPIRED</span>
+                                    {% elif coupon.status == "active" %}
+                                        <span class="status-pill status-active">ACTIVE</span>
+                                    {% else %}
+                                        <span class="status-pill status-expired">{{ coupon.status|upper }}</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Used Count -->
+                                <td class="cell-used">{{ coupon.used_count }}</td>
+
+                                <!-- Actions -->
+                                <td class="cell-actions">
+                                    <div class="actions-cell-wrap">
+
+                                        <!-- Edit Button -->
+                                        <button
+                                            type="button"
+                                            class="action-icon-btn btn-edit"
+                                            title="Edit Coupon"
+                                            onclick="openEditCouponModal(
+                                                '{{ coupon.id }}',
+                                                '{{ coupon.code|escapejs }}',
+                                                '{{ coupon.coupon_name|escapejs }}',
+                                                '{{ coupon.discount_type }}',
+                                                '{{ coupon.discount_value }}',
+                                                '{{ coupon.minimum_order_amount }}',
+                                                '{{ coupon.max_discount_amount|default_if_none:"" }}',
+                                                '{{ coupon.start_date|date:"Y-m-d\TH:i" }}',
+                                                '{{ coupon.expiry_date|date:"Y-m-d\TH:i" }}',
+                                                '{{ coupon.usage_limit|default_if_none:"" }}',
+                                                '{{ coupon.status }}'
+                                            )"
+                                        >
+                                            <!-- Edit / Pencil icon -->
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Disable / Enable Toggle -->
+                                        <form
+                                            method="post"
+                                            action="{% url 'toggle_coupon_status' coupon.id %}"
+                                            class="toggle-form-inline"
+                                        >
+                                            {% csrf_token %}
+                                            {% if coupon.status == "active" %}
+                                                <button
+                                                    type="submit"
+                                                    class="action-icon-btn btn-toggle-disable"
+                                                    title="Disable Coupon"
+                                                >
+                                                    <!-- Slash / Ban icon -->
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                                                    </svg>
+                                                </button>
+                                            {% else %}
+                                                <button
+                                                    type="submit"
+                                                    class="action-icon-btn btn-toggle-enable"
+                                                    title="Enable Coupon"
+                                                >
+                                                    <!-- Check-circle icon -->
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                                    </svg>
+                                                </button>
+                                            {% endif %}
+                                        </form>
+
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="empty-state-row">
+                                    No coupons found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if coupons.paginator.num_pages > 1 %}
+                <div class="pagination-container">
+
+                    <!-- Previous -->
+                    {% if coupons.has_previous %}
+                        <a href="?search={{ search }}&page={{ coupons.previous_page_number }}" class="page-link-btn prev-next">
+                            &larr; PREV
+                        </a>
+                    {% else %}
+                        <span class="page-link-btn prev-next disabled">&larr; PREV</span>
+                    {% endif %}
+
+                    <!-- Page Numbers -->
+                    {% for page_number in coupons.paginator.page_range %}
+                        {% if page_number == coupons.number %}
+                            <span class="page-link-btn active">{{ page_number }}</span>
+                        {% elif page_number == 1 or page_number == coupons.paginator.num_pages or page_number >= coupons.number|add:"-2" and page_number <= coupons.number|add:"2" %}
+                            <a href="?search={{ search }}&page={{ page_number }}" class="page-link-btn">{{ page_number }}</a>
+                        {% elif page_number == coupons.number|add:"-3" or page_number == coupons.number|add:"3" %}
+                            <span class="page-ellipsis">&hellip;</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- Next -->
+                    {% if coupons.has_next %}
+                        <a href="?search={{ search }}&page={{ coupons.next_page_number }}" class="page-link-btn prev-next">
+                            NEXT &rarr;
+                        </a>
+                    {% else %}
+                        <span class="page-link-btn prev-next disabled">NEXT &rarr;</span>
+                    {% endif %}
+
+                </div>
+                {% endif %}
+
+            </div>
+            <!-- /table-card -->
+
+        </div>
+        <!-- /content-container -->
+    </main>
+
+
+    <!-- ====================================================================
+       ADD COUPON MODAL
+       ==================================================================== -->
+    <div class="modal-overlay" id="addCouponModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title" id="addModalTitle">Add New Coupon</h2>
+                <button type="button" class="modal-close-btn" onclick="closeAddCouponModal()" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'add_coupon' %}" id="addCouponForm">
+                {% csrf_token %}
+
+                <div class="modal-body">
+
+                    <!-- Show form-level errors if any -->
+                    {% if coupon_form.errors %}
+                    <div class="form-errors">
+                        <strong>Please correct the following errors:</strong>
+                        <ul>
+                            {% for field in coupon_form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in coupon_form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-grid">
+
+                        <!-- Coupon Name -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_coupon_name">Coupon Name</label>
+                            <input
+                                type="text"
+                                id="add_coupon_name"
+                                name="coupon_name"
+                                class="form-control"
+                                placeholder="e.g. VERDÉ Welcome"
+                                value="{{ coupon_form.coupon_name.value|default:'' }}"
+                                required
+                            >
+                        </div>
+
+                        <!-- Code -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_code">Coupon Code</label>
+                            <input
+                                type="text"
+                                id="add_code"
+                                name="code"
+                                class="form-control"
+                                placeholder="e.g. WELCOME10"
+                                value="{{ coupon_form.code.value|default:'' }}"
+                                required
+                            >
+                        </div>
+
+                        <!-- Discount Type -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_discount_type">Discount Type</label>
+                            <select id="add_discount_type" name="discount_type" class="form-control" required>
+                                <option value="percentage" {% if coupon_form.discount_type.value == "percentage" %}selected{% endif %}>Percentage</option>
+                                <option value="fixed" {% if coupon_form.discount_type.value == "fixed" %}selected{% endif %}>Fixed Amount</option>
+                            </select>
+                        </div>
+
+                        <!-- Discount Value -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_discount_value">Discount Value</label>
+                            <input
+                                type="number"
+                                id="add_discount_value"
+                                name="discount_value"
+                                class="form-control"
+                                placeholder="e.g. 10"
+                                step="0.01"
+                                min="0"
+                                value="{{ coupon_form.discount_value.value|default:'' }}"
+                                required
+                            >
+                        </div>
+
+                        <!-- Minimum Order Amount -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_minimum_order">Min. Order Amount</label>
+                            <input
+                                type="number"
+                                id="add_minimum_order"
+                                name="minimum_order_amount"
+                                class="form-control"
+                                placeholder="e.g. 999"
+                                step="0.01"
+                                min="0"
+                                value="{{ coupon_form.minimum_order_amount.value|default:'' }}"
+                            >
+                        </div>
+
+                        <!-- Max Discount Amount -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_max_discount">Max Discount Amount</label>
+                            <input
+                                type="number"
+                                id="add_max_discount"
+                                name="max_discount_amount"
+                                class="form-control"
+                                placeholder="Optional"
+                                step="0.01"
+                                min="0"
+                                value="{{ coupon_form.max_discount_amount.value|default:'' }}"
+                            >
+                        </div>
+
+                        <!-- Start Date -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_start_date">Start Date</label>
+                            <input
+                                type="datetime-local"
+                                id="add_start_date"
+                                name="start_date"
+                                class="form-control"
+                                value="{{ coupon_form.start_date.value|default:'' }}"
+                                required
+                            >
+                        </div>
+
+                        <!-- Expiry Date -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_expiry_date">Expiry Date</label>
+                            <input
+                                type="datetime-local"
+                                id="add_expiry_date"
+                                name="expiry_date"
+                                class="form-control"
+                                value="{{ coupon_form.expiry_date.value|default:'' }}"
+                                required
+                            >
+                        </div>
+
+                        <!-- Usage Limit -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_usage_limit">Usage Limit</label>
+                            <input
+                                type="number"
+                                id="add_usage_limit"
+                                name="usage_limit"
+                                class="form-control"
+                                placeholder="Leave blank for unlimited"
+                                min="1"
+                                value="{{ coupon_form.usage_limit.value|default:'' }}"
+                            >
+                        </div>
+
+                        <!-- Status -->
+                        <div class="form-group">
+                            <label class="form-label" for="add_status">Status</label>
+                            <select id="add_status" name="status" class="form-control">
+                                <option value="active" {% if coupon_form.status.value == "active" or not coupon_form.status.value %}selected{% endif %}>Active</option>
+                                <option value="disabled" {% if coupon_form.status.value == "disabled" %}selected{% endif %}>Disabled</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <!-- /form-grid -->
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeAddCouponModal()">Cancel</button>
+                    <button type="submit" class="btn-modal-submit">Create Coupon</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+       EDIT COUPON MODAL
+       ==================================================================== -->
+    <div class="modal-overlay" id="editCouponModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title" id="editModalTitle">Edit Coupon</h2>
+                <button type="button" class="modal-close-btn" onclick="closeEditCouponModal()" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <form method="post" id="editCouponForm">
+                {% csrf_token %}
+
+                <div class="modal-body">
+                    <div class="form-grid">
+
+                        <!-- Coupon Name -->
+                        <div class="form-group">
+                            <label class="form-label" for="editCouponName">Coupon Name</label>
+                            <input type="text" id="editCouponName" name="coupon_name" class="form-control" required>
+                        </div>
+
+                        <!-- Code -->
+                        <div class="form-group">
+                            <label class="form-label" for="editCode">Coupon Code</label>
+                            <input type="text" id="editCode" name="code" class="form-control" required>
+                        </div>
+
+                        <!-- Discount Type -->
+                        <div class="form-group">
+                            <label class="form-label" for="editDiscountType">Discount Type</label>
+                            <select id="editDiscountType" name="discount_type" class="form-control">
+                                <option value="percentage">Percentage</option>
+                                <option value="fixed">Fixed Amount</option>
+                            </select>
+                        </div>
+
+                        <!-- Discount Value -->
+                        <div class="form-group">
+                            <label class="form-label" for="editDiscountValue">Discount Value</label>
+                            <input type="number" id="editDiscountValue" name="discount_value" class="form-control" step="0.01" min="0" required>
+                        </div>
+
+                        <!-- Min Order Amount -->
+                        <div class="form-group">
+                            <label class="form-label" for="editMinimumOrder">Min. Order Amount</label>
+                            <input type="number" id="editMinimumOrder" name="minimum_order_amount" class="form-control" step="0.01" min="0">
+                        </div>
+
+                        <!-- Max Discount -->
+                        <div class="form-group">
+                            <label class="form-label" for="editMaxDiscount">Max Discount Amount</label>
+                            <input type="number" id="editMaxDiscount" name="max_discount_amount" class="form-control" step="0.01" min="0" placeholder="Optional">
+                        </div>
+
+                        <!-- Start Date -->
+                        <div class="form-group">
+                            <label class="form-label" for="editStartDate">Start Date</label>
+                            <input type="datetime-local" id="editStartDate" name="start_date" class="form-control" required>
+                        </div>
+
+                        <!-- Expiry Date -->
+                        <div class="form-group">
+                            <label class="form-label" for="editExpiryDate">Expiry Date</label>
+                            <input type="datetime-local" id="editExpiryDate" name="expiry_date" class="form-control" required>
+                        </div>
+
+                        <!-- Usage Limit -->
+                        <div class="form-group">
+                            <label class="form-label" for="editUsageLimit">Usage Limit</label>
+                            <input type="number" id="editUsageLimit" name="usage_limit" class="form-control" min="1" placeholder="Leave blank for unlimited">
+                        </div>
+
+                        <!-- Status -->
+                        <div class="form-group">
+                            <label class="form-label" for="editStatus">Status</label>
+                            <select id="editStatus" name="status" class="form-control">
+                                <option value="active">Active</option>
+                                <option value="disabled">Disabled</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <!-- /form-grid -->
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeEditCouponModal()">Cancel</button>
+                    <button type="submit" class="btn-modal-submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+       JavaScript
+       ==================================================================== -->
+    <script>
+
+    /* =========================================================
+       Profile Dropdown
+       ========================================================= */
+    function toggleProfileDropdown(event) {
+        event.stopPropagation();
+        const btn  = document.getElementById('profileToggleBtn');
+        const menu = document.getElementById('profileMenu');
+        const isOpen = menu.classList.contains('show');
+
+        menu.classList.toggle('show', !isOpen);
+        btn.setAttribute('aria-expanded', String(!isOpen));
+    }
+
+    document.addEventListener('click', function (e) {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+            document.getElementById('profileMenu').classList.remove('show');
+            document.getElementById('profileToggleBtn').setAttribute('aria-expanded', 'false');
+        }
+    });
+
+
+    /* =========================================================
+       ADD COUPON MODAL
+       ========================================================= */
+    const addCouponModal   = document.getElementById('addCouponModal');
+    const openAddCouponBtn = document.getElementById('openAddCouponModal');
+    const addStartDateInput = document.getElementById('add_start_date');
+    const addExpiryDateInput = document.getElementById('add_expiry_date');
+
+    openAddCouponBtn.addEventListener('click', function () {
+        openAddCouponModal();
+    });
+
+    function formatLocalDateTime(date) {
+        return new Date(
+            date.getTime() - date.getTimezoneOffset() * 60000
+        ).toISOString().slice(0, 16);
+    }
+
+    function getBrowserLocalDateMinimum() {
+        const now = new Date();
+        const localMidnight = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+        );
+
+        return formatLocalDateTime(localMidnight);
+    }
+
+    function setAddCouponDateMinimums() {
+        const localDateTime = getBrowserLocalDateMinimum();
+
+        addStartDateInput.min = localDateTime;
+        addExpiryDateInput.min = localDateTime;
+    }
+
+    function openAddCouponModal() {
+        setAddCouponDateMinimums();
+        addCouponModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddCouponModal() {
+        addCouponModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Close modal when clicking the backdrop
+    addCouponModal.addEventListener('click', function (e) {
+        if (e.target === addCouponModal) {
+            closeAddCouponModal();
+        }
+    });
+
+    // If form has errors, auto-open Add modal so user sees them
+    {% if coupon_form.errors %}
+    openAddCouponModal();
+    {% endif %}
+
+
+    /* =========================================================
+       EDIT COUPON MODAL
+       ========================================================= */
+    const editCouponModal = document.getElementById('editCouponModal');
+    const editCouponForm  = document.getElementById('editCouponForm');
+    const editStartDateInput = document.getElementById('editStartDate');
+    const editExpiryDateInput = document.getElementById('editExpiryDate');
+
+    function getEditDateMinimum(startDateValue = '') {
+        const now = new Date();
+        const minimumDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+        );
+
+        if (startDateValue) {
+            const dayAfterStart = new Date(startDateValue);
+            dayAfterStart.setMinutes(dayAfterStart.getMinutes() + 1);
+            if (dayAfterStart > minimumDate) {
+                minimumDate.setTime(dayAfterStart.getTime());
+            }
+        }
+
+        return formatLocalDateTime(minimumDate);
+    }
+
+    function updateEditStartDateMinimum() {
+        const originalValue = editStartDateInput.dataset.originalValue;
+        editStartDateInput.min = editStartDateInput.value === originalValue
+            ? originalValue
+            : getEditDateMinimum();
+    }
+
+    function updateEditExpiryDateMinimum() {
+        const startUnchanged =
+            editStartDateInput.value === editStartDateInput.dataset.originalValue;
+        const expiryUnchanged =
+            editExpiryDateInput.value === editExpiryDateInput.dataset.originalValue;
+
+        editExpiryDateInput.min = startUnchanged && expiryUnchanged
+            ? editExpiryDateInput.dataset.originalValue
+            : getEditDateMinimum(editStartDateInput.value);
+    }
+
+    editStartDateInput.addEventListener('focus', function () {
+        editStartDateInput.min = getEditDateMinimum();
+    });
+    editStartDateInput.addEventListener('input', function () {
+        updateEditStartDateMinimum();
+        updateEditExpiryDateMinimum();
+    });
+    editStartDateInput.addEventListener('blur', function () {
+        updateEditStartDateMinimum();
+        updateEditExpiryDateMinimum();
+    });
+
+    editExpiryDateInput.addEventListener('focus', function () {
+        editExpiryDateInput.min = getEditDateMinimum(editStartDateInput.value);
+    });
+    editExpiryDateInput.addEventListener('input', updateEditExpiryDateMinimum);
+    editExpiryDateInput.addEventListener('blur', updateEditExpiryDateMinimum);
+
+    function openEditCouponModal(
+        couponId,
+        code,
+        couponName,
+        discountType,
+        discountValue,
+        minimumOrder,
+        maxDiscount,
+        startDate,
+        expiryDate,
+        usageLimit,
+        status
+    ) {
+        /*
+         * Populate the edit form fields with the
+         * selected coupon's existing values.
+         */
+        document.getElementById('editCode').value         = code;
+        document.getElementById('editCouponName').value   = couponName;
+        document.getElementById('editDiscountType').value = discountType;
+        document.getElementById('editDiscountValue').value= discountValue;
+        document.getElementById('editMinimumOrder').value = minimumOrder;
+        document.getElementById('editMaxDiscount').value  = maxDiscount;
+        document.getElementById('editStartDate').value    = startDate;
+        document.getElementById('editExpiryDate').value   = expiryDate;
+        editStartDateInput.dataset.originalValue = startDate;
+        editExpiryDateInput.dataset.originalValue = expiryDate;
+        updateEditStartDateMinimum();
+        updateEditExpiryDateMinimum();
+        document.getElementById('editUsageLimit').value   = usageLimit;
+        document.getElementById('editStatus').value       = status;
+
+        /*
+         * Set the correct backend edit URL for the selected coupon.
+         * Example: /coupons/admin/coupons/edit/5/
+         */
+        editCouponForm.action =
+            '/coupons/admin/coupons/edit/' + couponId + '/';
+
+        // Show modal
+        editCouponModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditCouponModal() {
+        editCouponModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Close edit modal when clicking backdrop
+    editCouponModal.addEventListener('click', function (e) {
+        if (e.target === editCouponModal) {
+            closeEditCouponModal();
+        }
+    });
+
+
+    /* =========================================================
+       Keyboard: ESC closes any open modal
+       ========================================================= */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeAddCouponModal();
+            closeEditCouponModal();
+        }
+    });
+
+    </script>
+
+</body>
+</html>

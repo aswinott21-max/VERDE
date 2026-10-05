@@ -1,6 +1,7 @@
 import json
 from users.models import User, Address
 from django.http import JsonResponse
+from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from .services.validation_service import(validate_user_email,validate_user_phone,validate_user_name,validate_user_password,is_phone_taken,is_email_taken,validate_pin,validate_address_line,validate_city)
@@ -770,42 +771,76 @@ def add_address(request):
     pin = data.get("pin", "").strip()
     address_line1 = data.get("address_line1", "").strip()
     city = data.get("city", "").strip()
+    is_default = data.get("is_default", False)
 
-    #Validation
+    # Validation
     if not validate_user_name(full_name):
         return JsonResponse({"error": "Enter a valid full name"}, status=400)
+
     if not validate_user_phone(phone):
-        return JsonResponse({"error": "Phone number must contain exactly 10 digits"}, status=400)
+        return JsonResponse({
+            "error": "Phone number must contain exactly 10 digits"
+        }, status=400)
+
     if not validate_pin(pin):
-        return JsonResponse({"error": "PIN code must contain exactly 6 digits"}, status=400)
+        return JsonResponse({
+            "error": "PIN code must contain exactly 6 digits"
+        }, status=400)
+
     if not address_line1:
-        return JsonResponse({"error": "Address Line 1 is required"}, status=400)
+        return JsonResponse({
+            "error": "Address Line 1 is required"
+        }, status=400)
+
     if not validate_address_line(address_line1):
-        return JsonResponse({"error": "Enter a valid Address Line 1"}, status=400)
+        return JsonResponse({
+            "error": "Enter a valid Address Line 1"
+        }, status=400)
+
     if not city:
         return JsonResponse({
-        "error": "City is required"}, status=400)
+            "error": "City is required"
+        }, status=400)
+
     if not validate_city(city):
         return JsonResponse({
-        "error": "Enter a valid city name"}, status=400)
-    
+            "error": "Enter a valid city name"
+        }, status=400)
 
-    address = Address.objects.create(
-        user=request.user,
-        address_label=data.get("address_label", "").strip(),
-        custom_label=(data.get("custom_label") or "").strip() or None,
-        full_name=data.get("full_name", "").strip(),
-        phone=data.get("phone", "").strip(),
-        address_line1=data.get("address_line1", "").strip(),
-        address_line2=(data.get("address_line2",) or "").strip() or None,
-        city=data.get("city", "").strip(),
-        state=data.get("state", "").strip(),
-        country=data.get("country", "").strip(),
-        pin=data.get("pin", "").strip(),
-        is_default=data.get("is_default", False),
-    )
+    with transaction.atomic():
 
-    return JsonResponse({"message" : "Address added successfully", "address_id" : address.id,}, status=201)
+        # Lock the user row to prevent concurrent default-address updates
+        user = (
+            User.objects
+            .select_for_update()
+            .get(pk=request.user.pk)
+        )
+
+        # Remove existing default before creating a new default
+        if is_default:
+            Address.objects.filter(
+                user=user,
+                is_default=True
+            ).update(is_default=False)
+
+        address = Address.objects.create(
+            user=user,
+            address_label=data.get("address_label", "").strip(),
+            custom_label=(data.get("custom_label") or "").strip() or None,
+            full_name=full_name,
+            phone=phone,
+            address_line1=address_line1,
+            address_line2=(data.get("address_line2") or "").strip() or None,
+            city=city,
+            state=data.get("state", "").strip(),
+            country=data.get("country", "").strip(),
+            pin=pin,
+            is_default=is_default,
+        )
+
+    return JsonResponse({
+        "message": "Address added successfully",
+        "address_id": address.id,}, status=201)
 
 @never_cache
 @login_required
@@ -822,57 +857,104 @@ def edit_address(request, address_id):
     # Get only the logged-in user's address
     try:
         address = Address.objects.get(
-            id = address_id,
-            user = request.user 
+            id=address_id,
+            user=request.user
         )
     except Address.DoesNotExist:
-        return JsonResponse({"error" : "Address not found"}, status=404)
+        return JsonResponse({
+            "error": "Address not found"
+        }, status=404)
 
-    #Read the  updated address data
+    # Read the updated address data
     data = json.loads(request.body)
-
 
     full_name = data.get("full_name", "").strip()
     phone = data.get("phone", "").strip()
     pin = data.get("pin", "").strip()
     address_line1 = data.get("address_line1", "").strip()
     city = data.get("city", "").strip()
+    is_default = data.get("is_default", False)
 
     if not validate_user_name(full_name):
-        return JsonResponse({"error": "Enter a valid full name"}, status=400)
+        return JsonResponse({
+            "error": "Enter a valid full name"
+        }, status=400)
+
     if not validate_user_phone(phone):
-        return JsonResponse({"error": "Phone number must contain exactly 10 digits"}, status=400)
+        return JsonResponse({
+            "error": "Phone number must contain exactly 10 digits"
+        }, status=400)
+
     if not validate_pin(pin):
-        return JsonResponse({"error": "PIN code must contain exactly 6 digits"}, status=400)
+        return JsonResponse({
+            "error": "PIN code must contain exactly 6 digits"
+        }, status=400)
+
     if not address_line1:
-        return JsonResponse({"error": "Address Line 1 is required"}, status=400)
+        return JsonResponse({
+            "error": "Address Line 1 is required"
+        }, status=400)
+
     if not validate_address_line(address_line1):
-        return JsonResponse({"error": "Enter a valid Address Line 1"}, status=400)
+        return JsonResponse({
+            "error": "Enter a valid Address Line 1"
+        }, status=400)
+
     if not city:
-        return JsonResponse({"error": "City is required"}, status=400)
+        return JsonResponse({
+            "error": "City is required"
+        }, status=400)
+
     if not validate_city(city):
-        return JsonResponse({"error": "Enter a valid city name"}, status=400)
-    
+        return JsonResponse({
+            "error": "Enter a valid city name"
+        }, status=400)
 
-    address.address_label = data.get("address_label", "").strip()
-    address.custom_label = (data.get("custom_label") or "").strip() or None
-    address.full_name = data.get("full_name", "").strip()
-    address.phone = data.get("phone", "").strip()
-    address.address_line1 = data.get("address_line1", "").strip()
-    address.address_line2=(data.get("address_line2") or "").strip() or None
-    address.city = data.get("city", "").strip()
-    address.state = data.get("state", "").strip()
-    address.country = data.get("country", "").strip()
-    address.pin = data.get("pin", "").strip()
-    address.is_default = data.get("is_default", False)
+    with transaction.atomic():
 
-    #Save the updated address
-    address.save()
+        # Lock the user row to prevent concurrent default-address updates
+        user = (
+            User.objects
+            .select_for_update()
+            .get(pk=request.user.pk)
+        )
+
+        # Remove default from other addresses
+        if is_default:
+            Address.objects.filter(
+                user=user,
+                is_default=True
+            ).exclude(
+                id=address.id
+            ).update(is_default=False)
+
+        address.address_label = data.get(
+            "address_label", ""
+        ).strip()
+
+        address.custom_label = (
+            data.get("custom_label") or ""
+        ).strip() or None
+
+        address.full_name = full_name
+        address.phone = phone
+        address.address_line1 = address_line1
+
+        address.address_line2 = (
+            data.get("address_line2") or ""
+        ).strip() or None
+
+        address.city = city
+        address.state = data.get("state", "").strip()
+        address.country = data.get("country", "").strip()
+        address.pin = pin
+        address.is_default = is_default
+
+        address.save()
 
     return JsonResponse({
-        "message" :"Address updated successfully",
-        "address_id": address.id, 
-    }, status=200)
+        "message": "Address updated successfully",
+        "address_id": address.id,}, status=200)
 
 @login_required
 @require_POST
@@ -894,29 +976,40 @@ def delete_address(request, address_id):
 @login_required
 @require_POST
 def set_default_address(request, address_id):
-    # Get only the logged-in user's address
-    try:
-        address = Address.objects.get(
-            id=address_id,
-            user=request.user
+
+    with transaction.atomic():
+
+        # Lock the user row to prevent concurrent default updates
+        user = (
+            User.objects
+            .select_for_update()
+            .get(pk=request.user.pk)
         )
-    except Address.DoesNotExist:
-        return JsonResponse({
-            "error": "Address not found"
-        }, status=404)
 
-    # Remove default status from all of this user's addresses
-    Address.objects.filter(
-        user=request.user
-    ).update(is_default=False)
+        # Get only the user's selected address
+        try:
+            address = Address.objects.get(
+                id=address_id,
+                user=user
+            )
+        except Address.DoesNotExist:
+            return JsonResponse({
+                "error": "Address not found"
+            }, status=404)
 
-    # Make the selected address the default
-    address.is_default = True
-    address.save(update_fields=["is_default"])
+        # Remove default status from other addresses
+        Address.objects.filter(
+            user=user,
+            is_default=True
+        ).exclude(
+            id=address.id
+        ).update(is_default=False)
+
+        # Make selected address the default
+        address.is_default = True
+        address.save(update_fields=["is_default"])
 
     return JsonResponse({
         "message": "Default address updated successfully",
         "address_id": address.id,}, status=200)
-
-
 

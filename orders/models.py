@@ -6,26 +6,10 @@ from products.models import Product, ProductVariant
 
 class Order(models.Model):
 
-    user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="orders",
-    )
-
-    address = models.ForeignKey(
-        "OrderAddress",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="address_orders",
-    )
-
+    user = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True,related_name="orders",)
+    address = models.ForeignKey("OrderAddress",on_delete=models.SET_NULL,null=True,blank=True,related_name="address_orders",)
     coupon_id = models.BigIntegerField(null=True, blank=True)
-
     order_number = models.CharField(max_length=100, unique=True)
-
     delivery_method = models.CharField(max_length=100)
     payment_method = models.CharField(max_length=100)
     discount_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0,)
@@ -52,7 +36,7 @@ class OrderItem(models.Model):
     unit_price = models.DecimalField(max_digits=10,decimal_places=2,)
     total_price = models.DecimalField(max_digits=10,decimal_places=2,)
     discount_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0,)
-    created_at = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "order_item"
