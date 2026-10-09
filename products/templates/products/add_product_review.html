@@ -1,0 +1,957 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write a Review - Order #{{ order_number }} | VERDÉ</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Global Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        :root {
+            --color-primary: #102518;
+            --color-primary-hover: #1b3825;
+            --color-accent: #2e593d;
+            --color-bg-subtle: #f7f7f5;
+            --color-border: #e2e8e3;
+            --color-border-light: #edf0ed;
+            --color-text-main: #141715;
+            --color-text-muted: #647067;
+            --color-text-label: #4a544e;
+            --font-serif: "Playfair Display", Georgia, serif;
+            --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+            --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.review-page-body {
+            background-color: var(--color-bg-subtle);
+            color: var(--color-text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Site Header */
+        .site-header.order-header {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            z-index: 100;
+        }
+
+        .header-container {
+            width: 100%;
+            max-width: none;
+            margin: 0 auto;
+            padding: 0 clamp(16px, 4vw, 40px);
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-actions .action-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            color: var(--color-text-main);
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .header-actions .action-btn:hover {
+            background-color: var(--color-bg-subtle);
+            color: var(--color-primary);
+        }
+
+        .header-actions .action-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        /* Main Review Page Container */
+        .review-main {
+            width: min(100% - 32px, 540px);
+            margin: 36px auto 64px;
+            flex: 1;
+        }
+
+        /* Back Navigation Link */
+        .review-back-nav {
+            margin-bottom: 18px;
+        }
+
+        .review-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .review-back-link:hover {
+            color: var(--color-primary);
+        }
+
+        .review-back-link svg {
+            width: 15px;
+            height: 15px;
+            stroke-width: 2;
+        }
+
+        /* Review Modal / Card Container */
+        .review-card-container {
+            background: #ffffff;
+            border: 1px solid var(--color-border);
+            border-radius: 14px;
+            box-shadow: 0 10px 36px rgba(16, 37, 24, 0.05);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .review-card-header {
+            padding: 26px 32px 20px;
+            border-bottom: 1px solid var(--color-border-light);
+        }
+
+        .review-card-title {
+            font-family: var(--font-serif);
+            font-size: 26px;
+            font-weight: 600;
+            color: #141715;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        /* Body */
+        .review-card-body {
+            padding: 24px 32px 28px;
+        }
+
+        /* Error Alert */
+        .review-alert-error {
+            background: #fdf3f3;
+            border: 1px solid #f8d7d7;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 22px;
+            font-size: 13px;
+            color: #b91c1c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .review-alert-error svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Product Selector / Preview Row (Figma Style) */
+        .product-preview-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--color-border-light);
+        }
+
+        .product-preview-thumb {
+            width: 64px;
+            height: 64px;
+            border-radius: 10px;
+            background: #f4f6f3;
+            border: 1px solid #dfe5df;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .product-preview-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .product-preview-thumb svg {
+            width: 28px;
+            height: 28px;
+            color: #8c968e;
+            stroke-width: 1.4;
+        }
+
+        .product-preview-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .product-preview-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #141715;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .product-preview-order {
+            font-size: 12.5px;
+            color: var(--color-text-muted);
+            margin: 0;
+            font-weight: 400;
+        }
+
+        /* Multi-product selector dropdown/switcher if >1 item */
+        .multi-product-select-wrap {
+            margin-top: 8px;
+        }
+
+        .product-select-dropdown {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #dfe5df;
+            font-family: var(--font-sans);
+            font-size: 12.5px;
+            color: #2b332d;
+            background: #fafbf9;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .product-select-dropdown:focus {
+            border-color: #73917a;
+        }
+
+        /* Section Field Group */
+        .review-form-group {
+            margin-bottom: 24px;
+        }
+
+        .review-section-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-text-label);
+            margin: 0 0 10px 0;
+        }
+
+        /* 5-Star Rating Control (Figma Style) */
+        .rating-stars-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .star-button {
+            background: transparent;
+            border: none;
+            padding: 2px;
+            cursor: pointer;
+            color: #313b34;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease, color 0.15s ease;
+            outline: none;
+        }
+
+        .star-button svg {
+            width: 26px;
+            height: 26px;
+            stroke: #141715;
+            stroke-width: 1.5;
+            fill: transparent;
+            transition: fill 0.15s ease, stroke 0.15s ease;
+        }
+
+        .star-button.filled svg,
+        .star-button.hover-filled svg {
+            fill: #102518;
+            stroke: #102518;
+        }
+
+        .star-button:focus-visible svg {
+            outline: 2px solid #73917a;
+            border-radius: 4px;
+        }
+
+        .rating-error-hint {
+            color: #b91c1c;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* Textarea (Figma Style) */
+        .experience-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px 16px;
+            box-sizing: border-box;
+            border: 1px solid #dfe5df;
+            border-radius: 8px;
+            background: #f8f9f7;
+            font-family: var(--font-sans);
+            font-size: 13.5px;
+            color: #141715;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+        }
+
+        .experience-textarea::placeholder {
+            color: #9ba69e;
+        }
+
+        .experience-textarea:focus {
+            background: #ffffff;
+            border-color: #73917a;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.08);
+        }
+
+        /* Add Photos Dropzone (Figma Style) */
+        .photo-dropzone {
+            border: 1.5px dashed #d5ded7;
+            border-radius: 8px;
+            background: #fcfdfc;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color var(--transition-fast), background-color var(--transition-fast);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-dropzone:hover,
+        .photo-dropzone.drag-over {
+            border-color: #73917a;
+            background: #f5f8f5;
+        }
+
+        .camera-icon-wrap {
+            color: #4a544e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-icon-wrap svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 1.6;
+        }
+
+        .dropzone-text {
+            font-size: 12px;
+            color: #6a766e;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Uploaded Photos Preview List */
+        .photo-previews-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .preview-item-wrap {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #dfe5df;
+        }
+
+        .preview-item-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(16, 37, 24, 0.8);
+            color: #ffffff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .preview-remove-btn svg {
+            width: 10px;
+            height: 10px;
+            stroke-width: 2.5;
+        }
+
+        /* Card Footer Actions (Figma Style) */
+        .review-card-footer {
+            padding: 16px 32px 24px;
+            border-top: 1px solid var(--color-border-light);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+        }
+
+        .btn-cancel-review {
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 500;
+            color: #556057;
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+
+        .btn-cancel-review:hover {
+            color: #141715;
+            text-decoration: underline;
+        }
+
+        .btn-submit-review {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 24px;
+            border-radius: 6px;
+            background: #102518;
+            color: #ffffff;
+            border: 1px solid #102518;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+        }
+
+        .btn-submit-review:hover {
+            background: #1b3825;
+            border-color: #1b3825;
+        }
+
+        .btn-submit-review:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Empty State */
+        .review-empty-box {
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        .review-empty-title {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 600;
+            color: #141715;
+            margin: 0 0 8px 0;
+        }
+
+        .review-empty-desc {
+            font-size: 13.5px;
+            color: #6a766e;
+            line-height: 1.6;
+            margin: 0 0 24px 0;
+        }
+
+        @media (max-width: 600px) {
+            .review-main {
+                width: min(100% - 24px, 540px);
+                margin: 20px auto 48px;
+            }
+
+            .review-card-header {
+                padding: 20px 20px 16px;
+            }
+
+            .review-card-body {
+                padding: 20px 20px 24px;
+            }
+
+            .review-card-footer {
+                padding: 14px 20px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body class="review-page-body">
+
+    <!-- ========================================================================
+         Top Header Navigation
+         ======================================================================== -->
+    <header class="site-header order-header" role="banner">
+        <div class="header-container">
+            <!-- Brand Logo -->
+            <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2" />
+                </svg>
+                <span class="logo-text">VERDÉ</span>
+            </a>
+
+            <!-- Center Navigation -->
+            <nav class="main-nav" aria-label="Primary Navigation">
+                <ul class="nav-list">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="{% url 'product_list' %}" class="nav-link">Shop</a></li>
+                    <li><a href="/#offers" class="nav-link">Offers</a></li>
+                    <li><a href="/#about" class="nav-link">About</a></li>
+                </ul>
+            </nav>
+
+            <!-- Right Action Icons -->
+            <div class="header-actions">
+                <a href="{% url 'product_list' %}" class="action-btn" id="searchBtn" aria-label="Search" title="Search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+
+                <a href="/wishlist/" class="action-btn" id="wishlistBtn" aria-label="Wishlist" title="Wishlist">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <span class="badge-count js-wishlist-count-badge" id="wishlistCountBadge" style="{% if not wishlist_count %}display:none;{% endif %}">{% if wishlist_count %}{{ wishlist_count }}{% else %}0{% endif %}</span>
+                </a>
+
+                <a href="{% url 'cart:cart_page' %}" {% if user.is_authenticated %}data-cart-api="{% url 'cart:view_cart' %}"{% endif %} class="action-btn" aria-label="Cart" title="Cart">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+                </a>
+
+                {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="action-btn profile-avatar" aria-label="Profile" title="Profile">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+                    {% else %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M4 20a8 8 0 0 1 16 0"></path>
+                    </svg>
+                    {% endif %}
+                </a>
+                {% else %}
+                <a href="{% url 'login_page' %}" class="btn-signin">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================================================
+         Main Content Area
+         ======================================================================== -->
+    <main class="review-main">
+
+        <!-- Back to Order Details Navigation -->
+        <div class="review-back-nav">
+            <a href="{% url 'orders:order_detail' order_number %}" class="review-back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Order Details
+            </a>
+        </div>
+
+        <!-- Review Card (Figma Design) -->
+        <div class="review-card-container">
+
+            <!-- Card Header: Title -->
+            <div class="review-card-header">
+                <h1 class="review-card-title">Write a Review</h1>
+            </div>
+
+            <!-- Card Body -->
+            <div class="review-card-body">
+
+                {% if error %}
+                <div class="review-alert-error" role="alert">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <span>{{ error }}</span>
+                </div>
+                {% endif %}
+
+                {% if reviewable_items %}
+                <form method="POST" action="{% url 'add_product_review' order_number %}" enctype="multipart/form-data" id="reviewForm">
+                    {% csrf_token %}
+
+                    <!-- Product Information / Item Selector -->
+                    {% with first_item=reviewable_items.first %}
+                    <div class="product-preview-box" id="productPreviewBox">
+                        <div class="product-preview-thumb" id="productThumb">
+                            {% if first_item.product_variant.images.first %}
+                                <img src="{{ first_item.product_variant.images.first.image_url.url }}" alt="{{ first_item.product_name }}" id="productImg">
+                            {% elif first_item.product.product_images.first %}
+                                <img src="{{ first_item.product.product_images.first.image_url.url }}" alt="{{ first_item.product_name }}" id="productImg">
+                            {% else %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2" />
+                                </svg>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-preview-details">
+                            <h2 class="product-preview-name" id="productName">
+                                {{ first_item.product_name|default:first_item.product.name }}
+                            </h2>
+                            <p class="product-preview-order">Order #{{ order_number }}</p>
+
+                            {% if reviewable_items|length > 1 %}
+                            <div class="multi-product-select-wrap">
+                                <select name="order_item_id" id="orderItemSelect" class="product-select-dropdown" required>
+                                    {% for item in reviewable_items %}
+                                        <option
+                                            value="{{ item.id }}"
+                                            data-name="{{ item.product_name|default:item.product.name }}"
+                                            data-img="{% if item.product_variant.images.first %}{{ item.product_variant.images.first.image_url.url }}{% elif item.product.product_images.first %}{{ item.product.product_images.first.image_url.url }}{% endif %}"
+                                            {% if forloop.first %}selected{% endif %}
+                                        >
+                                            {{ item.product_name|default:item.product.name }}{% if item.product_variant %} ({{ item.product_variant.size }} {{ item.product_variant.color }}){% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% else %}
+                            <input type="hidden" name="order_item_id" value="{{ first_item.id }}">
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endwith %}
+
+                    <!-- YOUR RATING Section -->
+                    <div class="review-form-group">
+                        <label class="review-section-label">YOUR RATING</label>
+                        <div class="rating-stars-container" id="starRatingGroup" role="radiogroup" aria-label="Product rating">
+                            {% for i in "12345" %}
+                            <button
+                                type="button"
+                                class="star-button"
+                                data-rating="{{ i }}"
+                                role="radio"
+                                aria-checked="false"
+                                aria-label="{{ i }} star{% if i != '1' %}s{% endif %}"
+                            >
+                                <svg viewBox="0 0 24 24">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="ratingInput" value="" required>
+                        <div class="rating-error-hint" id="ratingErrorHint">Please select a star rating.</div>
+                    </div>
+
+                    <!-- SHARE YOUR EXPERIENCE Section -->
+                    <div class="review-form-group">
+                        <label class="review-section-label" for="reviewTextInput">SHARE YOUR EXPERIENCE</label>
+                        <textarea
+                            class="experience-textarea"
+                            id="reviewTextInput"
+                            name="review_text"
+                            placeholder="Tell us what you love about your new plant..."
+                        ></textarea>
+                    </div>
+
+                    <!-- ADD PHOTOS Section -->
+                    <div class="review-form-group">
+                        <label class="review-section-label">ADD PHOTOS</label>
+                        <div class="photo-dropzone" id="photoDropzone">
+                            <div class="camera-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </div>
+                            <p class="dropzone-text">Click to upload or drag and drop</p>
+                        </div>
+                        <input type="file" name="images" id="photoFileInput" multiple accept="image/*" style="display: none;">
+                        <div class="photo-previews-list" id="photoPreviewsList"></div>
+                    </div>
+
+                    <!-- Actions Footer -->
+                    <div class="review-card-footer">
+                        <a href="{% url 'orders:order_detail' order_number %}" class="btn-cancel-review">Cancel</a>
+                        <button type="submit" class="btn-submit-review" id="submitReviewBtn">Submit Review</button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="review-empty-box">
+                    <h2 class="review-empty-title">No Reviewable Items</h2>
+                    <p class="review-empty-desc">
+                        There are no products available to review for this order. Products that were cancelled, returned, or already reviewed cannot be submitted again.
+                    </p>
+                    <a href="{% url 'orders:order_detail' order_number %}" class="btn-submit-review" style="text-decoration: none;">
+                        Return to Order Details
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ========================================================================
+         Site Footer
+         ======================================================================== -->
+    <footer class="profile-footer" style="margin-top: auto; background: #0d2217; color: #ffffff;" role="contentinfo">
+        <div class="footer-container" style="width: min(100% - 56px, 1440px); margin: 0 auto; padding: 56px 0 64px; display: flex; justify-content: space-between; align-items: flex-start; gap: 40px;">
+            <div>
+                <div class="footer-logo" style="font-family: var(--font-serif); font-size: 24px; font-weight: 700; letter-spacing: 0.08em;">VERDÉ</div>
+                <p class="footer-tagline" style="margin-top: 14px; color: #8ea394; font-size: 11px; line-height: 1.8;">
+                    &copy; 2024 VERDÉ. Curating botanical elegance for<br />your domestic spaces.
+                </p>
+            </div>
+            <div class="footer-nav-groups" style="display: flex; gap: 64px;">
+                <div class="footer-group" style="display: flex; flex-direction: column; gap: 12px;">
+                    <strong class="footer-heading" style="color: #ffffff; font-size: 11px; font-weight: 600;">Shop</strong>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="{% url 'product_list' %}">Indoor</a>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="{% url 'product_list' %}">Outdoor</a>
+                </div>
+                <div class="footer-group" style="display: flex; flex-direction: column; gap: 12px;">
+                    <strong class="footer-heading" style="color: #ffffff; font-size: 11px; font-weight: 600;">Help</strong>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="/#about">Contact</a>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="/#about">FAQ</a>
+                </div>
+                <div class="footer-group" style="display: flex; flex-direction: column; gap: 12px;">
+                    <strong class="footer-heading" style="color: #ffffff; font-size: 11px; font-weight: 600;">Account</strong>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="{% url 'profile' %}">Profile</a>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="{% url 'orders:order_list' %}">Orders</a>
+                </div>
+                <div class="footer-group" style="display: flex; flex-direction: column; gap: 12px;">
+                    <strong class="footer-heading" style="color: #ffffff; font-size: 11px; font-weight: 600;">Follow</strong>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="https://pinterest.com" target="_blank" rel="noopener">Pinterest</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart badge script -->
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
+
+    <!-- Client-side Interactive Logic -->
+    <script>
+        (function () {
+            // =================================================================
+            // Star Rating Interactive Logic
+            // =================================================================
+            const starButtons = document.querySelectorAll(".star-button");
+            const ratingInput = document.getElementById("ratingInput");
+            const ratingErrorHint = document.getElementById("ratingErrorHint");
+            let selectedRating = 0;
+
+            function highlightStars(count, isHover = false) {
+                starButtons.forEach((btn) => {
+                    const r = parseInt(btn.dataset.rating, 10);
+                    if (isHover) {
+                        if (r <= count) {
+                            btn.classList.add("hover-filled");
+                        } else {
+                            btn.classList.remove("hover-filled");
+                        }
+                    } else {
+                        if (r <= count) {
+                            btn.classList.add("filled");
+                            btn.setAttribute("aria-checked", "true");
+                        } else {
+                            btn.classList.remove("filled");
+                            btn.setAttribute("aria-checked", "false");
+                        }
+                    }
+                });
+            }
+
+            starButtons.forEach((btn) => {
+                btn.addEventListener("mouseenter", () => {
+                    const r = parseInt(btn.dataset.rating, 10);
+                    highlightStars(r, true);
+                });
+
+                btn.addEventListener("mouseleave", () => {
+                    starButtons.forEach((b) => b.classList.remove("hover-filled"));
+                });
+
+                btn.addEventListener("click", () => {
+                    selectedRating = parseInt(btn.dataset.rating, 10);
+                    ratingInput.value = selectedRating;
+                    highlightStars(selectedRating, false);
+                    if (ratingErrorHint) ratingErrorHint.style.display = "none";
+                });
+            });
+
+            // =================================================================
+            // Multi-product selector dynamic image/name update
+            // =================================================================
+            const productSelect = document.getElementById("orderItemSelect");
+            if (productSelect) {
+                productSelect.addEventListener("change", function () {
+                    const selectedOpt = this.options[this.selectedIndex];
+                    const name = selectedOpt.dataset.name;
+                    const imgUrl = selectedOpt.dataset.img;
+
+                    const nameEl = document.getElementById("productName");
+                    if (nameEl && name) nameEl.textContent = name;
+
+                    const thumbWrap = document.getElementById("productThumb");
+                    if (thumbWrap) {
+                        if (imgUrl) {
+                            thumbWrap.innerHTML = `<img src="${imgUrl}" alt="${name}">`;
+                        } else {
+                            thumbWrap.innerHTML = `
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2" />
+                                </svg>`;
+                        }
+                    }
+                });
+            }
+
+            // =================================================================
+            // Photo Upload Dropzone & Client-Side Previews
+            // =================================================================
+            const dropzone = document.getElementById("photoDropzone");
+            const fileInput = document.getElementById("photoFileInput");
+            const previewsList = document.getElementById("photoPreviewsList");
+
+            if (dropzone && fileInput) {
+                dropzone.addEventListener("click", () => fileInput.click());
+
+                dropzone.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add("drag-over");
+                });
+
+                dropzone.addEventListener("dragleave", () => {
+                    dropzone.classList.remove("drag-over");
+                });
+
+                dropzone.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove("drag-over");
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        fileInput.files = e.dataTransfer.files;
+                        renderPreviews(e.dataTransfer.files);
+                    }
+                });
+
+                fileInput.addEventListener("change", () => {
+                    if (fileInput.files && fileInput.files.length > 0) {
+                        renderPreviews(fileInput.files);
+                    }
+                });
+            }
+
+            function renderPreviews(files) {
+                if (!previewsList) return;
+                previewsList.innerHTML = "";
+
+                Array.from(files).forEach((file, index) => {
+                    if (!file.type.startsWith("image/")) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const item = document.createElement("div");
+                        item.className = "preview-item-wrap";
+                        item.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview">
+                            <button type="button" class="preview-remove-btn" title="Remove" data-index="${index}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        `;
+
+                        item.querySelector(".preview-remove-btn").addEventListener("click", (evt) => {
+                            evt.stopPropagation();
+                            item.remove();
+                        });
+
+                        previewsList.appendChild(item);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // =================================================================
+            // Form Validation on Submit
+            // =================================================================
+            const reviewForm = document.getElementById("reviewForm");
+            if (reviewForm) {
+                reviewForm.addEventListener("submit", (e) => {
+                    if (!ratingInput.value || parseInt(ratingInput.value, 10) < 1) {
+                        e.preventDefault();
+                        if (ratingErrorHint) ratingErrorHint.style.display = "block";
+                        starButtons[0].focus();
+                    }
+                });
+            }
+        })();
+    </script>
+
+</body>
+</html>

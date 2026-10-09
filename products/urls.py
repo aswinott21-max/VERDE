@@ -1,6 +1,6 @@
 from django.urls import path
 from .admin_views import (product_dashboard,add_product,add_pot_product,add_equipment_product,add_product_by_category,get_product_edit_data_view,edit_product,toggle_product_status,upload_variant_images,upload_product_images,delete_product_image_view,set_product_offer,)
-from .user_views import (product_list,product_detail)
+from .user_views import (product_list,product_detail,add_product_review)
 urlpatterns = [
     # Admin
     path("admin/products/", product_dashboard, name="product_dashboard"),
@@ -18,8 +18,8 @@ urlpatterns = [
     # User
     path("products/", product_list, name="product_list"),
     path("products/<int:product_id>/",product_detail,name="product_detail",),
+    path("products/<str:order_number>/review/",add_product_review,name="add_product_review",),
+
 
  
-
-
 ]

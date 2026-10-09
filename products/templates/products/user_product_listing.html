@@ -1273,6 +1273,33 @@
           }, 3400);
         }
 
+        function readCartResponse(response) {
+          return response.text().then(function (body) {
+            var data;
+            try {
+              data = JSON.parse(body);
+            } catch (error) {
+              var document = new DOMParser().parseFromString(body, 'text/html');
+              var messageElement =
+                document.querySelector('.exception_value') ||
+                document.querySelector('[role="alert"]') ||
+                document.querySelector('h1') ||
+                document.querySelector('title') ||
+                document.querySelector('p');
+              var message = messageElement
+                ? messageElement.textContent.trim()
+                : document.body.textContent.trim().replace(/\s+/g, ' ');
+
+              throw new Error(message || 'The server returned an unreadable response.');
+            }
+
+            if (!response.ok || data.status !== 'success') {
+              throw new Error(data.message || 'Could not add this product to your cart.');
+            }
+            return data;
+          });
+        }
+
         if (productGrid) {
           productGrid.addEventListener('click', function (event) {
             // Wishlist toggle
@@ -1313,19 +1340,9 @@
                 quantity: 1,
               }),
             })
-              .then(function (response) {
-                return response.json().then(function (data) {
-                  if (!response.ok || data.status !== 'success') {
-                    throw new Error(data.message || 'Could not add this product to your cart.');
-                  }
-                  return data;
-                });
-              })
+              .then(readCartResponse)
               .then(function () {
                 showCartMessage('Added to cart.');
-                if (isAuthenticated && window.VERDEProductStock) {
-                  window.VERDEProductStock.update(button.dataset.productId, null, -1);
-                }
                 window.dispatchEvent(new Event('verde:cart-updated'));
                 button.textContent = '✓';
                 window.setTimeout(function () {
@@ -1353,6 +1370,5 @@
         }
       })();
     </script>
-    <script src="{% static 'js/product-stock.js' %}" defer></script>
   </body>
 </html>

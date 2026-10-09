@@ -8,6 +8,8 @@ from cart.models import Cart,CartItem
 from orders.models import Order,OrderAddress,OrderItem,OrderStatusHistory
 from users.models import Address
 
+from products.services.tax_service import calculate_tax
+
 SHIPPING_CHARGE = Decimal("150.00")
 FREE_SHIPPING_THRESHOLD = Decimal("1000.00")
 
@@ -29,12 +31,14 @@ def create_order(user,address_id, delivery_method,payment_method):
         return None, "Your cart is empty."
 
     #get cart item
-    cart_items = (CartItem.objects.filter(cart=cart).select_related("product", "product_variant"))
+    cart_items = (CartItem.objects.filter(cart=cart).select_related("product", "product_variant", "product__category"))
 
     if not cart_items.exists():
         return None, "Your cart is empty"
 
     subtotal = Decimal("0.00")
+
+    tax_amount = Decimal("0.00")
 
     for cart_item in cart_items:
 
@@ -48,6 +52,7 @@ def create_order(user,address_id, delivery_method,payment_method):
 
         subtotal += cart_item.unit_price * cart_item.quantity
 
+        tax_amount += calculate_tax(cart_item.product,cart_item.unit_price * cart_item.quantity,)
     #shipping charge
     if subtotal >= FREE_SHIPPING_THRESHOLD:
         shipping_amount = Decimal("0.00")
@@ -64,8 +69,9 @@ def create_order(user,address_id, delivery_method,payment_method):
         payment_method = payment_method,
         discount_amount =0,
         shipping_amount = shipping_amount,
-        subtotal = subtotal,
-        total_amount=subtotal+shipping_amount,
+        subtotal=subtotal,
+        tax_amount=tax_amount,
+        total_amount=subtotal + shipping_amount + tax_amount,
         status="PLACED",
     )
 

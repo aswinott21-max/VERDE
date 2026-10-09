@@ -1,0 +1,2158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details #{{ order.order_number }} — VERDÉ Admin</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Brand & System Palette */
+            --bg-main: #fbfcfb;
+            --bg-card: #ffffff;
+            --card-border: #edf0eb;
+            --table-header-bg: #f5f4f0;
+            --color-text-main: #141715;
+            --color-text-muted: #64746a;
+            --color-text-light: #94a399;
+
+            --color-primary: #091a10;
+            --color-primary-hover: #142a1d;
+
+            --badge-green-bg: #eaf6ed;
+            --badge-green-text: #23834c;
+            --badge-green-border: #d1ebd7;
+
+            --badge-amber-bg: #fef5e7;
+            --badge-amber-text: #b25e00;
+            --badge-amber-border: #f7dcbd;
+
+            --badge-blue-bg: #e8f2fc;
+            --badge-blue-text: #1976d2;
+            --badge-blue-border: #cbe0f8;
+
+            --badge-red-bg: #fdebee;
+            --badge-red-text: #d32f2f;
+            --badge-red-border: #fad2d6;
+
+            --badge-gray-bg: #f1f3f0;
+            --badge-gray-text: #505d54;
+            --badge-gray-border: #e2e6e1;
+
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+            --shadow-subtle: 0 2px 10px rgba(16, 37, 24, 0.03);
+            --shadow-card: 0 4px 20px rgba(16, 37, 24, 0.04);
+            --shadow-dropdown: 0 10px 30px rgba(16, 37, 24, 0.1);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+
+        /* Base Reset */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-main);
+            color: var(--color-text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button, input, textarea, select {
+            font-family: inherit;
+        }
+
+        /* ==========================================================================
+           Top Header / Navbar (No Sidebar)
+           ========================================================================== */
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 40px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .header-left-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-brand-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: opacity 0.15s ease;
+        }
+
+        .header-brand-link:hover {
+            opacity: 0.85;
+        }
+
+        .brand-icon-box {
+            width: 30px;
+            height: 30px;
+            background-color: #091a10;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a2c4ac;
+        }
+
+        .brand-icon-box svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .brand-text-col {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .header-brand-title {
+            font-family: var(--font-serif);
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            color: #091a10;
+        }
+
+        .header-brand-subtitle {
+            font-size: 8.5px;
+            font-weight: 700;
+            letter-spacing: 2.2px;
+            color: #4b6854;
+            text-transform: uppercase;
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 24px;
+            background-color: #edf0eb;
+        }
+
+        .btn-header-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid #dbe2dc;
+            background-color: #ffffff;
+            transition: all 0.15s ease;
+        }
+
+        .btn-header-back:hover {
+            color: var(--color-text-main);
+            background-color: #f0f4f1;
+            border-color: #c0ccc2;
+        }
+
+        .btn-header-back svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon-btn {
+            background: #ffffff;
+            border: 1px solid #dbe2dc;
+            cursor: pointer;
+            color: #434e46;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            transition: all 0.15s ease;
+        }
+
+        .header-icon-btn:hover {
+            border-color: #aebdb2;
+            color: var(--color-text-main);
+            background-color: #f8faf8;
+        }
+
+        .header-icon-btn svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 6px;
+            height: 6px;
+            background-color: #e53935;
+            border-radius: 50%;
+        }
+
+        /* Profile Dropdown Wrapper */
+        .profile-dropdown-wrapper {
+            position: relative;
+            margin-left: 4px;
+        }
+
+        .admin-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            padding: 4px 6px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .admin-profile-btn:hover {
+            background-color: #f0f4f1;
+        }
+
+        .admin-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #141715;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .admin-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .chevron-icon {
+            color: #728477;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-profile-btn[aria-expanded="true"] .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background-color: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-dropdown);
+            min-width: 200px;
+            padding: 6px 0;
+            z-index: 100;
+        }
+
+        .profile-dropdown-menu.show {
+            display: block;
+            animation: dropdownFadeIn 0.15s ease-out;
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-header {
+            padding: 8px 16px 6px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dropdown-user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .dropdown-user-role {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: var(--card-border);
+            margin: 4px 0;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-main);
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .dropdown-item svg {
+            width: 15px;
+            height: 15px;
+            color: #637268;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f4f6f4;
+        }
+
+        .dropdown-item.logout-btn {
+            color: #d32f2f;
+        }
+
+        .dropdown-item.logout-btn svg {
+            color: #d32f2f;
+        }
+
+        .dropdown-item.logout-btn:hover {
+            background-color: #fdebee;
+        }
+
+        .logout-form {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ==========================================================================
+           Order Details Page Container
+           ========================================================================== */
+        .admin-main {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+        }
+
+        .content-container {
+            padding: 36px 24px 60px;
+            display: flex;
+            flex-direction: column;
+            max-width: 1040px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Order Details Card (Matching Figma Centered Layout) */
+        .order-details-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            padding: 36px 40px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* Header Block */
+        .order-header-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #f0f3ef;
+            padding-bottom: 20px;
+        }
+
+        .order-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .order-main-title {
+            font-family: var(--font-serif);
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--color-text-main);
+            line-height: 1.15;
+        }
+
+        .order-number-subtitle {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2b3b30;
+            letter-spacing: -0.2px;
+        }
+
+        .order-status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Two-Column Grid */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background-color: #fafbfa;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card-header {
+            font-size: 13px;
+            font-weight: 700;
+            color: #4b6854;
+            letter-spacing: 0.5px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #edf0eb;
+        }
+
+        .info-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13.5px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .info-label {
+            color: var(--color-text-muted);
+            min-width: 60px;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--color-text-main);
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .address-multiline {
+            color: var(--color-text-main);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* Order Items Section */
+        .section-header-title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #4b6854;
+            margin-bottom: 10px;
+        }
+
+        .items-table-wrap {
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .items-table thead th {
+            background-color: var(--table-header-bg);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #5c6b60;
+            padding: 14px 20px;
+            border-bottom: 1px solid #e7ebe5;
+            white-space: nowrap;
+        }
+
+        .items-table tbody td {
+            padding: 16px 20px;
+            font-size: 13.5px;
+            color: var(--color-text-main);
+            border-bottom: 1px solid #f0f3ef;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .items-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .items-table tbody tr:hover td {
+            background-color: #fafbfa;
+        }
+
+        /* Product Cell */
+        .product-cell-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-icon-box {
+            width: 36px;
+            height: 36px;
+            background-color: #f2f5f2;
+            border: 1px solid #e0e6e1;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4b6854;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .product-icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-icon-box svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .product-details-col {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .product-name-txt {
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .product-variant-txt {
+            font-size: 11.5px;
+            color: var(--color-text-muted);
+        }
+
+        /* Status & Return Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+
+        .badge-paid, .badge-delivered, .badge-approved, .badge-returned {
+            background-color: var(--badge-green-bg);
+            color: var(--badge-green-text);
+            border-color: var(--badge-green-border);
+        }
+
+        .badge-requested {
+            background-color: var(--badge-red-bg);
+            color: var(--badge-red-text);
+            border-color: var(--badge-red-border);
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .badge-picked, .badge-shipped, .badge-processing {
+            background-color: var(--badge-blue-bg);
+            color: var(--badge-blue-text);
+            border-color: var(--badge-blue-border);
+        }
+
+        .badge-rejected, .badge-cancelled {
+            background-color: var(--badge-red-bg);
+            color: var(--badge-red-text);
+            border-color: var(--badge-red-border);
+        }
+
+        .badge-placed, .badge-pending {
+            background-color: var(--badge-gray-bg);
+            color: var(--badge-gray-text);
+            border-color: var(--badge-gray-border);
+        }
+
+        /* Return Action Buttons */
+        .btn-return-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            background-color: #142a1d;
+            border: 1px solid #142a1d;
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-return-action:hover {
+            background-color: #091a10;
+            border-color: #091a10;
+        }
+
+        .btn-return-manage {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background-color: #142a1d;
+            border: 1px solid #142a1d;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-return-manage:hover {
+            background-color: #091a10;
+        }
+
+        .btn-return-manage .status-badge {
+            background-color: transparent;
+            color: inherit;
+            border-color: transparent;
+        }
+
+        /* Order Summary Card specifics */
+        .summary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .summary-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13.5px;
+            color: var(--color-text-main);
+        }
+
+        .summary-label {
+            color: var(--color-text-muted);
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        .summary-discount {
+            color: #2e7d32;
+        }
+
+        .summary-divider {
+            height: 1px;
+            background-color: #edf0eb;
+            margin: 4px 0;
+        }
+
+        .summary-total-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            padding-top: 4px;
+        }
+
+        .summary-total-label {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .summary-total-val {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        /* Footer Action Buttons */
+        .footer-actions-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f3ef;
+        }
+
+        .btn-footer-cancel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            padding: 0 24px;
+            background-color: transparent;
+            border: 1px solid #141715;
+            color: #141715;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-footer-cancel:hover {
+            background-color: #f0f4f1;
+            color: #091a10;
+        }
+
+        .btn-print-invoice {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 40px;
+            padding: 0 24px;
+            background-color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+
+        .btn-print-invoice:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-print-invoice svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ==========================================================================
+           Process Return & Refund Modal (Figma Reference Implementation)
+           ========================================================================== */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(18, 28, 22, 0.45);
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .modal-window {
+            background-color: #fdfdfb;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 620px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.16);
+            overflow: hidden;
+            animation: slideUp 0.18s ease-out;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(220, 226, 220, 0.6);
+        }
+
+        .modal-inner-scroll {
+            padding: 36px 40px 36px 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal Header */
+        .figma-modal-header {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .figma-modal-title {
+            font-family: var(--font-serif);
+            font-size: 25px;
+            font-weight: 600;
+            color: #17241c;
+            line-height: 1.2;
+            letter-spacing: -0.2px;
+        }
+
+        .figma-modal-subtitle {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13.5px;
+            color: #556258;
+            font-weight: 500;
+        }
+
+        .figma-modal-subtitle svg {
+            width: 14px;
+            height: 14px;
+            color: #556258;
+            flex-shrink: 0;
+        }
+
+        .figma-modal-divider {
+            height: 1px;
+            background-color: #ebede8;
+            width: 100%;
+            margin: 22px 0 24px 0;
+        }
+
+        /* Product Snapshot Box */
+        .figma-product-card {
+            background-color: #f5f4ef;
+            border-radius: 8px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .figma-product-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .figma-product-thumb {
+            width: 58px;
+            height: 58px;
+            border-radius: 4px;
+            background-color: #e8e6df;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .figma-product-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .figma-product-thumb svg {
+            width: 24px;
+            height: 24px;
+            color: #4b6854;
+        }
+
+        .figma-product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .figma-product-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #17241c;
+            line-height: 1.25;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .figma-product-qty {
+            font-size: 13px;
+            color: #636f66;
+            font-weight: 500;
+        }
+
+        .figma-product-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #17241c;
+            white-space: nowrap;
+            letter-spacing: -0.2px;
+        }
+
+        /* Return Status Section */
+        .figma-section-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #17241c;
+            margin-top: 26px;
+            margin-bottom: 12px;
+            letter-spacing: 0.1px;
+        }
+
+        .status-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 14px;
+            row-gap: 10px;
+        }
+
+        .status-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .status-radio-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background-color: #ffffff;
+            border: 1px solid #e5e8e3;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+            user-select: none;
+        }
+
+        .status-radio-card:hover {
+            border-color: #b5beb7;
+            background-color: #fafbfa;
+        }
+
+        .status-radio-card.active {
+            border-color: #213a29;
+            background-color: #ffffff;
+        }
+
+        /* Custom Radio Indicator */
+        .custom-radio-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1.5px solid #9ea8a0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background-color: #ffffff;
+            transition: border-color 0.15s ease;
+        }
+
+        .status-radio-card.active .custom-radio-dot {
+            border-color: #1c3324;
+            background-color: #ffffff;
+        }
+
+        .custom-radio-inner-dot {
+            display: none;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #1c3324;
+        }
+
+        .status-radio-card.active .custom-radio-inner-dot {
+            display: block;
+        }
+
+        .status-radio-label {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #1c261f;
+            line-height: 1.2;
+        }
+
+        .status-radio-card.disabled {
+            opacity: 0.45;
+            cursor: not-allowed !important;
+            background-color: #f7f8f6;
+            border-color: #e3e6e1;
+        }
+
+        .status-radio-card.disabled:hover {
+            border-color: #e3e6e1;
+            background-color: #f7f8f6;
+        }
+
+        .status-radio-card.disabled .status-radio-label {
+            color: #8c978f;
+        }
+
+        .status-radio-card.disabled .custom-radio-dot {
+            border-color: #bcc3bd;
+            background-color: #f1f3ef;
+        }
+
+        /* Two Column Section for Amount and Method */
+        .figma-fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+            margin-top: 24px;
+        }
+
+        .figma-field-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .figma-field-label {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #17241c;
+            letter-spacing: 0.1px;
+        }
+
+        .figma-underline-box {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            border-bottom: 1.5px solid #8c978e;
+            padding-bottom: 6px;
+        }
+
+        .figma-currency-symbol {
+            font-size: 15px;
+            font-weight: 500;
+            color: #17241c;
+        }
+
+        .figma-amount-input {
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 500;
+            color: #17241c;
+            outline: none;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .figma-underline-box-method {
+            border-bottom: 1.5px solid #d4d8d2;
+            padding-bottom: 6px;
+            font-size: 14.5px;
+            font-weight: 500;
+            color: #17241c;
+        }
+
+        /* Internal Notes Section */
+        .figma-notes-section {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .figma-notes-textarea {
+            width: 100%;
+            border: none;
+            border-bottom: 1.5px solid #dcdfd9;
+            background: transparent;
+            padding: 6px 0 8px;
+            font-size: 14px;
+            color: #17241c;
+            outline: none;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 48px;
+            transition: border-bottom-color 0.15s ease;
+        }
+
+        .figma-notes-textarea:focus {
+            border-bottom-color: #1e3827;
+        }
+
+        .figma-notes-textarea::placeholder {
+            color: #9ba49c;
+        }
+
+        /* Subtle Feedback / Status Banner */
+        .modal-subtle-hint {
+            margin-top: 14px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12.5px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .modal-subtle-hint.info {
+            background-color: #f2f7f3;
+            color: #2b5637;
+            border-left: 3px solid #2b5637;
+        }
+
+        .modal-subtle-hint.warning {
+            background-color: #fff9ed;
+            color: #8c5b08;
+            border-left: 3px solid #e09923;
+        }
+
+        /* Footer Buttons */
+        .figma-modal-footer {
+            margin-top: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-figma-cancel {
+            background-color: #ffffff;
+            border: 1.5px solid #28362d;
+            color: #28362d;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            padding: 9px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-figma-cancel:hover {
+            background-color: #f1f4f1;
+        }
+
+        .btn-figma-confirm {
+            background-color: #1e3827;
+            border: 1.5px solid #1e3827;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            padding: 9px 22px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, opacity 0.15s ease;
+        }
+
+        .btn-figma-confirm:hover {
+            background-color: #162c1e;
+        }
+
+        .btn-figma-confirm:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+
+        /* Toast Notifications */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: #141715;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-notification.success {
+            background-color: #091a10;
+            border-left: 4px solid #72ba88;
+        }
+
+        .toast-notification.error {
+            background-color: #2b0d0e;
+            border-left: 4px solid #ef5350;
+        }
+
+        .toast-notification.info {
+            background-color: #17241c;
+            border-left: 4px solid #4a825e;
+        }
+
+        /* ==========================================================================
+           Print Styles
+           ========================================================================== */
+        @media print {
+            .admin-header, .footer-actions-row, .btn-header-back {
+                display: none !important;
+            }
+            body, .admin-main {
+                background: #ffffff !important;
+            }
+            .content-container {
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            .order-details-card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+        }
+
+        /* ==========================================================================
+           Responsive Design
+           ========================================================================== */
+        @media (max-width: 992px) {
+            .admin-header {
+                padding: 14px 20px;
+            }
+            .content-container {
+                padding: 24px 16px 40px;
+            }
+            .order-details-card {
+                padding: 24px 20px;
+            }
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 12px 16px;
+            }
+            .header-left-group {
+                gap: 10px;
+            }
+            .header-divider {
+                display: none;
+            }
+            .order-header-block {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================================================
+       Top Header / Navbar (No Sidebar)
+       ======================================================================== -->
+    <header class="admin-header">
+        <div class="header-left-group">
+            <!-- Brand Link to Dashboard -->
+            <a href="/adminpanel/admin-dashboard/" class="header-brand-link" title="VERDÉ Admin Dashboard">
+                <div class="brand-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L12 22"></path>
+                        <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                        <path d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"></path>
+                        <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+                    </svg>
+                </div>
+                <div class="brand-text-col">
+                    <span class="header-brand-title">VERDÉ</span>
+                    <span class="header-brand-subtitle">ADMIN</span>
+                </div>
+            </a>
+
+            <div class="header-divider"></div>
+
+            <!-- Back Navigation to Order List -->
+            <a href="{% url 'orders:admin_order_list' %}" class="btn-header-back" title="Return to Orders List">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Back to Orders</span>
+            </a>
+        </div>
+
+        <div class="header-actions">
+            <!-- Notifications Button -->
+            <button class="header-icon-btn" aria-label="Notifications">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="notification-dot"></span>
+            </button>
+
+            <!-- Profile Dropdown Container -->
+            <div class="profile-dropdown-wrapper" id="profileDropdown">
+                <button class="admin-profile-btn" id="profileToggleBtn" aria-expanded="false" aria-haspopup="true" onclick="toggleProfileDropdown(event)">
+                    <div class="admin-avatar">A</div>
+                    <span class="admin-name">Aswin Admin</span>
+                    <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+
+                <!-- Dropdown Menu List -->
+                <div class="profile-dropdown-menu" id="profileMenu">
+                    <div class="dropdown-header">
+                        <span class="dropdown-user-name">Aswin Admin</span>
+                        <span class="dropdown-user-role">Administrator</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Account Settings</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <!-- Sign Out Form -->
+                    <form action="/adminpanel/admin-logout/" method="POST" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item logout-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Sign Out</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================================================
+       Main Content Area
+       ======================================================================== -->
+    <main class="admin-main">
+        <div class="content-container">
+
+            <div class="order-details-card">
+
+                <!-- Header: ORDER DETAILS & Order Number -->
+                <div class="order-header-block">
+                    <div class="order-title-group">
+                        <h2 class="order-main-title">ORDER DETAILS</h2>
+                        <span class="order-number-subtitle">#{{ order.order_number }}</span>
+                    </div>
+                    <div>
+                        <span class="order-status-tag badge-{{ order.status|lower }}">
+                            {{ order.status|title }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Two Cards: Customer Information & Shipping Address -->
+                <div class="grid-2col">
+                    <!-- Customer Information -->
+                    <div class="info-card">
+                        <div class="info-card-header">Customer Information</div>
+                        <div class="info-card-body">
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value">
+                                    {% if order.user %}
+                                        {{ order.user.full_name|default:order.user.email }}
+                                    {% elif order.address %}
+                                        {{ order.address.full_name }}
+                                    {% else %}
+                                        Guest
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value">
+                                    {% if order.user and order.user.email %}
+                                        {{ order.user.email }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">
+                                    {% if order.user and order.user.phone %}
+                                        {{ order.user.phone }}
+                                    {% elif order.address and order.address.phone %}
+                                        {{ order.address.phone }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div class="info-card">
+                        <div class="info-card-header">Shipping Address</div>
+                        <div class="info-card-body">
+                            <div class="address-multiline">
+                                {% if order.address %}
+                                    <div><strong>{{ order.address.full_name }}</strong></div>
+                                    <div>{{ order.address.address_line1 }}</div>
+                                    {% if order.address.address_line2 %}
+                                        <div>{{ order.address.address_line2 }}</div>
+                                    {% endif %}
+                                    <div>{{ order.address.city }}, {{ order.address.state }} {{ order.address.pin }}</div>
+                                    <div>{{ order.address.country|default:"United States" }}</div>
+                                    {% if order.address.phone %}
+                                        <div style="margin-top: 4px; color: var(--color-text-muted); font-size: 12.5px;">Phone: {{ order.address.phone }}</div>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: var(--color-text-muted);">No shipping address recorded.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items Section -->
+                <div>
+                    <div class="section-header-title">Order Items</div>
+                    <div class="items-table-wrap">
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>PRODUCT</th>
+                                    <th style="text-align: center;">QTY</th>
+                                    <th style="text-align: right;">PRICE</th>
+                                    <th style="text-align: center;">RETURN/REFUND</th>
+                                    <th style="text-align: right; padding-right: 24px;">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <!-- Product -->
+                                    <td>
+                                        <div class="product-cell-wrap">
+                                            <div class="product-icon-box">
+                                                {% if item.product_variant and item.product_variant.images.first %}
+                                                    <img src="{{ item.product_variant.images.first.image_url.url }}" alt="{{ item.product_name }}">
+                                                {% elif item.product and item.product.product_images.first %}
+                                                    <img src="{{ item.product.product_images.first.image_url.url }}" alt="{{ item.product_name }}">
+                                                {% else %}
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M12 2L12 22"></path>
+                                                        <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                                                        <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+                                                    </svg>
+                                                {% endif %}
+                                            </div>
+                                            <div class="product-details-col">
+                                                <span class="product-name-txt">{{ item.product_name }}</span>
+                                                {% if item.product_variant %}
+                                                    <span class="product-variant-txt">
+                                                        {% if item.product_variant.size %}Size: {{ item.product_variant.size }}{% endif %}
+                                                        {% if item.product_variant.color %}| Color: {{ item.product_variant.color }}{% endif %}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Qty -->
+                                    <td style="text-align: center; font-weight: 600;">
+                                        {{ item.quantity }}
+                                    </td>
+
+                                    <!-- Price -->
+                                    <td style="text-align: right; font-weight: 500;">
+                                        ₹{{ item.unit_price|floatformat:0 }}
+                                    </td>
+
+                                    <!-- Return / Refund Column -->
+                                    <td style="text-align: center;">
+                                        {% with return_request=item.returns.first %}
+                                            {% if return_request %}
+                                                {% if return_request.status == "REQUESTED" %}
+                                                    <button type="button" class="btn-return-manage" onclick="openReturnModal('{{ return_request.id }}', '{{ item.product_name|escapejs }}', '{{ item.quantity }}', '{{ item.total_price }}', '{{ return_request.status }}', '{{ return_request.refund_amount }}', '{{ return_request.internal_note|default:''|escapejs }}', '{% if item.product_variant and item.product_variant.images.first %}{{ item.product_variant.images.first.image_url.url }}{% elif item.product and item.product.product_images.first %}{{ item.product.product_images.first.image_url.url }}{% endif %}')">
+                                                        <span class="status-badge badge-requested">Return Requested</span>
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                                    </button>
+
+                                                {% elif return_request.status == "PICKED" %}
+                                                    <button type="button" class="btn-return-manage" onclick="openReturnModal('{{ return_request.id }}', '{{ item.product_name|escapejs }}', '{{ item.quantity }}', '{{ item.total_price }}', '{{ return_request.status }}', '{{ return_request.refund_amount }}', '{{ return_request.internal_note|default:''|escapejs }}', '{% if item.product_variant and item.product_variant.images.first %}{{ item.product_variant.images.first.image_url.url }}{% elif item.product and item.product.product_images.first %}{{ item.product.product_images.first.image_url.url }}{% endif %}')">
+                                                        <span class="status-badge badge-picked">PICKED</span>
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                                    </button>
+
+                                                {% elif return_request.status == "INSPECT_APPROVED" %}
+                                                    <button type="button" class="btn-return-manage" onclick="openReturnModal('{{ return_request.id }}', '{{ item.product_name|escapejs }}', '{{ item.quantity }}', '{{ item.total_price }}', '{{ return_request.status }}', '{{ return_request.refund_amount }}', '{{ return_request.internal_note|default:''|escapejs }}', '{% if item.product_variant and item.product_variant.images.first %}{{ item.product_variant.images.first.image_url.url }}{% elif item.product and item.product.product_images.first %}{{ item.product.product_images.first.image_url.url }}{% endif %}')">
+                                                        <span class="status-badge badge-approved">INSPECTED – APPROVED</span>
+                                                    </button>
+
+                                                {% elif return_request.status == "INSPECT_REJECTED" %}
+                                                    <button type="button" class="btn-return-manage" onclick="openReturnModal('{{ return_request.id }}', '{{ item.product_name|escapejs }}', '{{ item.quantity }}', '{{ item.total_price }}', '{{ return_request.status }}', '{{ return_request.refund_amount }}', '{{ return_request.internal_note|default:''|escapejs }}', '{% if item.product_variant and item.product_variant.images.first %}{{ item.product_variant.images.first.image_url.url }}{% elif item.product and item.product.product_images.first %}{{ item.product.product_images.first.image_url.url }}{% endif %}')">
+                                                        <span class="status-badge badge-rejected">INSPECTED – REJECTED</span>
+                                                    </button>
+
+                                                {% else %}
+                                                    <span class="status-badge badge-gray">{{ return_request.status }}</span>
+                                                {% endif %}
+
+                                            {% else %}
+                                                {% if item.item_status == "CANCELLED" %}
+                                                    <span class="status-badge badge-cancelled">CANCELLED</span>
+                                                {% elif order.status == "DELIVERED" and item.item_status == "ACTIVE" %}
+                                                    <button type="button" class="btn-return-action" onclick="promptUserReturnInstructions('{{ item.product_name|escapejs }}')">
+                                                        Initiate Return
+                                                    </button>
+                                                {% else %}
+                                                    <span style="color: var(--color-text-light);">—</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+
+                                    <!-- Total -->
+                                    <td style="text-align: right; padding-right: 24px; font-weight: 700;">
+                                        ₹{{ item.total_price|floatformat:0 }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 30px; color: var(--color-text-muted);">
+                                        No items in this order.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Lower Section: Payment Information & Order Summary -->
+                <div class="grid-2col">
+                    <!-- Payment Information -->
+                    <div class="info-card">
+                        <div class="info-card-header">Payment Information</div>
+                        <div class="info-card-body">
+                            <div class="info-row">
+                                <span class="info-label">Method:</span>
+                                <span class="info-value">{{ order.payment_method|title|default:"Razorpay" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Status:</span>
+                                <div>
+                                    {% if order.status == "CANCELLED" %}
+                                        <span class="status-badge badge-cancelled">CANCELLED</span>
+                                    {% elif order.payment_method|lower == "cod" and order.status != "DELIVERED" %}
+                                        <span class="status-badge badge-pending">PENDING</span>
+                                    {% else %}
+                                        <span class="status-badge badge-paid">PAID</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Transaction ID:</span>
+                                <span class="info-value" style="font-family: monospace; font-size: 13px;">
+                                    {% if order.payment_method|lower == "cod" %}
+                                        COD_{{ order.order_number }}
+                                    {% else %}
+                                        TXN_{{ order.order_number }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="info-card">
+                        <div class="info-card-header">Order Summary</div>
+                        <div class="summary-list">
+                            <div class="summary-row">
+                                <span class="summary-label">Subtotal</span>
+                                <span class="summary-value">₹{{ order.subtotal|floatformat:0 }}</span>
+                            </div>
+
+                            {% if order.discount_amount > 0 %}
+                            <div class="summary-row">
+                                <span class="summary-label">Product Discount</span>
+                                <span class="summary-value summary-discount">-₹{{ order.discount_amount|floatformat:0 }}</span>
+                            </div>
+                            {% endif %}
+
+
+                            <div class="summary-row">
+                                <span class="summary-label">Shipping</span>
+                                <span class="summary-value">
+                                    {% if order.shipping_amount > 0 %}
+                                        ₹{{ order.shipping_amount|floatformat:0 }}
+                                    {% else %}
+                                        ₹0
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            {% if order.tax_amount > 0 %}
+                            <div class="summary-row">
+                                <span class="summary-label">Tax</span>
+                                <span class="summary-value">₹{{ order.tax_amount|floatformat:0 }}</span>
+                            </div>
+                            {% endif %}
+
+                            <div class="summary-divider"></div>
+
+                            <div class="summary-total-row">
+                                <span class="summary-total-label">Total Amount</span>
+                                <span class="summary-total-val">₹{{ order.total_amount|floatformat:0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="footer-actions-row">
+                    <a href="{% url 'orders:admin_order_list' %}" class="btn-footer-cancel">
+                        Cancel
+                    </a>
+
+                    <!-- Print Invoice Button -->
+                    <button type="button" class="btn-print-invoice" onclick="handlePrintInvoice('{% url 'orders:download_invoice' order.order_number %}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        <span>PRINT INVOICE</span>
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Hidden CSRF token for fetch requests -->
+    {% csrf_token %}
+
+    <!-- ========================================================================
+       Process Return & Refund Modal (Figma Reference Implementation)
+       ======================================================================== -->
+    <div class="modal-backdrop" id="returnModal" onclick="handleReturnModalBackdrop(event)">
+        <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modalTitleText">
+            <div class="modal-inner-scroll">
+
+                <!-- Modal Header -->
+                <div class="figma-modal-header">
+                    <h3 class="figma-modal-title" id="modalTitleText">Process Return &amp; Refund</h3>
+                    <div class="figma-modal-subtitle">
+                        <!-- Receipt / Order Ticket SVG Icon -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                            <line x1="8" y1="6" x2="16" y2="6"></line>
+                            <line x1="8" y1="10" x2="16" y2="10"></line>
+                            <line x1="8" y1="14" x2="12" y2="14"></line>
+                        </svg>
+                        <span>Order #{{ order.order_number }}</span>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="figma-modal-divider"></div>
+
+                <!-- Product Snapshot Card -->
+                <div class="figma-product-card">
+                    <div class="figma-product-left">
+                        <div class="figma-product-thumb" id="modalProductThumb">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2L12 22"></path>
+                                <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                                <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+                            </svg>
+                        </div>
+                        <div class="figma-product-info">
+                            <div class="figma-product-name" id="modalProductName">Monstera Deliciosa Albo</div>
+                            <div class="figma-product-qty" id="modalProductQty">Qty: 1</div>
+                        </div>
+                    </div>
+                    <div class="figma-product-price" id="modalProductPrice">
+                        ₹0
+                    </div>
+                </div>
+
+                <!-- Return Status Section (2-Column Layout Matching Figma) -->
+                <div class="figma-section-title">Return Status</div>
+                <div class="status-options-grid">
+                    <div class="status-radio-card" id="statusCard_REQUESTED" onclick="handleStatusCardClick('REQUESTED')">
+                        <div class="custom-radio-dot">
+                            <div class="custom-radio-inner-dot"></div>
+                        </div>
+                        <span class="status-radio-label">Return Requested</span>
+                    </div>
+
+                    <div class="status-radio-card" id="statusCard_PICKED" onclick="handleStatusCardClick('PICKED')">
+                        <div class="custom-radio-dot">
+                            <div class="custom-radio-inner-dot"></div>
+                        </div>
+                        <span class="status-radio-label">Item Received</span>
+                    </div>
+
+                    <div class="status-radio-card" id="statusCard_INSPECT_APPROVED" onclick="handleStatusCardClick('INSPECT_APPROVED')">
+                        <div class="custom-radio-dot">
+                            <div class="custom-radio-inner-dot"></div>
+                        </div>
+                        <span class="status-radio-label">Inspected – Approved</span>
+                    </div>
+
+                    <div class="status-radio-card" id="statusCard_INSPECT_REJECTED" onclick="handleStatusCardClick('INSPECT_REJECTED')">
+                        <div class="custom-radio-dot">
+                            <div class="custom-radio-inner-dot"></div>
+                        </div>
+                        <span class="status-radio-label">Inspected – Rejected</span>
+                    </div>
+                </div>
+
+                <!-- Inline Subtle Status Hint / Notice -->
+                <div class="modal-subtle-hint" id="modalStatusHint"></div>
+
+                <!-- 2-Column Section: Refund Amount & Refund Method -->
+                <div class="figma-fields-grid">
+                    <div class="figma-field-col">
+                        <label class="figma-field-label" for="modalRefundAmountInput">Refund Amount</label>
+                        <div class="figma-underline-box">
+                            <span class="figma-currency-symbol">₹</span>
+                            <input
+                                type="text"
+                                class="figma-amount-input"
+                                id="modalRefundAmountInput"
+                                value="0.00"
+                                readonly
+                                tabindex="-1"
+                                style="pointer-events: none; user-select: text;"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="figma-field-col">
+                        <span class="figma-field-label">Refund Method</span>
+                        <div class="figma-underline-box-method" style="cursor: default; user-select: none;">
+                            Store in Wallet
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Internal Notes Section -->
+                <div class="figma-notes-section">
+                    <label class="figma-field-label" for="modalInternalNotes">Internal Notes</label>
+                    <textarea
+                        class="figma-notes-textarea"
+                        id="modalInternalNotes"
+                        placeholder="Record condition of the returned item..."
+                        rows="2"
+                    ></textarea>
+                </div>
+
+                <!-- Footer Buttons (Cancel & Update Return Status) -->
+                <div class="figma-modal-footer">
+                    <button type="button" class="btn-figma-cancel" onclick="closeReturnModal()">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn-figma-confirm" id="btnConfirmRefund" onclick="submitModalReturnProcessing()">
+                        Update Return Status
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-notification" id="appToast">
+        <span id="toastMessage">Success</span>
+    </div>
+
+    <!-- Interactive JavaScript -->
+    <script>
+        let currentReturnId = null;
+        let currentReturnStatus = null;
+        let selectedStatus = null;
+        let initialInternalNote = '';
+
+        // Allowed transitions mapping based on backend order_service:
+        // REQUESTED -> PICKED
+        // PICKED -> INSPECT_APPROVED, INSPECT_REJECTED
+        // Terminal states: INSPECT_APPROVED, INSPECT_REJECTED
+        const allowedTransitions = {
+            'REQUESTED': ['PICKED'],
+            'PICKED': ['INSPECT_APPROVED', 'INSPECT_REJECTED'],
+            'INSPECT_APPROVED': [],
+            'INSPECT_REJECTED': []
+        };
+
+        const allStatusKeys = ['REQUESTED', 'PICKED', 'INSPECT_APPROVED', 'INSPECT_REJECTED'];
+
+        // Toggle Profile Dropdown
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('profileMenu');
+            const btn = document.getElementById('profileToggleBtn');
+            const isOpen = menu.classList.contains('show');
+
+            if (isOpen) {
+                menu.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+            } else {
+                menu.classList.add('show');
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        }
+
+        document.addEventListener('click', function () {
+            const menu = document.getElementById('profileMenu');
+            const btn = document.getElementById('profileToggleBtn');
+            if (menu) menu.classList.remove('show');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+
+        // Open Return Modal
+        function openReturnModal(returnId, productName, quantity, price, status, refundAmount, internalNote, imageUrl = '') {
+            currentReturnId = returnId;
+            currentReturnStatus = status;
+            selectedStatus = null; // No transition selected initially
+            initialInternalNote = internalNote || '';
+
+            // Product Details
+            document.getElementById('modalProductName').textContent = productName;
+            document.getElementById('modalProductQty').textContent = `Qty: ${quantity}`;
+
+            const parsedPrice = parseFloat(price || 0);
+            document.getElementById('modalProductPrice').textContent = `₹${parsedPrice.toLocaleString('en-IN')}`;
+
+            // Product Thumbnail
+            const thumbContainer = document.getElementById('modalProductThumb');
+            if (imageUrl) {
+                thumbContainer.innerHTML = `<img src="${imageUrl}" alt="${productName}">`;
+            } else {
+                thumbContainer.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L12 22"></path>
+                        <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                        <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+                    </svg>
+                `;
+            }
+
+            // Refund Amount Input (read-only from backend return_request.refund_amount)
+            const amountVal = parseFloat(refundAmount || price || 0).toFixed(2);
+            document.getElementById('modalRefundAmountInput').value = amountVal;
+
+            // Internal Notes Textarea
+            document.getElementById('modalInternalNotes').value = initialInternalNote;
+
+            // Configure status radio cards and hints
+            configureStatusCards(status);
+
+            // Reset Button state
+            const confirmBtn = document.getElementById('btnConfirmRefund');
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Update Return Status';
+
+            // Display modal
+            document.getElementById('returnModal').classList.add('show');
+        }
+
+        function closeReturnModal() {
+            document.getElementById('returnModal').classList.remove('show');
+            currentReturnId = null;
+            currentReturnStatus = null;
+            selectedStatus = null;
+            initialInternalNote = '';
+        }
+
+        function handleReturnModalBackdrop(event) {
+            if (event.target === document.getElementById('returnModal')) {
+                closeReturnModal();
+            }
+        }
+
+        function configureStatusCards(currentStatus) {
+            const allowedNext = allowedTransitions[currentStatus] || [];
+            const isTerminal = allowedNext.length === 0;
+
+            allStatusKeys.forEach(statusKey => {
+                const card = document.getElementById(`statusCard_${statusKey}`);
+                if (!card) return;
+
+                card.classList.remove('active', 'disabled');
+
+                if (statusKey === currentStatus) {
+                    card.classList.add('active');
+                } else if (allowedNext.includes(statusKey)) {
+                    // Next valid transition option is clickable
+                } else {
+                    card.classList.add('disabled');
+                }
+            });
+
+            // Update status hint message
+            const hintBox = document.getElementById('modalStatusHint');
+            if (isTerminal) {
+                hintBox.className = 'modal-subtle-hint info';
+                hintBox.style.display = 'block';
+                hintBox.textContent = `Status is finalized: ${formatStatusName(currentStatus)}. Completed statuses cannot be changed again.`;
+            } else if (currentStatus === 'REQUESTED') {
+                hintBox.className = 'modal-subtle-hint info';
+                hintBox.style.display = 'block';
+                hintBox.textContent = 'Current status: Return Requested. Next available status: Item Received.';
+            } else if (currentStatus === 'PICKED') {
+                hintBox.className = 'modal-subtle-hint info';
+                hintBox.style.display = 'block';
+                hintBox.textContent = 'Current status: Item Received. Next available statuses: Inspected – Approved or Inspected – Rejected.';
+            } else {
+                hintBox.style.display = 'none';
+            }
+        }
+
+        function handleStatusCardClick(clickedStatus) {
+            const allowedNext = allowedTransitions[currentReturnStatus] || [];
+
+            // Disallow clicks on non-permitted options
+            if (!allowedNext.includes(clickedStatus)) {
+                // Clicking on current status resets any pending selection
+                if (clickedStatus === currentReturnStatus && selectedStatus !== null) {
+                    selectedStatus = null;
+                    configureStatusCards(currentReturnStatus);
+                }
+                return;
+            }
+
+            // Clicking on already selected option toggles it off
+            if (selectedStatus === clickedStatus) {
+                selectedStatus = null;
+                configureStatusCards(currentReturnStatus);
+                return;
+            }
+
+            // Select new status
+            selectedStatus = clickedStatus;
+
+            allStatusKeys.forEach(statusKey => {
+                const card = document.getElementById(`statusCard_${statusKey}`);
+                if (!card) return;
+                if (statusKey === clickedStatus) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+
+            const hintBox = document.getElementById('modalStatusHint');
+            hintBox.className = 'modal-subtle-hint info';
+            hintBox.style.display = 'block';
+            hintBox.textContent = `Selected next status: ${formatStatusName(clickedStatus)}. Click "Update Return Status" to apply.`;
+        }
+
+        function formatStatusName(s) {
+            switch(s) {
+                case 'REQUESTED': return 'Return Requested';
+                case 'PICKED': return 'Item Received';
+                case 'INSPECT_APPROVED': return 'Inspected – Approved';
+                case 'INSPECT_REJECTED': return 'Inspected – Rejected';
+                default: return s;
+            }
+        }
+
+        // Handle Update Return Status & Notes via backend
+        async function submitModalReturnProcessing() {
+            if (!currentReturnId) return;
+
+            const confirmBtn = document.getElementById('btnConfirmRefund');
+            const originalBtnText = 'Update Return Status';
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const newNoteVal = document.getElementById('modalInternalNotes').value.trim();
+            const noteChanged = newNoteVal !== initialInternalNote;
+            const statusChanged = selectedStatus && (selectedStatus !== currentReturnStatus);
+
+            if (!statusChanged && !noteChanged) {
+                showToast('No changes detected to update.', 'info');
+                return;
+            }
+
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Updating...';
+
+            try {
+                // 1. Process Status Change if a valid next status is selected
+                if (statusChanged) {
+                    const statusFormData = new FormData();
+                    statusFormData.append('status', selectedStatus);
+
+                    const statusRes = await fetch(`/orders/admin/return/${currentReturnId}/status/`, {
+                        method: 'POST',
+                        body: statusFormData,
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        }
+                    });
+
+                    const statusData = await statusRes.json();
+                    if (!statusRes.ok) {
+                        // Keep modal open, show backend error message
+                        showToast(statusData.message || 'Failed to update return status.', 'error');
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = originalBtnText;
+                        return;
+                    }
+                }
+
+                // 2. Process Note Change if internal note was modified
+                if (noteChanged) {
+                    const noteFormData = new FormData();
+                    noteFormData.append('Internal_note', newNoteVal);
+                    noteFormData.append('internal_note', newNoteVal);
+
+                    const noteRes = await fetch(`/orders/admin/return/${currentReturnId}/note/`, {
+                        method: 'POST',
+                        body: noteFormData,
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        }
+                    });
+
+                    const noteData = await noteRes.json();
+                    if (!noteRes.ok) {
+                        // Keep modal open, show backend error message
+                        showToast(noteData.message || 'Failed to save internal note.', 'error');
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = originalBtnText;
+                        return;
+                    }
+                }
+
+                // All changes saved successfully
+                showToast('Return status updated successfully.', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 600);
+
+            } catch (err) {
+                showToast('A network error occurred. Please try again.', 'error');
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = originalBtnText;
+            }
+        }
+
+        // Initiate return prompt / notification
+        function promptUserReturnInstructions(productName) {
+            showToast(`To initiate a return for "${productName}", the customer or admin can submit a return request.`, 'success');
+        }
+
+        // Print Invoice Handler
+        function handlePrintInvoice(downloadUrl) {
+            window.open(downloadUrl, '_blank');
+        }
+
+        // Show Toast Notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('appToast');
+            const toastMsg = document.getElementById('toastMessage');
+
+            toastMsg.textContent = message;
+            toast.className = `toast-notification ${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

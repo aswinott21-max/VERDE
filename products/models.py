@@ -45,10 +45,10 @@ class ProductImage(models.Model):
     
 class Review(models.Model):
     id = models.BigAutoField(primary_key=True)
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     order_item_id = models.BigIntegerField(null=True, blank=True)
-    product = models.ForeignKey(Product,on_delete=models.CASCADE, related_name="reviews",db_column="produc_id")
+    product = models.ForeignKey(Product,on_delete=models.CASCADE, related_name="reviews",)
     product_variant = models.ForeignKey(ProductVariant,on_delete=models.SET_NULL, null=True, blank=True, related_name="reviews", db_column="product_variant_id")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="product_reviews", db_column="user_id")
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])

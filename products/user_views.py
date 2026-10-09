@@ -1,7 +1,11 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+
 from products.models import Category
+
 from products.services.product_service import (get_active_products,get_product_modal_data,)
 from wishlist.services.wishlist_service import (get_user_wishlist_product_ids,get_user_wishlist_count,)
+from products.services.review_service import (get_reviewable_order_items, create_product_review)
 
 def product_list(request):
     search_query = request.GET.get("search", "")
@@ -78,3 +82,26 @@ def product_detail(request, product_id):
         }
 
     return render(request,"products/user_product_detail.html",context,)
+
+@login_required
+def add_product_review(request, order_number):
+
+    reviewable_items = get_reviewable_order_items(request.user,order_number)
+
+    if request.method == "POST":
+        order_item_id = request.POST.get("order_item_id")
+        rating = request.POST.get("rating")
+        review_text = request.POST.get("review_text","").strip()
+
+        review, error = create_product_review(request.user, order_item_id, rating, review_text, request.FILES.getlist("images"),)
+
+        if error:
+            return render(request,"products/add_product_review.html",
+                          {
+                            "reviewable_items": reviewable_items,
+                            "order_number": order_number,
+                            "error": error,
+                          })
+        return redirect("orders:order_detail", order_number=order_number)
+    return render(request,"products/add_product_review.html",{"reviewable_items": reviewable_items,"order_number": order_number,},)
+   

@@ -15,8 +15,10 @@ class Order(models.Model):
     discount_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0,)
     shipping_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0,)
     subtotal = models.DecimalField(max_digits=10,decimal_places=2,default=0,)
+    tax_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0)
     total_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0,)
     status = models.CharField(max_length=50)
+    cancellation_reason = models.TextField(blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -36,6 +38,8 @@ class OrderItem(models.Model):
     unit_price = models.DecimalField(max_digits=10,decimal_places=2,)
     total_price = models.DecimalField(max_digits=10,decimal_places=2,)
     discount_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0,)
+    item_status = models.CharField(max_length=50, default="ACTIVE")
+    cancellation_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -79,3 +83,40 @@ class OrderStatusHistory(models.Model):
 
     def __str__(self):
         return f"Order #{self.order_id} - {self.status}"
+
+
+class Return(models.Model):
+    order_item = models.ForeignKey(OrderItem,on_delete=models.CASCADE,related_name="returns")
+    user = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True,related_name="returns")
+    reason = models.CharField(max_length=255)
+    description = models.TextField(blank=True,null=True)
+    user_add_note = models.TextField(blank=True,null=True)
+    internal_note = models.TextField(blank=True,null=True)
+    status = models.CharField(max_length=50)
+    refund_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "returns"
+    def __str__(self):
+        return f"Return #{self.id} - Order Item #{self.order_item_id}"
+
+
+class Refund(models.Model):
+    return_request = models.ForeignKey(Return,on_delete=models.CASCADE,related_name="refunds",)
+    user = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True,related_name="refunds",)
+    amount = models.DecimalField(max_digits=10,decimal_places=2,)
+    status = models.CharField(max_length=50)
+    wallet_transaction_id = models.BigIntegerField(null=True,blank=True,)
+    processed_at = models.DateTimeField(blank=True,null=True,)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "refund"
+
+    def __str__(self):
+        return f"Refund #{self.id} - Return #{self.return_request_id}"

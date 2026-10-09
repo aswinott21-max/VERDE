@@ -880,7 +880,7 @@
           </svg>
           Profile
         </a>
-        <a class="profile-tab" href="#">
+        <a class="profile-tab" href="{% url 'orders:order_list' %}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
             <path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h4" />
           </svg>
@@ -1115,7 +1115,7 @@
           <div class="footer-group">
             <strong class="footer-heading">Account</strong>
             <a class="footer-link" href="{% url 'profile' %}">Profile</a>
-            <a class="footer-link" href="#">Orders</a>
+            <a class="footer-link" href="{% url 'orders:order_list' %}">Orders</a>
           </div>
           <div class="footer-group">
             <strong class="footer-heading">Follow</strong>

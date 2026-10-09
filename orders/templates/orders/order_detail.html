@@ -1,0 +1,2269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order #{{ order.order_number }} - VERDÉ</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Global Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        :root {
+            --color-primary: #102518;
+            --color-primary-hover: #1b3825;
+            --color-accent: #2e593d;
+            --color-bg-subtle: #f8f9f7;
+            --color-border: #e2e8e3;
+            --color-border-light: #ecefe9;
+            --color-text-main: #141715;
+            --color-text-muted: #647067;
+            --color-text-subtle: #8a968d;
+            --font-serif: "Playfair Display", Georgia, serif;
+            --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+            --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.order-details-page {
+            background-color: var(--color-bg-subtle);
+            color: var(--color-text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Site Header */
+        .site-header.order-header {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            z-index: 100;
+        }
+
+        .header-container {
+            width: 100%;
+            max-width: none;
+            margin: 0 auto;
+            padding: 0 clamp(16px, 4vw, 40px);
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-actions .action-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            color: var(--color-text-main);
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .header-actions .action-btn:hover {
+            background-color: var(--color-bg-subtle);
+            color: var(--color-primary);
+        }
+
+        .header-actions .action-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        /* Main Page Container */
+        .order-details-main {
+            width: min(100% - 40px, 920px);
+            margin: 36px auto 72px;
+            flex: 1;
+        }
+
+        /* Back Navigation / Breadcrumb */
+        .page-back-nav {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .back-link:hover {
+            color: var(--color-primary);
+        }
+
+        .back-link svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2;
+        }
+
+        /* Main Order Card (Figma Style) */
+        .order-card-container {
+            background: #ffffff;
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(16, 37, 24, 0.03);
+            overflow: hidden;
+        }
+
+        /* Card Header */
+        .order-details-header {
+            padding: 28px 36px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--color-border-light);
+        }
+
+        .order-details-title {
+            font-family: var(--font-serif);
+            font-size: 28px;
+            font-weight: 600;
+            color: #141715;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .header-close-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            color: #717d74;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .header-close-btn:hover {
+            background-color: #edf2ed;
+            color: #141715;
+        }
+
+        .header-close-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 1.8;
+        }
+
+        /* Card Content Body */
+        .order-card-body {
+            padding: 28px 36px 36px;
+        }
+
+        /* Order Meta Row (Order #, Date, Status Badge) */
+        .order-meta-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .order-meta-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .order-meta-number {
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #2b332d;
+            margin: 0;
+        }
+
+        .order-meta-date {
+            font-size: 13px;
+            color: #6a766e;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        /* Status Badge */
+        .order-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .order-status-pill.status-delivered {
+            background: #eaf4ed;
+            color: #235235;
+            border: 1px solid #cfe3d5;
+        }
+
+        .order-status-pill.status-processing,
+        .order-status-pill.status-placed,
+        .order-status-pill.status-shipped,
+        .order-status-pill.status-out_for_delivery {
+            background: #f0f5f1;
+            color: #264a34;
+            border: 1px solid #d8e4db;
+        }
+
+        .order-status-pill.status-cancelled {
+            background: #faf4f4;
+            color: #b91c1c;
+            border: 1px solid #f1dbdb;
+        }
+
+        .order-status-pill.status-returned {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+        }
+
+        .order-status-pill svg {
+            width: 13px;
+            height: 13px;
+            stroke-width: 2.2;
+        }
+
+        /* Timeline / Stepper */
+        .timeline-section {
+            margin: 0 0 36px;
+            padding: 8px 12px 16px;
+        }
+
+        .stepper-track {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        /* Connecting Bar behind nodes */
+        .stepper-track::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 36px;
+            right: 36px;
+            height: 2px;
+            background: #e2e8e3;
+            z-index: 1;
+        }
+
+        .stepper-progress-line {
+            position: absolute;
+            top: 15px;
+            left: 36px;
+            height: 2px;
+            background: #102518;
+            z-index: 2;
+            transition: width 0.3s ease;
+        }
+
+        .stepper-step {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #dfe5df;
+            color: #8c968e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            transition: all var(--transition-fast);
+        }
+
+        .stepper-step.completed .step-icon-wrap,
+        .stepper-step.active .step-icon-wrap {
+            background: #102518;
+            border-color: #102518;
+            color: #ffffff;
+        }
+
+        .step-icon-wrap svg {
+            width: 15px;
+            height: 15px;
+            stroke-width: 2.2;
+        }
+
+        .step-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #8c968e;
+            letter-spacing: -0.01em;
+            margin: 0;
+            transition: color var(--transition-fast);
+        }
+
+        .stepper-step.completed .step-label,
+        .stepper-step.active .step-label {
+            color: #141715;
+        }
+
+        .step-date {
+            font-size: 11px;
+            color: #7a8880;
+            margin-top: 3px;
+        }
+
+        /* Cancelled Banner if Order Cancelled */
+        .order-cancelled-banner {
+            background: #faf4f4;
+            border: 1px solid #f1dbdb;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .cancelled-banner-icon {
+            color: #b91c1c;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .cancelled-banner-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        .cancelled-banner-content h4 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: #b91c1c;
+        }
+
+        .cancelled-banner-content p {
+            margin: 0;
+            font-size: 13px;
+            color: #7f2323;
+        }
+
+        /* Divider */
+        .section-divider {
+            border: 0;
+            border-top: 1px solid var(--color-border-light);
+            margin: 32px 0;
+        }
+
+        /* Items Section */
+        .items-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #141715;
+            margin: 0 0 20px 0;
+            letter-spacing: -0.01em;
+        }
+
+        .order-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .order-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 8px 0;
+        }
+
+        .item-main-info {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .item-thumb-wrap {
+            width: 76px;
+            height: 76px;
+            border-radius: 8px;
+            background: #f4f6f3;
+            border: 1px solid #dfe5df;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .item-thumb-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .item-thumb-wrap svg {
+            width: 30px;
+            height: 30px;
+            color: #8c968e;
+            stroke-width: 1.4;
+        }
+
+        .item-text-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .item-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #141715;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .item-variant {
+            font-size: 13px;
+            color: #647067;
+            margin: 0;
+        }
+
+        .item-qty {
+            font-size: 12.5px;
+            color: #647067;
+            margin: 0;
+        }
+
+        .item-status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #b91c1c;
+            background: #faf4f4;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #f5d5d5;
+            width: fit-content;
+            margin-top: 4px;
+        }
+
+        .item-return-status {
+            margin-top: 4px;
+        }
+
+        .item-reason-text {
+            font-size: 11.5px;
+            color: #853737;
+            margin-top: 2px;
+        }
+
+        /* Item Actions & Price */
+        .item-right-wrap {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-shrink: 0;
+        }
+
+        /* Actions Dropdown */
+        .item-actions-dropdown-wrap {
+            position: relative;
+        }
+
+        .btn-item-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border: 1px solid #dfe5df;
+            border-radius: 7px;
+            background: #ffffff;
+            color: #313b34;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-item-actions:hover {
+            background-color: #f4f7f4;
+            border-color: #cdd8ce;
+            color: #102518;
+        }
+
+        .btn-item-actions svg {
+            width: 12px;
+            height: 12px;
+            stroke-width: 2.2;
+            transition: transform var(--transition-fast);
+        }
+
+        .btn-item-actions.open svg {
+            transform: rotate(180deg);
+        }
+
+        .actions-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #dce4dd;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(16, 37, 24, 0.1);
+            min-width: 160px;
+            padding: 6px;
+            z-index: 50;
+        }
+
+        .actions-dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-menu-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: #2b332d;
+            background: transparent;
+            border: none;
+            text-decoration: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+            box-sizing: border-box;
+        }
+
+        .dropdown-menu-item:hover {
+            background-color: #f2f6f3;
+            color: #102518;
+        }
+
+        .dropdown-menu-item.danger {
+            color: #b91c1c;
+        }
+
+        .dropdown-menu-item.danger:hover {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+
+        .dropdown-menu-item.disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .item-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #141715;
+            min-width: 75px;
+            text-align: right;
+            letter-spacing: -0.01em;
+        }
+
+        /* 2-Column Section (Delivery Information & Payment Summary) */
+        .order-bottom-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.95fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        /* Delivery Info */
+        .delivery-info-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-subheading {
+            font-size: 16px;
+            font-weight: 700;
+            color: #141715;
+            margin: 0 0 20px 0;
+            letter-spacing: -0.01em;
+        }
+
+        .field-group {
+            margin-bottom: 22px;
+        }
+
+        .field-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #556057;
+            margin: 0 0 8px 0;
+        }
+
+        .address-text-block {
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: #313b34;
+            margin: 0;
+        }
+
+        .address-name {
+            font-weight: 600;
+            color: #141715;
+        }
+
+        .delivery-method-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13.5px;
+            color: #2b332d;
+            margin-top: 4px;
+        }
+
+        .delivery-method-row svg {
+            width: 18px;
+            height: 18px;
+            color: #556057;
+            flex-shrink: 0;
+        }
+
+        /* Payment Summary Card */
+        .payment-summary-card {
+            background: #f8f9f7;
+            border: 1px solid #e2e8e3;
+            border-radius: 12px;
+            padding: 24px 26px;
+        }
+
+        .payment-summary-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #141715;
+            margin: 0 0 18px 0;
+            letter-spacing: -0.01em;
+        }
+
+        .payment-rows-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .payment-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13.5px;
+            color: #556057;
+        }
+
+        .payment-row-value {
+            font-weight: 600;
+            color: #141715;
+        }
+
+        .payment-row-value.discount {
+            color: #235235;
+        }
+
+        .payment-divider {
+            border: 0;
+            border-top: 1px solid #dfe5df;
+            margin: 16px 0;
+        }
+
+        .payment-total-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .payment-total-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #141715;
+        }
+
+        .payment-total-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #141715;
+            letter-spacing: -0.01em;
+        }
+
+        /* Bottom Actions Footer inside Main Card */
+        .order-card-footer {
+            margin-top: 36px;
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .order-secondary-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-order-action {
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: var(--color-text-muted);
+            transition: color var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-order-action:hover {
+            color: var(--color-primary);
+            text-decoration: underline;
+        }
+
+        .btn-order-action.danger {
+            color: #b91c1c;
+        }
+
+        .btn-order-action.danger:hover {
+            color: #8c2626;
+        }
+
+        /* Download Invoice Button (Figma Style) */
+        .btn-download-invoice {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border: 1px solid #102518;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #102518;
+            font-family: var(--font-sans);
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-download-invoice:hover {
+            background: #102518;
+            color: #ffffff;
+        }
+
+        .btn-download-invoice svg {
+            width: 14px;
+            height: 14px;
+            stroke-width: 2;
+        }
+
+        /* Modal Dialogs */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 23, 15, 0.58);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .action-modal {
+            position: relative;
+            width: min(100%, 460px);
+            background: #ffffff;
+            border: 1px solid #dce6de;
+            border-radius: 14px;
+            padding: 30px 32px;
+            box-shadow: 0 20px 60px rgba(10, 23, 15, 0.2);
+            box-sizing: border-box;
+            transform: translateY(-10px) scale(0.98);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .action-modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: #6f7a74;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .modal-close-btn:hover {
+            background-color: #edf3ee;
+            color: #141715;
+        }
+
+        .modal-close-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2;
+        }
+
+        .action-modal h2 {
+            margin: 0 0 8px 0;
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 600;
+            color: #141715;
+        }
+
+        .action-modal p {
+            color: #6a746e;
+            font-size: 13px;
+            line-height: 1.55;
+            margin: 0 0 18px 0;
+        }
+
+        .modal-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px 14px;
+            box-sizing: border-box;
+            border: 1px solid #d5ded7;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            color: #141715;
+            background: #fbfcfb;
+            outline: none;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .modal-textarea:focus {
+            border-color: #73917a;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+        }
+
+        .modal-select {
+            width: 100%;
+            min-height: 42px;
+            padding: 10px 14px;
+            box-sizing: border-box;
+            border: 1px solid #d5ded7;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            color: #141715;
+            background: #fbfcfb;
+            outline: none;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .modal-select:focus {
+            border-color: #73917a;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+        }
+
+        .modal-feedback {
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .modal-feedback.error {
+            color: #dc2626;
+            display: block;
+        }
+
+        .modal-btn-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .modal-btn {
+            padding: 9px 20px;
+            border-radius: 6px;
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .modal-btn-secondary {
+            border: 1px solid #dfe5df;
+            background: #ffffff;
+            color: #4a544e;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #f4f6f4;
+            color: #141715;
+        }
+
+        .modal-btn-primary {
+            border: 1px solid #102518;
+            background: #102518;
+            color: #ffffff;
+        }
+
+        .modal-btn-primary:hover {
+            background: #1b3825;
+            border-color: #1b3825;
+        }
+
+        .modal-btn-danger {
+            border: 1px solid #b91c1c;
+            background: #b91c1c;
+            color: #ffffff;
+        }
+
+        .modal-btn-danger:hover {
+            background: #991b1b;
+            border-color: #991b1b;
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #102518;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 2000;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 768px) {
+            .order-details-main {
+                width: min(100% - 24px, 600px);
+                margin: 20px auto 48px;
+            }
+
+            .order-details-header {
+                padding: 20px 20px 18px;
+            }
+
+            .order-details-title {
+                font-size: 24px;
+            }
+
+            .order-card-body {
+                padding: 20px 20px 24px;
+            }
+
+            .order-bottom-grid {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+
+            .stepper-track::before {
+                left: 20px;
+                right: 20px;
+            }
+
+            .stepper-progress-line {
+                left: 20px;
+            }
+
+            .step-label {
+                font-size: 11px;
+            }
+
+            .order-item-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .item-right-wrap {
+                width: 100%;
+                justify-content: space-between;
+                padding-top: 8px;
+                border-top: 1px dashed #e8ece8;
+            }
+        }
+    </style>
+</head>
+
+<body class="order-details-page">
+
+    <!-- Hidden CSRF token holder for AJAX requests -->
+    <form id="csrfForm" hidden>{% csrf_token %}</form>
+
+    <!-- ========================================================================
+         Top Header Navigation
+         ======================================================================== -->
+    <header class="site-header order-header" role="banner">
+        <div class="header-container">
+            <!-- Brand Logo -->
+            <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2" />
+                </svg>
+                <span class="logo-text">VERDÉ</span>
+            </a>
+
+            <!-- Center Navigation -->
+            <nav class="main-nav" aria-label="Primary Navigation">
+                <ul class="nav-list">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="{% url 'product_list' %}" class="nav-link">Shop</a></li>
+                    <li><a href="/#offers" class="nav-link">Offers</a></li>
+                    <li><a href="/#about" class="nav-link">About</a></li>
+                </ul>
+            </nav>
+
+            <!-- Right Action Icons -->
+            <div class="header-actions">
+                <a href="{% url 'product_list' %}" class="action-btn" id="searchBtn" aria-label="Search" title="Search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+
+                <a href="/wishlist/" class="action-btn" id="wishlistBtn" aria-label="Wishlist" title="Wishlist">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <span class="badge-count js-wishlist-count-badge" id="wishlistCountBadge" style="{% if not wishlist_count %}display:none;{% endif %}">{% if wishlist_count %}{{ wishlist_count }}{% else %}0{% endif %}</span>
+                </a>
+
+                <a href="{% url 'cart:cart_page' %}" {% if user.is_authenticated %}data-cart-api="{% url 'cart:view_cart' %}"{% endif %} class="action-btn" aria-label="Cart" title="Cart">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+                </a>
+
+                {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="action-btn profile-avatar" aria-label="Profile" title="Profile">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+                    {% else %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M4 20a8 8 0 0 1 16 0"></path>
+                    </svg>
+                    {% endif %}
+                </a>
+                {% else %}
+                <a href="{% url 'login_page' %}" class="btn-signin">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================================================
+         Main Content Area
+         ======================================================================== -->
+    <main class="order-details-main">
+
+        <!-- Back to Orders Navigation -->
+        <div class="page-back-nav">
+            <a href="{% url 'orders:order_list' %}" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to My Orders
+            </a>
+        </div>
+
+        <!-- Main Order Details Card (Figma Layout) -->
+        <div class="order-card-container">
+
+            <!-- Card Header with Title and Close 'X' -->
+            <div class="order-details-header">
+                <h1 class="order-details-title">Order Details</h1>
+                <a href="{% url 'orders:order_list' %}" class="header-close-btn" title="Close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Card Body -->
+            <div class="order-card-body">
+
+                <!-- Order Meta (Order Number, Date, Status Badge) -->
+                <div class="order-meta-row">
+                    <div class="order-meta-info">
+                        <p class="order-meta-number">ORDER #{{ order.order_number }}</p>
+                        <p class="order-meta-date">Placed on {{ order.created_at|date:"M d, Y" }}</p>
+                        {% if estimated_delivery_start and estimated_delivery_end %}
+                        <p class="order-meta-date">Estimated Delivery: {{ estimated_delivery_start|date:"d M Y" }} - {{ estimated_delivery_end|date:"d M Y" }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Status Pill -->
+                    {% if order.status == "DELIVERED" %}
+                        <span class="order-status-pill status-delivered">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            Delivered
+                        </span>
+                    {% elif order.status == "CANCELLED" %}
+                        <span class="order-status-pill status-cancelled">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Cancelled
+                        </span>
+                    {% elif order.status == "RETURNED" or order.status == "REURNED" %}
+                        <span class="order-status-pill status-returned">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1 4 1 10 7 10"></polyline>
+                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                            </svg>
+                            Returned
+                        </span>
+                    {% else %}
+                        <span class="order-status-pill status-processing">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            {{ order.status|title }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Order Cancellation Reason Banner if Cancelled -->
+                {% if order.status == "CANCELLED" %}
+                <div class="order-cancelled-banner">
+                    <div class="cancelled-banner-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                    </div>
+                    <div class="cancelled-banner-content">
+                        <h4>Order Cancelled</h4>
+                        <p>{% if order.cancellation_reason %}Reason: {{ order.cancellation_reason }}{% else %}This order has been cancelled.{% endif %}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Order Status Timeline / Stepper -->
+                {% if order.status != "CANCELLED" and order.status != "RETURNED" and order.status != "REURNED" %}
+                <div class="timeline-section">
+                    <div class="stepper-track">
+                        <!-- Dynamic Progress Line -->
+                        <div class="stepper-progress-line" style="{% if order.status == 'PLACED' %}width: 0%;{% elif order.status == 'PROCESSING' %}width: 33.33%;{% elif order.status == 'SHIPPED' or order.status == 'OUT_FOR_DELIVERY' %}width: 66.66%;{% elif order.status == 'DELIVERED' %}width: calc(100% - 72px);{% endif %}"></div>
+
+                        <!-- Step 1: Placed -->
+                        <div class="stepper-step completed">
+                            <div class="step-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <p class="step-label">Placed</p>
+                        </div>
+
+                        <!-- Step 2: Processed -->
+                        <div class="stepper-step {% if order.status == 'PROCESSING' or order.status == 'SHIPPED' or order.status == 'OUT_FOR_DELIVERY' or order.status == 'DELIVERED' %}completed{% endif %}">
+                            <div class="step-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <p class="step-label">Processed</p>
+                        </div>
+
+                        <!-- Step 3: Shipped -->
+                        <div class="stepper-step {% if order.status == 'SHIPPED' or order.status == 'OUT_FOR_DELIVERY' or order.status == 'DELIVERED' %}completed{% endif %}">
+                            <div class="step-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <p class="step-label">Shipped</p>
+                        </div>
+
+                        <!-- Step 4: Delivered -->
+                        <div class="stepper-step {% if order.status == 'DELIVERED' %}completed{% endif %}">
+                            <div class="step-icon-wrap">
+                                {% if order.status == 'DELIVERED' %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                                {% else %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <p class="step-label">Delivered</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <hr class="section-divider">
+
+                <!-- Items in this order Section -->
+                <div class="order-items-section">
+                    <h2 class="items-section-title">Items in this order</h2>
+
+                    <div class="order-items-list">
+                        {% for item in order.items.all %}
+                        {% with return_request=item.returns.first %}
+                        <div class="order-item-row" id="order-item-row-{{ item.id }}" data-order-item-id="{{ item.id }}">
+                            <div class="item-main-info">
+                                <!-- Product Image Thumbnail -->
+                                <div class="item-thumb-wrap">
+                                    {% if item.product_variant.images.first %}
+                                        <img src="{{ item.product_variant.images.first.image_url.url }}" alt="{{ item.product_name }}">
+                                    {% elif item.product.product_images.first %}
+                                        <img src="{{ item.product.product_images.first.image_url.url }}" alt="{{ item.product_name }}">
+                                    {% else %}
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2" />
+                                        </svg>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Product Info -->
+                                <div class="item-text-details">
+                                    <h3 class="item-name">{{ item.product_name }}</h3>
+
+                                    {% if item.product_variant %}
+                                        <p class="item-variant">
+                                            {{ item.product_variant.size|default:"" }}{% if item.product_variant.size and item.product_variant.color %} • {% endif %}{{ item.product_variant.color|default:"" }}
+                                        </p>
+                                    {% endif %}
+
+                                    <p class="item-qty">Qty: {{ item.quantity }}</p>
+
+                                    <!-- Item Cancellation Status -->
+                                    <div class="item-status-container" id="item-status-{{ item.id }}" {% if item.item_status != "CANCELLED" and not return_request %}style="display: none;"{% endif %}>
+                                        {% if item.item_status == "CANCELLED" %}
+                                            <span class="item-status-tag">CANCELLED</span>
+                                            {% if item.cancellation_reason %}
+                                            <p class="item-reason-text">Reason: {{ item.cancellation_reason }}</p>
+                                            {% endif %}
+                                        {% elif return_request %}
+                                            <span class="order-status-pill status-delivered item-return-status">RETURN {{ return_request.status }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Section: Actions Dropdown & Price -->
+                            <div class="item-right-wrap">
+                                <!-- Actions Dropdown -->
+                                <div class="item-actions-dropdown-wrap">
+                                    <button
+                                        type="button"
+                                        class="btn-item-actions js-dropdown-toggle"
+                                        id="actions-btn-{{ item.id }}"
+                                        aria-haspopup="true"
+                                        aria-expanded="false"
+                                    >
+                                        ACTIONS
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </button>
+
+                                    <div class="actions-dropdown-menu" id="dropdown-menu-{{ item.id }}">
+                                        <!-- Item Cancellation Action -->
+                                        {% if order.status == "PLACED" or order.status == "PROCESSING" or order.status == "SHIPPED" or order.status == "OUT_FOR_DELIVERY" %}
+                                            {% if item.item_status != "CANCELLED" %}
+                                            <button
+                                                type="button"
+                                                class="dropdown-menu-item danger js-cancel-item-btn"
+                                                data-order-number="{{ order.order_number }}"
+                                                data-item-id="{{ item.id }}"
+                                                data-item-name="{{ item.product_name|escapejs }}"
+                                            >
+                                                Cancel Item
+                                            </button>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        <!-- Item Return Action -->
+                                        {% if order.status == "DELIVERED" and item.item_status == "ACTIVE" %}
+                                            {% if not return_request %}
+                                            <button
+                                                type="button"
+                                                class="dropdown-menu-item js-return-item-btn"
+                                                data-order-number="{{ order.order_number }}"
+                                                data-item-id="{{ item.id }}"
+                                                data-item-name="{{ item.product_name|escapejs }}"
+                                                data-return-url="{% url 'orders:return_order_item' order.order_number item.id %}"
+                                            >
+                                                Return Item
+                                            </button>
+                                            {% else %}
+                                            <span class="dropdown-menu-item disabled">Return {{ return_request.status|title }}</span>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        <!-- Review Action if Delivered -->
+                                        {% if order.status == "DELIVERED" and item.product %}
+                                            <a href="{% url 'add_product_review' order.order_number %}" class="dropdown-menu-item">
+                                                Write Review
+                                            </a>
+                                        {% endif %}
+
+                                        <!-- View / Buy Again Action -->
+                                        {% if item.product %}
+                                            <a href="{% url 'product_detail' item.product.id %}" class="dropdown-menu-item">
+                                                View Product
+                                            </a>
+                                        {% endif %}
+
+                                        <!-- If already cancelled -->
+                                        {% if item.item_status == "CANCELLED" %}
+                                            <span class="dropdown-menu-item disabled">Item Cancelled</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Item Total Price -->
+                                <div class="item-price">
+                                    ₹{{ item.total_price }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endwith %}
+                        {% empty %}
+                        <p style="color: #6a746e; font-size: 13.5px; margin: 12px 0;">No items found for this order.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <hr class="section-divider">
+
+                <!-- 2-Column Section: Delivery Information & Payment Summary -->
+                <div class="order-bottom-grid">
+
+                    <!-- Left: Delivery Information -->
+                    <div class="delivery-info-section">
+                        <h2 class="section-subheading">Delivery Information</h2>
+
+                        <!-- Shipping Address -->
+                        <div class="field-group">
+                            <h3 class="field-label">SHIPPING ADDRESS</h3>
+                            {% if order.address %}
+                                <div class="address-text-block">
+                                    <div class="address-name">{{ order.address.full_name }}</div>
+                                    <div>{{ order.address.address_line1 }}</div>
+                                    {% if order.address.address_line2 %}
+                                        <div>{{ order.address.address_line2 }}</div>
+                                    {% endif %}
+                                    <div>{{ order.address.city }}, {{ order.address.state }} {{ order.address.pin }}</div>
+                                    <div>{{ order.address.country }}</div>
+                                    {% if order.address.phone %}
+                                        <div style="margin-top: 4px; color: #647067;">Phone: {{ order.address.phone }}</div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <p style="color: #6a746e; font-size: 13.5px; margin: 0;">Address snapshot not available.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Shipping Method -->
+                        <div class="field-group" style="margin-top: 24px;">
+                            <h3 class="field-label">SHIPPING METHOD</h3>
+                            <div class="delivery-method-row">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="1" y="3" width="15" height="13"></rect>
+                                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                </svg>
+                                <span>{{ order.delivery_method|default:"Standard Carbon-Neutral" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Payment Summary Card -->
+                    <div class="payment-summary-card">
+                        <h2 class="payment-summary-title">Payment Summary</h2>
+
+                        <div class="payment-rows-list">
+                            <div class="payment-row">
+                                <span>Subtotal</span>
+                                <span class="payment-row-value">₹{{ order.subtotal }}</span>
+                            </div>
+
+                            <div class="payment-row">
+                                <span>Shipping</span>
+                                <span class="payment-row-value">
+                                    {% if order.shipping_amount > 0 %}
+                                        ₹{{ order.shipping_amount }}
+                                    {% else %}
+                                        Free
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <div class="payment-row">
+                                <span>Taxes</span>
+                                <span class="payment-row-value">₹{{ order.tax_amount|floatformat:0 }}</span>
+                            </div>
+
+                            {% if order.discount_amount > 0 %}
+                            <div class="payment-row">
+                                <span>Discount</span>
+                                <span class="payment-row-value discount">-₹{{ order.discount_amount }}</span>
+                            </div>
+                            {% endif %}
+
+                            <hr class="payment-divider">
+
+                            <div class="payment-total-row">
+                                <span class="payment-total-label">Total</span>
+                                <span class="payment-total-value">₹{{ order.total_amount }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer Action Row -->
+                <div class="order-card-footer">
+                    <!-- Order Level Secondary Actions (Cancel / Return) -->
+                    <div class="order-secondary-actions">
+                        {% if order.status == "PLACED" or order.status == "PROCESSING" or order.status == "SHIPPED" or order.status == "OUT_FOR_DELIVERY" %}
+                            <button type="button" class="btn-order-action danger" onclick="openOrderCancelModal('{{ order.order_number }}')">
+                                Cancel Order
+                            </button>
+                        {% elif order.status == "DELIVERED" %}
+                            <button type="button" class="btn-order-action" onclick="openOrderReturnModal('{{ order.order_number }}')">
+                                Return Order
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Download Invoice Button -->
+                    <a href="{% url 'orders:download_invoice' order.order_number %}" class="btn-download-invoice">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download Invoice
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ========================================================================
+         Cancel Item Modal Dialog
+         ======================================================================== -->
+    <div id="cancelItemModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="cancelItemModalTitle">
+        <div class="action-modal">
+            <button type="button" class="modal-close-btn" onclick="closeCancelItemModal()" aria-label="Close dialog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <h2 id="cancelItemModalTitle">Cancel Item</h2>
+            <p id="cancelItemModalDesc">Are you sure you want to cancel this item? Cancellation reason is optional.</p>
+
+            <textarea
+                id="itemCancellationReason"
+                class="modal-textarea"
+                placeholder="Enter cancellation reason (optional)..."
+                rows="3"
+            ></textarea>
+
+            <div id="cancelItemModalFeedback" class="modal-feedback"></div>
+
+            <div class="modal-btn-row">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeCancelItemModal()">
+                    Keep Item
+                </button>
+                <button type="button" id="confirmCancelItemBtn" class="modal-btn modal-btn-danger" onclick="submitItemCancellation()">
+                    Confirm Cancellation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         Cancel Order Modal Dialog
+         ======================================================================== -->
+    <div id="cancelOrderModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="cancelOrderModalTitle">
+        <div class="action-modal">
+            <button type="button" class="modal-close-btn" onclick="closeOrderCancelModal()" aria-label="Close dialog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <h2 id="cancelOrderModalTitle">Cancel Order</h2>
+            <p>Are you sure you want to cancel this entire order? Cancellation reason is optional.</p>
+
+            <textarea
+                id="orderCancellationReason"
+                class="modal-textarea"
+                placeholder="Enter cancellation reason (optional)..."
+                rows="3"
+            ></textarea>
+
+            <div id="cancelOrderModalFeedback" class="modal-feedback"></div>
+
+            <div class="modal-btn-row">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeOrderCancelModal()">
+                    Keep Order
+                </button>
+                <button type="button" id="confirmCancelOrderBtn" class="modal-btn modal-btn-danger" onclick="submitOrderCancellation()">
+                    Cancel Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         Return Item Modal Dialog
+         ======================================================================== -->
+    <div id="returnItemModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="returnItemModalTitle">
+        <div class="action-modal">
+            <button type="button" class="modal-close-btn" onclick="closeReturnItemModal()" aria-label="Close dialog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <h2 id="returnItemModalTitle">Return Item</h2>
+            <p id="returnItemModalDesc">Choose a reason for returning this item.</p>
+
+            <select id="itemReturnReason" class="modal-select" required>
+                <option value="">Select a return reason</option>
+                <option value="Damaged or defective" selected>Damaged or defective</option>
+                <option value="Wrong item received">Wrong item received</option>
+                <option value="Item not as described">Item not as described</option>
+                <option value="Changed my mind">Changed my mind</option>
+                <option value="Other">Other (enter a reason)</option>
+            </select>
+            <textarea
+                id="itemReturnOtherReason"
+                class="modal-textarea"
+                placeholder="Enter your return reason..."
+                maxlength="255"
+                rows="3"
+                style="display: none; margin-top: 10px;"
+                disabled
+            ></textarea>
+
+            <label for="itemReturnUserNote" style="display: block; margin-top: 12px; margin-bottom: 6px; color: #6a746e; font-size: 13px;">Additional Note</label>
+            <textarea
+                id="itemReturnUserNote"
+                class="modal-textarea"
+                placeholder="Add any useful details (optional)..."
+                rows="3"
+            ></textarea>
+
+            <div id="returnItemModalFeedback" class="modal-feedback"></div>
+
+            <div class="modal-btn-row">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeReturnItemModal()">
+                    Keep Item
+                </button>
+                <button type="button" id="confirmReturnItemBtn" class="modal-btn modal-btn-primary" onclick="submitItemReturn()">
+                    Submit Return
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         Return Order Modal Dialog
+         ======================================================================== -->
+    <div id="returnOrderModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="returnOrderModalTitle">
+        <div class="action-modal">
+            <button type="button" class="modal-close-btn" onclick="closeOrderReturnModal()" aria-label="Close dialog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <h2 id="returnOrderModalTitle">Return Order</h2>
+            <p>Please enter a reason for requesting a return for this order.</p>
+
+            <textarea
+                id="orderReturnReason"
+                class="modal-textarea"
+                placeholder="Enter reason for return..."
+                required
+                rows="3"
+            ></textarea>
+
+            <div id="returnOrderModalFeedback" class="modal-feedback"></div>
+
+            <div class="modal-btn-row">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeOrderReturnModal()">
+                    Keep Order
+                </button>
+                <button type="button" id="confirmReturnOrderBtn" class="modal-btn modal-btn-primary" onclick="submitOrderReturn()">
+                    Submit Return
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Element -->
+    <div id="toastNotification" class="toast-notification"></div>
+
+    <!-- ========================================================================
+         Site Footer
+         ======================================================================== -->
+    <footer class="profile-footer" style="margin-top: auto; background: #0d2217; color: #ffffff;" role="contentinfo">
+        <div class="footer-container" style="width: min(100% - 56px, 1440px); margin: 0 auto; padding: 56px 0 64px; display: flex; justify-content: space-between; align-items: flex-start; gap: 40px;">
+            <div>
+                <div class="footer-logo" style="font-family: var(--font-serif); font-size: 24px; font-weight: 700; letter-spacing: 0.08em;">VERDÉ</div>
+                <p class="footer-tagline" style="margin-top: 14px; color: #8ea394; font-size: 11px; line-height: 1.8;">
+                    &copy; 2024 VERDÉ. Curating botanical elegance for<br />your domestic spaces.
+                </p>
+            </div>
+            <div class="footer-nav-groups" style="display: flex; gap: 64px;">
+                <div class="footer-group" style="display: flex; flex-direction: column; gap: 12px;">
+                    <strong class="footer-heading" style="color: #ffffff; font-size: 11px; font-weight: 600;">Shop</strong>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="{% url 'product_list' %}">Indoor</a>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="{% url 'product_list' %}">Outdoor</a>
+                </div>
+                <div class="footer-group" style="display: flex; flex-direction: column; gap: 12px;">
+                    <strong class="footer-heading" style="color: #ffffff; font-size: 11px; font-weight: 600;">Help</strong>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="/#about">Contact</a>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="/#about">FAQ</a>
+                </div>
+                <div class="footer-group" style="display: flex; flex-direction: column; gap: 12px;">
+                    <strong class="footer-heading" style="color: #ffffff; font-size: 11px; font-weight: 600;">Account</strong>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="{% url 'profile' %}">Profile</a>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="{% url 'orders:order_list' %}">Orders</a>
+                </div>
+                <div class="footer-group" style="display: flex; flex-direction: column; gap: 12px;">
+                    <strong class="footer-heading" style="color: #ffffff; font-size: 11px; font-weight: 600;">Follow</strong>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+                    <a class="footer-link" style="color: #8ea394; font-size: 11px; text-decoration: none;" href="https://pinterest.com" target="_blank" rel="noopener">Pinterest</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart badge script -->
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
+
+    <!-- Interactive JavaScript Logic -->
+    <script>
+        (function () {
+            // Helper to get CSRF token
+            function getCsrfToken() {
+                const csrfInput = document.querySelector('#csrfForm [name="csrfmiddlewaretoken"]');
+                if (csrfInput && csrfInput.value) return csrfInput.value;
+
+                const cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith("csrftoken=")) {
+                        return decodeURIComponent(cookie.substring("csrftoken=".length));
+                    }
+                }
+                return "";
+            }
+
+            // Toast helper
+            function showToast(message) {
+                const toast = document.getElementById("toastNotification");
+                if (!toast) return;
+                toast.textContent = message;
+                toast.style.display = "block";
+                setTimeout(() => {
+                    toast.style.display = "none";
+                }, 3500);
+            }
+
+            // =================================================================
+            // Item Actions Dropdown Management
+            // =================================================================
+            document.querySelectorAll(".js-dropdown-toggle").forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const dropdownWrap = btn.closest(".item-actions-dropdown-wrap");
+                    const menu = dropdownWrap.querySelector(".actions-dropdown-menu");
+                    const isOpen = menu.classList.contains("active");
+
+                    // Close all open dropdowns first
+                    document.querySelectorAll(".actions-dropdown-menu.active").forEach((m) => {
+                        m.classList.remove("active");
+                    });
+                    document.querySelectorAll(".js-dropdown-toggle.open").forEach((b) => {
+                        b.classList.remove("open");
+                        b.setAttribute("aria-expanded", "false");
+                    });
+
+                    if (!isOpen) {
+                        menu.classList.add("active");
+                        btn.classList.add("open");
+                        btn.setAttribute("aria-expanded", "true");
+                    }
+                });
+            });
+
+            // Close dropdowns on outside click
+            document.addEventListener("click", () => {
+                document.querySelectorAll(".actions-dropdown-menu.active").forEach((m) => {
+                    m.classList.remove("active");
+                });
+                document.querySelectorAll(".js-dropdown-toggle.open").forEach((b) => {
+                    b.classList.remove("open");
+                    b.setAttribute("aria-expanded", "false");
+                });
+            });
+
+            // =================================================================
+            // Item Cancellation Handling
+            // =================================================================
+            let currentCancelItemData = null;
+
+            document.querySelectorAll(".js-cancel-item-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    currentCancelItemData = {
+                        orderNumber: btn.dataset.orderNumber,
+                        itemId: btn.dataset.itemId,
+                        itemName: btn.dataset.itemName,
+                        btnElement: btn
+                    };
+
+                    const modal = document.getElementById("cancelItemModal");
+                    const desc = document.getElementById("cancelItemModalDesc");
+                    const textarea = document.getElementById("itemCancellationReason");
+                    const feedback = document.getElementById("cancelItemModalFeedback");
+
+                    desc.textContent = `Are you sure you want to cancel "${currentCancelItemData.itemName}"? Cancellation reason is optional.`;
+                    textarea.value = "";
+                    feedback.style.display = "none";
+                    feedback.textContent = "";
+
+                    modal.classList.add("active");
+                    textarea.focus();
+                });
+            });
+
+            window.closeCancelItemModal = function () {
+                currentCancelItemData = null;
+                document.getElementById("cancelItemModal").classList.remove("active");
+            };
+
+            window.submitItemCancellation = async function () {
+                if (!currentCancelItemData) return;
+
+                const textarea = document.getElementById("itemCancellationReason");
+                const confirmBtn = document.getElementById("confirmCancelItemBtn");
+                const feedback = document.getElementById("cancelItemModalFeedback");
+                const cancellationReason = textarea.value.trim();
+
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = "Cancelling...";
+                feedback.style.display = "none";
+
+                try {
+                    const response = await fetch(`/orders/${currentCancelItemData.orderNumber}/item/${currentCancelItemData.itemId}/cancel/`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCsrfToken()
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify({
+                            cancellation_reason: cancellationReason || null
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        feedback.className = "modal-feedback error";
+                        feedback.textContent = data.message || "Unable to cancel this item.";
+                        feedback.style.display = "block";
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = "Confirm Cancellation";
+                        return;
+                    }
+
+                    // Update UI for the item row
+                    const itemRow = document.getElementById(`order-item-row-${currentCancelItemData.itemId}`);
+                    if (itemRow) {
+                        const statusContainer = document.getElementById(`item-status-${currentCancelItemData.itemId}`);
+                        if (statusContainer) {
+                            statusContainer.style.display = "block";
+                            statusContainer.innerHTML = '<span class="item-status-tag">CANCELLED</span>' +
+                                (cancellationReason ? `<p class="item-reason-text">Reason: ${cancellationReason}</p>` : '');
+                        }
+
+                        // Remove Cancel button from dropdown menu
+                        if (currentCancelItemData.btnElement) {
+                            const dropdownMenu = currentCancelItemData.btnElement.closest(".actions-dropdown-menu");
+                            currentCancelItemData.btnElement.remove();
+                            if (dropdownMenu && !dropdownMenu.querySelector(".dropdown-menu-item.disabled")) {
+                                const disabledSpan = document.createElement("span");
+                                disabledSpan.className = "dropdown-menu-item disabled";
+                                disabledSpan.textContent = "Item Cancelled";
+                                dropdownMenu.appendChild(disabledSpan);
+                            }
+                        }
+                    }
+
+                    closeCancelItemModal();
+                    showToast("Order item has been cancelled.");
+                } catch (error) {
+                    console.error("Item cancel error:", error);
+                    feedback.className = "modal-feedback error";
+                    feedback.textContent = "Something went wrong while cancelling the item.";
+                    feedback.style.display = "block";
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = "Confirm Cancellation";
+                }
+            };
+
+            // =================================================================
+            // Item Return Handling
+            // =================================================================
+            let currentReturnItemData = null;
+            const returnReasonSelect = document.getElementById("itemReturnReason");
+            const returnOtherReason = document.getElementById("itemReturnOtherReason");
+            const returnUserNote = document.getElementById("itemReturnUserNote");
+
+            returnReasonSelect.addEventListener("change", () => {
+                const showOtherReason = returnReasonSelect.value === "Other";
+                returnOtherReason.style.display = showOtherReason ? "block" : "none";
+                returnOtherReason.disabled = !showOtherReason;
+                if (showOtherReason) returnOtherReason.focus();
+            });
+
+            document.querySelectorAll(".js-return-item-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    currentReturnItemData = {
+                        orderNumber: btn.dataset.orderNumber,
+                        itemId: btn.dataset.itemId,
+                        itemName: btn.dataset.itemName,
+                        returnUrl: btn.dataset.returnUrl,
+                        btnElement: btn
+                    };
+
+                    document.getElementById("returnItemModalDesc").textContent =
+                        `Choose a reason for returning "${currentReturnItemData.itemName}".`;
+                    returnReasonSelect.value = "Damaged or defective";
+                    returnOtherReason.value = "";
+                    returnOtherReason.style.display = "none";
+                    returnOtherReason.disabled = true;
+                    returnUserNote.value = "";
+
+                    const feedback = document.getElementById("returnItemModalFeedback");
+                    feedback.style.display = "none";
+                    feedback.textContent = "";
+                    document.getElementById("returnItemModal").classList.add("active");
+                    returnReasonSelect.focus();
+                });
+            });
+
+            window.closeReturnItemModal = function () {
+                if (document.getElementById("confirmReturnItemBtn").disabled) return;
+                currentReturnItemData = null;
+                document.getElementById("returnItemModal").classList.remove("active");
+            };
+
+            window.submitItemReturn = async function () {
+                if (!currentReturnItemData) return;
+
+                const confirmBtn = document.getElementById("confirmReturnItemBtn");
+                const feedback = document.getElementById("returnItemModalFeedback");
+                const selectedReason = returnReasonSelect.value;
+                const userNote = returnUserNote.value.trim();
+                const returnReason = selectedReason === "Other"
+                    ? returnOtherReason.value.trim()
+                    : selectedReason;
+
+                if (!returnReason) {
+                    feedback.className = "modal-feedback error";
+                    feedback.textContent = "Please select or enter a return reason.";
+                    feedback.style.display = "block";
+                    if (selectedReason === "Other") {
+                        returnOtherReason.focus();
+                    } else {
+                        returnReasonSelect.focus();
+                    }
+                    return;
+                }
+
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = "Submitting...";
+                feedback.style.display = "none";
+
+                try {
+                    const response = await fetch(currentReturnItemData.returnUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCsrfToken()
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify({
+                            order_number: currentReturnItemData.orderNumber,
+                            order_item_id: Number(currentReturnItemData.itemId),
+                            return_reason: returnReason,
+                            user_add_note: userNote
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        feedback.className = "modal-feedback error";
+                        feedback.textContent = data.message || "Unable to submit the return request.";
+                        feedback.style.display = "block";
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = "Submit Return";
+                        return;
+                    }
+
+                    const itemId = currentReturnItemData.itemId;
+                    const itemRow = document.getElementById(`order-item-row-${itemId}`);
+                    const statusContainer = document.getElementById(`item-status-${itemId}`);
+                    if (statusContainer) {
+                        statusContainer.style.display = "block";
+                        statusContainer.replaceChildren();
+                        const statusTag = document.createElement("span");
+                        statusTag.className = "order-status-pill status-delivered item-return-status";
+                        statusTag.textContent = "RETURN REQUESTED";
+                        statusContainer.appendChild(statusTag);
+                    }
+
+                    currentReturnItemData.btnElement.remove();
+                    const dropdownMenu = itemRow?.querySelector(".actions-dropdown-menu");
+                    if (dropdownMenu) {
+                        const requestedLabel = document.createElement("span");
+                        requestedLabel.className = "dropdown-menu-item disabled";
+                        requestedLabel.textContent = "Return Requested";
+                        dropdownMenu.appendChild(requestedLabel);
+                    }
+
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = "Submit Return";
+                    closeReturnItemModal();
+                    showToast(data.message || "Return request submitted successfully.");
+                } catch (error) {
+                    console.error("Item return error:", error);
+                    feedback.className = "modal-feedback error";
+                    feedback.textContent = "Something went wrong while submitting the return request.";
+                    feedback.style.display = "block";
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = "Submit Return";
+                }
+            };
+
+            // =================================================================
+            // Order-Level Cancellation Handling
+            // =================================================================
+            let currentCancelOrderNumber = null;
+
+            window.openOrderCancelModal = function (orderNumber) {
+                currentCancelOrderNumber = orderNumber;
+                const modal = document.getElementById("cancelOrderModal");
+                const textarea = document.getElementById("orderCancellationReason");
+                const feedback = document.getElementById("cancelOrderModalFeedback");
+
+                textarea.value = "";
+                feedback.style.display = "none";
+                feedback.textContent = "";
+
+                modal.classList.add("active");
+                textarea.focus();
+            };
+
+            window.closeOrderCancelModal = function () {
+                currentCancelOrderNumber = null;
+                document.getElementById("cancelOrderModal").classList.remove("active");
+            };
+
+            window.submitOrderCancellation = async function () {
+                if (!currentCancelOrderNumber) return;
+
+                const textarea = document.getElementById("orderCancellationReason");
+                const confirmBtn = document.getElementById("confirmCancelOrderBtn");
+                const feedback = document.getElementById("cancelOrderModalFeedback");
+                const cancellationReason = textarea.value.trim();
+
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = "Cancelling...";
+                feedback.style.display = "none";
+
+                try {
+                    const response = await fetch(`/orders/${currentCancelOrderNumber}/cancel/`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCsrfToken()
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify({
+                            cancellation_reason: cancellationReason || null
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        feedback.className = "modal-feedback error";
+                        feedback.textContent = data.message || "Unable to cancel this order.";
+                        feedback.style.display = "block";
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = "Cancel Order";
+                        return;
+                    }
+
+                    closeOrderCancelModal();
+                    window.location.reload();
+                } catch (error) {
+                    console.error("Order cancel error:", error);
+                    feedback.className = "modal-feedback error";
+                    feedback.textContent = "Something went wrong while cancelling the order.";
+                    feedback.style.display = "block";
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = "Cancel Order";
+                }
+            };
+
+            // =================================================================
+            // Order-Level Return Handling
+            // =================================================================
+            let currentReturnOrderNumber = null;
+
+            window.openOrderReturnModal = function (orderNumber) {
+                currentReturnOrderNumber = orderNumber;
+                const modal = document.getElementById("returnOrderModal");
+                const textarea = document.getElementById("orderReturnReason");
+                const feedback = document.getElementById("returnOrderModalFeedback");
+
+                textarea.value = "";
+                feedback.style.display = "none";
+                feedback.textContent = "";
+
+                modal.classList.add("active");
+                textarea.focus();
+            };
+
+            window.closeOrderReturnModal = function () {
+                currentReturnOrderNumber = null;
+                document.getElementById("returnOrderModal").classList.remove("active");
+            };
+
+            window.submitOrderReturn = async function () {
+                if (!currentReturnOrderNumber) return;
+
+                const textarea = document.getElementById("orderReturnReason");
+                const confirmBtn = document.getElementById("confirmReturnOrderBtn");
+                const feedback = document.getElementById("returnOrderModalFeedback");
+                const returnReason = textarea.value.trim();
+
+                if (!returnReason) {
+                    feedback.className = "modal-feedback error";
+                    feedback.textContent = "Return reason is required.";
+                    feedback.style.display = "block";
+                    textarea.focus();
+                    return;
+                }
+
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = "Submitting...";
+                feedback.style.display = "none";
+
+                try {
+                    const response = await fetch(`/orders/${currentReturnOrderNumber}/return/`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCsrfToken()
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify({
+                            return_reason: returnReason
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        feedback.className = "modal-feedback error";
+                        feedback.textContent = data.message || "Unable to submit return request.";
+                        feedback.style.display = "block";
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = "Submit Return";
+                        return;
+                    }
+
+                    closeOrderReturnModal();
+                    window.location.reload();
+                } catch (error) {
+                    console.error("Order return error:", error);
+                    feedback.className = "modal-feedback error";
+                    feedback.textContent = "Something went wrong while submitting the return request.";
+                    feedback.style.display = "block";
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = "Submit Return";
+                }
+            };
+
+            // =================================================================
+            // Download Invoice Handler
+            // =================================================================
+            window.handleDownloadInvoice = function () {
+                // Since PDF generation backend endpoint is not currently present,
+                // we trigger print view for customer convenience and inform user.
+                window.print();
+            };
+
+            // Modal overlay click to close
+            document.querySelectorAll(".modal-overlay").forEach((overlay) => {
+                overlay.addEventListener("click", (e) => {
+                    if (e.target === overlay) {
+                        closeCancelItemModal();
+                        closeOrderCancelModal();
+                        closeReturnItemModal();
+                        closeOrderReturnModal();
+                    }
+                });
+            });
+
+            // Escape key listener for closing modals
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    closeCancelItemModal();
+                    closeOrderCancelModal();
+                    closeReturnItemModal();
+                    closeOrderReturnModal();
+                }
+            });
+        })();
+    </script>
+
+</body>
+</html>

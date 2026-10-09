@@ -1505,13 +1505,6 @@
               })
               .then(function (data) {
                 showCartMessage(data.message || 'Added to cart.', false);
-                if (isAuthenticated && window.VERDEProductStock) {
-                  window.VERDEProductStock.update(
-                    productId,
-                    activeVariant ? activeVariant.dataset.variantId : null,
-                    -payload.quantity
-                  );
-                }
                 window.dispatchEvent(new Event('verde:cart-updated'));
               })
               .catch(function (error) {
@@ -1755,7 +1748,6 @@
         }
       });
     </script>
-    <script src="{% static 'js/product-stock.js' %}" defer></script>
     <script src="{% static 'js/cart-badge.js' %}" defer></script>
     <script src="{% static 'js/wishlist.js' %}" defer></script>
   </body>

@@ -1,0 +1,1811 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERDÉ | My Orders</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Global Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        :root {
+            --color-primary: #102518;
+            --color-primary-hover: #1b3825;
+            --color-accent: #2e593d;
+            --color-bg-subtle: #f8f9f7;
+            --color-border: #e2e8e3;
+            --color-text-main: #141715;
+            --color-text-muted: #5e6660;
+            --font-serif: "Playfair Display", Georgia, serif;
+            --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+            --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.order-page {
+            background-color: var(--color-bg-subtle);
+            color: var(--color-text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        /* Header */
+        .site-header.order-header {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            z-index: 100;
+        }
+
+        .header-container {
+            width: 100%;
+            max-width: none;
+            margin: 0 auto;
+            padding: 0 clamp(16px, 4vw, 40px);
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-actions .action-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            color: var(--color-text-main);
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .header-actions .action-btn:hover {
+            background-color: var(--color-bg-subtle);
+            color: var(--color-primary);
+        }
+
+        .header-actions .action-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .header-actions .action-btn:disabled {
+            color: var(--color-text-main);
+            opacity: 1;
+        }
+
+        /* Main Container */
+        .order-main {
+            width: min(100% - 56px, 1440px);
+            margin: 36px auto 72px;
+            flex: 1;
+        }
+
+        /* Account Navigation Tabs */
+        .profile-tabs {
+            width: 100%;
+            margin: 0 auto 36px;
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 10px;
+            padding: 12px 14px;
+            border: 1px solid #dfe5df;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .profile-tab {
+            min-height: 62px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid #dfe5df;
+            border-radius: 10px;
+            background: #eceae7;
+            color: #2b312d;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition:
+                border-color var(--transition-fast),
+                box-shadow var(--transition-fast),
+                color var(--transition-fast),
+                transform var(--transition-fast),
+                background-color var(--transition-fast);
+        }
+
+        .profile-tab:hover {
+            border-color: #c6d2c8;
+            color: #1d3127;
+            background: #f2f6f2;
+            transform: translateY(-1px);
+        }
+
+        .profile-tab svg {
+            width: 15px;
+            height: 15px;
+            stroke-width: 1.7;
+        }
+
+        .profile-tab.active {
+            color: #1d2c24;
+            border-color: #dfe6df;
+            background: #dfeee6;
+            box-shadow: inset 0 0 0 1px rgba(25, 40, 30, 0.04);
+            font-weight: 600;
+        }
+
+        .profile-tab.profile-logout {
+            border-color: #f1dbdb;
+            background: #faf4f4;
+            color: #b91c1c;
+            font-family: var(--font-sans);
+        }
+
+        .profile-tab.profile-logout:hover {
+            border-color: #e5b9b9;
+            background: #f7eaea;
+            color: #8c2626;
+        }
+
+        /* Page Heading */
+        .order-page-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            gap: 20px;
+        }
+
+        .order-page-title {
+            font-family: var(--font-serif);
+            font-size: 34px;
+            font-weight: 600;
+            line-height: 1.15;
+            color: #141715;
+            margin: 0;
+        }
+
+        .order-page-subtitle {
+            font-size: 13.5px;
+            color: #6a746e;
+            margin: 0;
+            font-weight: 400;
+            text-align: right;
+        }
+
+        /* 2-Column Content Layout */
+        .order-content-layout {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* Left Sidebar: Search & Summary */
+        .order-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Search Box */
+        .search-box-form {
+            width: 100%;
+            margin: 0;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #dfe5df;
+            border-radius: 8px;
+            padding: 0 12px;
+            height: 44px;
+            box-shadow: 0 2px 8px rgba(16, 37, 24, 0.02);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .search-input-wrapper:focus-within {
+            border-color: #73917a;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+        }
+
+        .search-icon {
+            width: 16px;
+            height: 16px;
+            color: #8c968e;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+
+        .search-submit-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .search-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            color: #141715;
+        }
+
+        .search-input::placeholder {
+            color: #9ba49d;
+        }
+
+        .search-clear-btn {
+            background: transparent;
+            border: none;
+            color: #8c968e;
+            padding: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .search-clear-btn:hover {
+            color: #141715;
+            background: #f0f3f0;
+        }
+
+        .search-clear-btn svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        /* Summary Card */
+        .summary-card {
+            background: #ffffff;
+            border: 1px solid #dfe5df;
+            border-radius: 10px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 10px rgba(16, 37, 24, 0.02);
+        }
+
+        .summary-card-title {
+            font-family: var(--font-sans);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #4a544e;
+            margin: 0 0 16px 0;
+        }
+
+        .summary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .summary-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #556058;
+        }
+
+        .summary-label {
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-weight: 700;
+            color: #141715;
+            font-size: 13.5px;
+        }
+
+        /* Right Column: Order Cards */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Order Card */
+        .order-card {
+            background: #ffffff;
+            border: 1px solid #e2e8e3;
+            border-radius: 12px;
+            padding: 24px 28px 20px;
+            box-shadow: 0 4px 16px rgba(16, 37, 24, 0.02);
+            transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+        }
+
+        .order-card:hover {
+            border-color: #cdd8d0;
+            box-shadow: 0 6px 20px rgba(16, 37, 24, 0.04);
+        }
+
+        /* Order Card Header */
+        .order-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .order-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #141715;
+            margin: 0 0 4px;
+            letter-spacing: -0.01em;
+        }
+
+        .order-card-date {
+            font-size: 12.5px;
+            color: #717d74;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .status-badge svg {
+            width: 13px;
+            height: 13px;
+            stroke-width: 2;
+        }
+
+        .status-badge.status-delivered {
+            background: #edf5f0;
+            color: #244b32;
+            border: 1px solid #d0e5d7;
+        }
+
+        .status-badge.status-processing,
+        .status-badge.status-placed {
+            background: #f4f5f2;
+            color: #556058;
+            border: 1px solid #dfe5df;
+        }
+
+        .status-badge.status-shipped {
+            background: #f0f7f5;
+            color: #235d4b;
+            border: 1px solid #d0e7e0;
+        }
+
+        .status-badge.status-out_for_delivery {
+            background: #fdf6ec;
+            color: #9c6819;
+            border: 1px solid #fae8cb;
+        }
+
+        .status-badge.status-cancelled {
+            background: #faf4f4;
+            color: #b91c1c;
+            border: 1px solid #f1dbdb;
+        }
+
+        .status-badge.status-returned {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+        }
+
+        .status-badge.status-default {
+            background: #f4f5f2;
+            color: #556058;
+            border: 1px solid #dfe5df;
+        }
+
+        /* Order Card Body */
+        .order-card-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 18px;
+            padding-bottom: 4px;
+        }
+
+        .order-product-preview {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .product-thumb-wrap {
+            width: 68px;
+            height: 68px;
+            border-radius: 8px;
+            background: #f0f4f1;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border: 1px solid #dfe5df;
+        }
+
+        .product-thumb-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .product-thumb-wrap svg {
+            width: 28px;
+            height: 28px;
+            color: #7b8d80;
+            stroke-width: 1.4;
+        }
+
+        .product-preview-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .product-preview-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #141715;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-preview-qty {
+            font-size: 12.5px;
+            color: #6a746e;
+            margin: 0;
+        }
+
+        .product-preview-more {
+            font-size: 12px;
+            color: #8c968e;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        /* Price info */
+        .order-price-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .order-total-amount {
+            font-size: 19px;
+            font-weight: 700;
+            color: #141715;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .order-items-subtext {
+            font-size: 11.5px;
+            color: #7a8880;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Order Card Actions */
+        .order-card-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 24px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f3f0;
+        }
+
+        .card-action-link {
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 500;
+            color: #313b34;
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: color var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .card-action-link:hover {
+            color: #102518;
+            text-decoration: underline;
+        }
+
+        .card-action-link.danger {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+
+        .card-action-link.danger:hover {
+            color: #8c2626;
+        }
+
+        .card-action-link.status-return-requested {
+            padding: 4px 10px;
+            border: 1px solid #fad2d6;
+            border-radius: 999px;
+            background: #fdebee;
+            color: #b4232d;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: default;
+        }
+
+        .status-badge.status-return-requested {
+            background: #fdebee;
+            color: #b4232d;
+            border: 1px solid #fad2d6;
+        }
+
+        .btn-buy-again {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 18px;
+            border: 1px solid #102518;
+            border-radius: 5px;
+            background: #ffffff;
+            color: #102518;
+            font-size: 12.5px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .btn-buy-again:hover {
+            background-color: #102518;
+            color: #ffffff;
+        }
+
+        /* Cancellation Reason Note */
+        .order-reason-note {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: #faf5f5;
+            border-radius: 6px;
+            border: 1px solid #fae5e5;
+            font-size: 12px;
+            color: #853737;
+        }
+
+        .order-reason-note strong {
+            font-weight: 600;
+        }
+
+        /* Empty State */
+        .order-empty-state {
+            background: #ffffff;
+            border: 1px solid #e2e8e3;
+            border-radius: 14px;
+            padding: 64px 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(16, 37, 24, 0.02);
+        }
+
+        .empty-icon-wrap {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #edf5f0;
+            color: #2e593d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .empty-icon-wrap svg {
+            width: 28px;
+            height: 28px;
+            stroke-width: 1.5;
+        }
+
+        .empty-state-title {
+            font-family: var(--font-serif);
+            font-size: 22px;
+            font-weight: 600;
+            color: #141715;
+            margin: 0 0 8px;
+        }
+
+        .empty-state-desc {
+            font-size: 13.5px;
+            color: #6a746e;
+            max-width: 380px;
+            line-height: 1.6;
+            margin: 0 0 24px;
+        }
+
+        .btn-explore-catalog {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 24px;
+            border-radius: 6px;
+            background: #102518;
+            color: #ffffff;
+            font-size: 12.5px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+        }
+
+        .btn-explore-catalog:hover {
+            background: #1b3825;
+            transform: translateY(-1px);
+        }
+
+        /* Pagination */
+        .pagination-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 36px;
+        }
+
+        .pagination-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: #3a453e;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: color var(--transition-fast), background-color var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .pagination-link:hover:not(.disabled) {
+            color: #102518;
+            background: #edf2ee;
+        }
+
+        .pagination-link.disabled {
+            color: #b0b8b3;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .pagination-current {
+            font-size: 13px;
+            font-weight: 700;
+            color: #141715;
+            letter-spacing: 0.05em;
+        }
+
+        /* Modal Dialogs */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 23, 15, 0.58);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .action-modal {
+            position: relative;
+            width: min(100%, 460px);
+            background: #ffffff;
+            border: 1px solid #dce6de;
+            border-radius: 14px;
+            padding: 30px 32px;
+            box-shadow: 0 20px 60px rgba(10, 23, 15, 0.2);
+            box-sizing: border-box;
+            transform: translateY(-10px) scale(0.98);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .action-modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: #6f7a74;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .modal-close-btn:hover {
+            background-color: #edf3ee;
+            color: #141715;
+        }
+
+        .modal-close-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2;
+        }
+
+        .action-modal h2 {
+            margin: 0 0 8px 0;
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 600;
+            color: #141715;
+        }
+
+        .action-modal p {
+            color: #6a746e;
+            font-size: 13px;
+            line-height: 1.55;
+            margin: 0 0 18px 0;
+        }
+
+        .modal-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px 14px;
+            box-sizing: border-box;
+            border: 1px solid #d5ded7;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            color: #141715;
+            background: #fbfcfb;
+            outline: none;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .modal-textarea:focus {
+            border-color: #73917a;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.1);
+        }
+
+        .modal-feedback {
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .modal-feedback.error {
+            color: #dc2626;
+            display: block;
+        }
+
+        .modal-btn-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .modal-btn {
+            padding: 9px 20px;
+            border-radius: 6px;
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .modal-btn-secondary {
+            border: 1px solid #dfe5df;
+            background: #ffffff;
+            color: #4a544e;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #f4f6f4;
+            color: #141715;
+        }
+
+        .modal-btn-primary {
+            border: 1px solid #102518;
+            background: #102518;
+            color: #ffffff;
+        }
+
+        .modal-btn-primary:hover {
+            background: #1b3825;
+            border-color: #1b3825;
+        }
+
+        .modal-btn-danger {
+            border: 1px solid #b91c1c;
+            background: #b91c1c;
+            color: #ffffff;
+        }
+
+        .modal-btn-danger:hover {
+            background: #991b1b;
+            border-color: #991b1b;
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Footer */
+        .profile-footer {
+            margin-top: auto;
+            background: #0d2217;
+            color: #ffffff;
+        }
+
+        .profile-footer .footer-container {
+            width: min(100% - 56px, 1440px);
+            margin: 0 auto;
+            padding: 56px 0 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 40px;
+        }
+
+        .profile-footer .footer-logo {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .profile-footer .footer-tagline {
+            margin-top: 14px;
+            color: #8ea394;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .profile-footer .footer-nav-groups {
+            display: flex;
+            gap: 64px;
+        }
+
+        .profile-footer .footer-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .profile-footer .footer-heading {
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .profile-footer .footer-link {
+            color: #8ea394;
+            font-size: 11px;
+            text-decoration: none;
+        }
+
+        .profile-footer .footer-link:hover {
+            color: #ffffff;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .profile-tabs {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .order-content-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .order-main {
+                width: min(100% - 32px, 900px);
+                margin: 24px auto 48px;
+            }
+
+            .profile-tabs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .profile-tab {
+                min-height: 50px;
+                font-size: 9px;
+            }
+
+            .order-page-heading {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .order-page-title {
+                font-size: 26px;
+            }
+
+            .order-page-subtitle {
+                text-align: left;
+                font-size: 12.5px;
+            }
+
+            .order-card {
+                padding: 18px 18px 16px;
+            }
+
+            .order-card-body {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .order-price-info {
+                align-items: flex-start;
+            }
+
+            .order-card-actions {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: 16px;
+            }
+
+            .profile-footer .footer-container {
+                flex-direction: column;
+                gap: 36px;
+            }
+
+            .profile-footer .footer-nav-groups {
+                flex-wrap: wrap;
+                gap: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body class="order-page">
+
+    <!-- ========================================================================
+         Top Header Navigation
+         ======================================================================== -->
+    <header class="site-header order-header" role="banner">
+        <div class="header-container">
+            <!-- Brand Logo -->
+            <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2" />
+                </svg>
+                <span class="logo-text">VERDÉ</span>
+            </a>
+
+            <!-- Center Navigation -->
+            <nav class="main-nav" aria-label="Primary Navigation">
+                <ul class="nav-list">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="{% url 'product_list' %}" class="nav-link">Shop</a></li>
+                    <li><a href="/#offers" class="nav-link">Offers</a></li>
+                    <li><a href="/#about" class="nav-link">About</a></li>
+                </ul>
+            </nav>
+
+            <!-- Right Action Icons -->
+            <div class="header-actions">
+                <a href="{% url 'product_list' %}" class="action-btn" id="searchBtn" aria-label="Search" title="Search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+
+                <a href="/wishlist/" class="action-btn" id="wishlistBtn" aria-label="Wishlist" title="Wishlist">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <span class="badge-count js-wishlist-count-badge" id="wishlistCountBadge" style="{% if not wishlist_count %}display:none;{% endif %}">{% if wishlist_count %}{{ wishlist_count }}{% else %}0{% endif %}</span>
+                </a>
+
+                <a href="{% url 'cart:cart_page' %}" {% if user.is_authenticated %}data-cart-api="{% url 'cart:view_cart' %}"{% endif %} class="action-btn" aria-label="Cart" title="Cart">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+                </a>
+
+                {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="action-btn profile-avatar" aria-label="Profile" title="Profile">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+                    {% else %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M4 20a8 8 0 0 1 16 0"></path>
+                    </svg>
+                    {% endif %}
+                </a>
+                {% else %}
+                <a href="{% url 'login_page' %}" class="btn-signin">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================================================
+         Main Content Area
+         ======================================================================== -->
+    <main class="order-main">
+
+        <!-- 7 Account Navigation Tabs -->
+        <nav class="profile-tabs" aria-label="Account navigation">
+            <a class="profile-tab" href="{% url 'profile' %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+                    <circle cx="12" cy="8" r="3" />
+                    <path d="M5 21a7 7 0 0 1 14 0" />
+                </svg>
+                Profile
+            </a>
+            <a class="profile-tab active" href="{% url 'orders:order_list' %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+                    <path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h4" />
+                </svg>
+                Orders
+            </a>
+            <a class="profile-tab" href="{% url 'user_coupons_page' %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                    <rect x="9" y="3" width="6" height="4" rx="1" />
+                    <path d="M9 12h6M9 16h4" />
+                </svg>
+                Coupons
+            </a>
+            <a class="profile-tab" href="/profile/#wallet">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+                    <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M15 13h3" />
+                </svg>
+                Wallet
+            </a>
+            <a class="profile-tab" href="/profile/#referrals">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+                    <circle cx="9" cy="8" r="3" />
+                    <circle cx="17" cy="9" r="2.5" />
+                    <path d="M3 20a6 6 0 0 1 12 0M15 15a5 5 0 0 1 6 5" />
+                </svg>
+                Referrals
+            </a>
+            <a class="profile-tab" href="{% url 'address_page' %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+                    <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" />
+                    <circle cx="12" cy="9" r="2.5" />
+                </svg>
+                Addresses
+            </a>
+            <button class="profile-tab profile-logout" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+                    <path d="M10 17l5-5-5-5M15 12H3M21 3v18" />
+                </svg>
+                Logout
+            </button>
+        </nav>
+
+        <!-- Page Heading Row -->
+        <div class="order-page-heading">
+            <h1 class="order-page-title">My Orders</h1>
+            <p class="order-page-subtitle">View and manage your recent purchases.</p>
+        </div>
+
+        <!-- 2-Column Content Layout -->
+        <div class="order-content-layout">
+
+            <!-- Left Sidebar -->
+            <aside class="order-sidebar">
+
+                <!-- Search Input Form -->
+                <form method="GET" action="{% url 'orders:order_list' %}" class="search-box-form">
+                    <div class="search-input-wrapper">
+                        <button type="submit" class="search-submit-btn" aria-label="Search orders">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                        <input
+                            type="text"
+                            name="search"
+                            class="search-input"
+                            placeholder="Search by order ID..."
+                            value="{{ request.GET.search|default:'' }}"
+                            autocomplete="off"
+                        >
+                        {% if request.GET.search %}
+                        <a href="{% url 'orders:order_list' %}" class="search-clear-btn" title="Clear search" aria-label="Clear search">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+
+                <!-- Summary Card -->
+                <div class="summary-card">
+                    <h2 class="summary-card-title">Summary</h2>
+                    <div class="summary-list">
+                        <div class="summary-row">
+                            <span class="summary-label">All Orders</span>
+                            <span class="summary-value">{{ all_orders_count }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Processing</span>
+                            <span class="summary-value">{{ processing_count }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Delivered</span>
+                            <span class="summary-value">{{ delivered_count }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Returned</span>
+                            <span class="summary-value">{{ returned_count }}</span>
+                        </div>
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- Right Orders Column -->
+            <section class="orders-list-column">
+
+                {% if orders %}
+
+                    <div class="orders-list">
+
+                        {% for order in orders %}
+
+                            <div class="order-card" id="order-card-{{ order.order_number }}">
+
+                                <!-- Order Header -->
+                                <div class="order-card-header">
+                                    <div>
+                                        <h3 class="order-card-title">Order #{{ order.order_number }}</h3>
+                                        <p class="order-card-date">Placed on {{ order.created_at|date:"M d, Y" }}</p>
+                                    </div>
+
+                                    <!-- Status Badge -->
+                                    {% if order.status == "DELIVERED" %}
+                                        <span class="status-badge status-delivered">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            Delivered
+                                        </span>
+                                    {% elif order.status in cancellable_statuses %}
+                                        <span class="status-badge status-processing">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>
+                                            {{ order.status|title }}
+                                        </span>
+                                    {% elif order.status == "CANCELLED" %}
+                                        <span class="status-badge status-cancelled">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                            Cancelled
+                                        </span>
+                                    {% elif order.status == "RETURNED" or order.status == "REURNED" %}
+                                        <span class="status-badge status-returned">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <polyline points="1 4 1 10 7 10"></polyline>
+                                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                            </svg>
+                                            Returned
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge status-default">
+                                            {{ order.status|title }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Order Product Preview & Price -->
+                                <div class="order-card-body">
+
+                                    {% with first_item=order.items.first %}
+                                    <div class="order-product-preview">
+                                        <div class="product-thumb-wrap">
+                                            {% if first_item.product_variant.images.first %}
+                                                <img src="{{ first_item.product_variant.images.first.image_url.url }}" alt="{{ first_item.product_name }}">
+                                            {% elif first_item.product.product_images.first %}
+                                                <img src="{{ first_item.product.product_images.first.image_url.url }}" alt="{{ first_item.product_name }}">
+                                            {% else %}
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2" />
+                                                </svg>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="product-preview-info">
+                                            {% for item in order.items.all %}
+                                                <div>
+                                                    <h4 class="product-preview-name">{{ item.product_name|default:item.product.name|default:"Botanical Item" }}</h4>
+                                                    <p class="product-preview-qty">Qty {{ item.quantity|default:1 }}</p>
+                                                    {% if order.status == "DELIVERED" and item.item_status == "ACTIVE" %}
+                                                        {% with return_request=item.returns.first %}
+                                                            {% if return_request %}
+                                                                {% if return_request.status == "REQUESTED" %}
+                                                                    <span class="status-badge status-return-requested" aria-disabled="true" title="{{ item.product_name }}">Return Requested</span>
+                                                                {% elif return_request.status == "INSPECT_APPROVED" %}
+                                                                    <span class="status-badge status-returned" aria-disabled="true" title="{{ item.product_name }}">Returned</span>
+                                                                {% elif return_request.status == "INSPECT_REJECTED" %}
+                                                                    <span class="status-badge status-cancelled" aria-disabled="true" title="{{ item.product_name }}">Return Rejected</span>
+                                                                {% else %}
+                                                                    <span class="status-badge status-default" aria-disabled="true" title="{{ item.product_name }}">{{ return_request.status|title }}</span>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                <button
+                                                                    type="button"
+                                                                    class="card-action-link js-return-item-btn"
+                                                                    data-order-number="{{ order.order_number }}"
+                                                                    data-item-id="{{ item.id }}"
+                                                                    data-item-name="{{ item.product_name|escapejs }}"
+                                                                    data-return-url="{% url 'orders:return_order_item' order.order_number item.id %}"
+                                                                    aria-label="Return {{ item.product_name }}"
+                                                                    title="Return {{ item.product_name }}"
+                                                                >Return: {{ item.product_name }}</button>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endwith %}
+
+                                    <div class="order-price-info">
+                                        <div class="order-total-amount">₹{{ order.total_amount }}</div>
+                                        <div class="order-items-subtext">Total ({{ order.items.count }} item{{ order.items.count|pluralize }})</div>
+                                    </div>
+
+                                </div>
+
+                                {% if order.cancellation_reason %}
+                                <div class="order-reason-note">
+                                    <strong>Cancellation Reason:</strong> {{ order.cancellation_reason }}
+                                </div>
+                                {% endif %}
+
+                                <!-- Order Actions -->
+                                <div class="order-card-actions">
+
+                                    {% if order.status == "DELIVERED" %}
+
+                                        <a href="{% url 'add_product_review' order.order_number %}" class="card-action-link">Add Review</a>
+
+                                        <a href="{% url 'orders:order_detail' order.order_number %}" class="card-action-link">View Details</a>
+
+                                        {% if order.items.first.product %}
+                                            <a href="{% url 'product_detail' order.items.first.product.id %}" class="btn-buy-again">Buy Again</a>
+                                        {% endif %}
+
+                                    {% elif order.status in cancellable_statuses %}
+
+                                        <a href="{% url 'orders:order_detail' order.order_number %}" class="card-action-link">Track Order</a>
+
+                                        <a href="{% url 'orders:order_detail' order.order_number %}" class="card-action-link">View Details</a>
+
+                                        <button type="button" class="card-action-link danger" onclick="openCancelModal('{{ order.order_number }}')">Cancel Order</button>
+
+                                    {% else %}
+
+                                        <a href="{% url 'orders:order_detail' order.order_number %}" class="card-action-link">View Details</a>
+
+                                        {% if order.items.first.product %}
+                                            <a href="{% url 'product_detail' order.items.first.product.id %}" class="btn-buy-again">Buy Again</a>
+                                        {% endif %}
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="pagination-wrap">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="pagination-link">
+                                &larr; PREV
+                            </a>
+                        {% else %}
+                            <span class="pagination-link disabled">
+                                &larr; PREV
+                            </span>
+                        {% endif %}
+
+                        <span class="pagination-current">
+                            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                        </span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="pagination-link">
+                                NEXT &rarr;
+                            </a>
+                        {% else %}
+                            <span class="pagination-link disabled">
+                                NEXT &rarr;
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                {% else %}
+
+                    <!-- Empty State -->
+                    <div class="order-empty-state">
+                        <div class="empty-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h4" />
+                            </svg>
+                        </div>
+                        <h2 class="empty-state-title">
+                            {% if request.GET.search %}
+                                No orders matching "{{ request.GET.search }}"
+                            {% else %}
+                                No orders found
+                            {% endif %}
+                        </h2>
+                        <p class="empty-state-desc">
+                            {% if request.GET.search %}
+                                We couldn't find any orders matching your search query. Try checking for typos or search with a different Order ID.
+                            {% else %}
+                                You have not placed any orders yet. Discover our curated collection of botanical plants and accessories.
+                            {% endif %}
+                        </p>
+                        {% if request.GET.search %}
+                            <a href="{% url 'orders:order_list' %}" class="btn-explore-catalog">View All Orders</a>
+                        {% else %}
+                            <a href="{% url 'product_list' %}" class="btn-explore-catalog">Explore Plants</a>
+                        {% endif %}
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- ========================================================================
+         Cancel Order Modal
+         ======================================================================== -->
+    <div id="cancelModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="cancelModalTitle">
+        <div class="action-modal">
+            <button type="button" class="modal-close-btn" onclick="closeCancelModal()" aria-label="Close dialog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <h2 id="cancelModalTitle">Cancel Order</h2>
+            <p>Are you sure you want to cancel this order? Cancellation reason is optional.</p>
+
+            <textarea
+                id="cancellationReason"
+                class="modal-textarea"
+                placeholder="Enter cancellation reason (optional)..."
+                rows="3"
+            ></textarea>
+
+            <div id="cancelModalFeedback" class="modal-feedback"></div>
+
+            <div class="modal-btn-row">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeCancelModal()">
+                    Keep Order
+                </button>
+                <button type="button" id="confirmCancelBtn" class="modal-btn modal-btn-danger" onclick="submitCancellation()">
+                    Cancel Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         Return Item Modal
+         ======================================================================== -->
+    <div id="returnModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="returnModalTitle">
+        <div class="action-modal">
+            <button type="button" class="modal-close-btn" onclick="closeReturnModal()" aria-label="Close dialog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <h2 id="returnModalTitle">Return Item</h2>
+            <p id="returnModalDescription">Choose a reason for returning this item.</p>
+
+            <select id="returnReason" class="modal-textarea" required>
+                <option value="Damaged or defective" selected>Damaged or defective</option>
+                <option value="Wrong item received">Wrong item received</option>
+                <option value="Item not as described">Item not as described</option>
+                <option value="Changed my mind">Changed my mind</option>
+                <option value="Other">Other (enter a reason)</option>
+            </select>
+
+            <textarea
+                id="returnOtherReason"
+                class="modal-textarea"
+                placeholder="Enter your return reason..."
+                maxlength="255"
+                rows="3"
+                style="display: none; margin-top: 10px;"
+                disabled
+            ></textarea>
+
+            <label for="returnUserNote" style="display: block; margin-top: 12px; margin-bottom: 6px; color: #6a746e; font-size: 13px;">Additional Note</label>
+            <textarea
+                id="returnUserNote"
+                class="modal-textarea"
+                placeholder="Add any useful details (optional)..."
+                rows="3"
+            ></textarea>
+
+            <div id="returnModalFeedback" class="modal-feedback"></div>
+
+            <div class="modal-btn-row">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeReturnModal()">
+                    Keep Item
+                </button>
+                <button type="button" id="confirmReturnBtn" class="modal-btn modal-btn-primary" onclick="submitReturn()">
+                    Submit Return
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         Site Footer
+         ======================================================================== -->
+    <footer class="profile-footer" role="contentinfo">
+        <div class="footer-container">
+            <div>
+                <div class="footer-logo">VERDÉ</div>
+                <p class="footer-tagline">
+                    &copy; 2024 VERDÉ. Curating botanical elegance for<br />your domestic spaces.
+                </p>
+            </div>
+            <div class="footer-nav-groups">
+                <div class="footer-group">
+                    <strong class="footer-heading">Shop</strong>
+                    <a class="footer-link" href="{% url 'product_list' %}">Indoor</a>
+                    <a class="footer-link" href="{% url 'product_list' %}">Outdoor</a>
+                </div>
+                <div class="footer-group">
+                    <strong class="footer-heading">Help</strong>
+                    <a class="footer-link" href="/#about">Contact</a>
+                    <a class="footer-link" href="/#about">FAQ</a>
+                </div>
+                <div class="footer-group">
+                    <strong class="footer-heading">Account</strong>
+                    <a class="footer-link" href="{% url 'profile' %}">Profile</a>
+                    <a class="footer-link" href="{% url 'orders:order_list' %}">Orders</a>
+                </div>
+                <div class="footer-group">
+                    <strong class="footer-heading">Follow</strong>
+                    <a class="footer-link" href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+                    <a class="footer-link" href="https://pinterest.com" target="_blank" rel="noopener">Pinterest</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart badge script -->
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
+
+    <!-- Logout Handler -->
+    <script>
+        document.querySelectorAll(".profile-logout").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const response = await fetch("/logout/", { method: "POST" });
+                if (response.ok) window.location.href = "/login-page/";
+            });
+        });
+    </script>
+
+    <!-- Orders Cancellation & Return JavaScript Logic -->
+    <script>
+        let selectedOrderNumber = null;
+
+        function getCookie(name) {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + "=")) {
+                    return decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            }
+            return null;
+        }
+
+        // Cancel Modal
+        function openCancelModal(orderNumber) {
+            selectedOrderNumber = orderNumber;
+            const textarea = document.getElementById("cancellationReason");
+            const feedback = document.getElementById("cancelModalFeedback");
+            textarea.value = "";
+            feedback.style.display = "none";
+            feedback.textContent = "";
+            document.getElementById("cancelModal").classList.add("active");
+            textarea.focus();
+        }
+
+        function closeCancelModal() {
+            selectedOrderNumber = null;
+            document.getElementById("cancelModal").classList.remove("active");
+        }
+
+        async function submitCancellation() {
+            if (!selectedOrderNumber) return;
+
+            const textarea = document.getElementById("cancellationReason");
+            const confirmBtn = document.getElementById("confirmCancelBtn");
+            const feedback = document.getElementById("cancelModalFeedback");
+            const cancellationReason = textarea.value.trim();
+
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = "Cancelling...";
+            feedback.style.display = "none";
+
+            try {
+                const response = await fetch(`/orders/${selectedOrderNumber}/cancel/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        cancellation_reason: cancellationReason
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    feedback.className = "modal-feedback error";
+                    feedback.textContent = data.message || "Unable to cancel the order.";
+                    feedback.style.display = "block";
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = "Cancel Order";
+                    return;
+                }
+
+                closeCancelModal();
+                window.location.reload();
+            } catch (error) {
+                console.error("Cancel order error:", error);
+                feedback.className = "modal-feedback error";
+                feedback.textContent = "Something went wrong while cancelling the order.";
+                feedback.style.display = "block";
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = "Cancel Order";
+            }
+        }
+
+        // Return Item Modal
+        let selectedReturnItem = null;
+        const returnReasonSelect = document.getElementById("returnReason");
+        const returnOtherReason = document.getElementById("returnOtherReason");
+
+        returnReasonSelect.addEventListener("change", () => {
+            const showOtherReason = returnReasonSelect.value === "Other";
+            returnOtherReason.style.display = showOtherReason ? "block" : "none";
+            returnOtherReason.disabled = !showOtherReason;
+            if (showOtherReason) returnOtherReason.focus();
+        });
+
+        document.querySelectorAll(".js-return-item-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                selectedReturnItem = {
+                    orderNumber: btn.dataset.orderNumber,
+                    itemId: btn.dataset.itemId,
+                    itemName: btn.dataset.itemName,
+                    returnUrl: btn.dataset.returnUrl,
+                    button: btn
+                };
+                returnReasonSelect.value = "Damaged or defective";
+                returnOtherReason.value = "";
+                returnOtherReason.style.display = "none";
+                returnOtherReason.disabled = true;
+                document.getElementById("returnUserNote").value = "";
+
+                document.getElementById("returnModalDescription").textContent =
+                    `Choose a reason for returning "${selectedReturnItem.itemName}".`;
+                const feedback = document.getElementById("returnModalFeedback");
+                feedback.style.display = "none";
+                feedback.textContent = "";
+                document.getElementById("returnModal").classList.add("active");
+                returnReasonSelect.focus();
+            });
+        });
+
+        function closeReturnModal() {
+            if (document.getElementById("confirmReturnBtn").disabled) return;
+            selectedReturnItem = null;
+            document.getElementById("returnModal").classList.remove("active");
+        }
+
+        async function submitReturn() {
+            if (!selectedReturnItem) return;
+
+            const confirmBtn = document.getElementById("confirmReturnBtn");
+            const feedback = document.getElementById("returnModalFeedback");
+            const selectedReason = returnReasonSelect.value;
+            const returnReason = selectedReason === "Other"
+                ? returnOtherReason.value.trim()
+                : selectedReason;
+            const userNote = document.getElementById("returnUserNote").value.trim();
+
+            if (!returnReason) {
+                feedback.className = "modal-feedback error";
+                feedback.textContent = "Please select or enter a return reason.";
+                feedback.style.display = "block";
+                if (selectedReason === "Other") {
+                    returnOtherReason.focus();
+                } else {
+                    returnReasonSelect.focus();
+                }
+                return;
+            }
+
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = "Submitting...";
+            feedback.style.display = "none";
+
+            try {
+                const response = await fetch(selectedReturnItem.returnUrl, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify({
+                        return_reason: returnReason,
+                        user_add_note: userNote
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    feedback.className = "modal-feedback error";
+                    feedback.textContent = data.message || "Unable to submit return request.";
+                    feedback.style.display = "block";
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = "Submit Return";
+                    return;
+                }
+
+                const requestedLabel = document.createElement("span");
+                requestedLabel.className = "card-action-link status-return-requested";
+                requestedLabel.setAttribute("aria-disabled", "true");
+                requestedLabel.title = selectedReturnItem.itemName;
+                requestedLabel.textContent = "Return Requested";
+                selectedReturnItem.button.replaceWith(requestedLabel);
+
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = "Submit Return";
+                closeReturnModal();
+            } catch (error) {
+                console.error("Return item error:", error);
+                feedback.className = "modal-feedback error";
+                feedback.textContent = "Something went wrong while submitting return request.";
+                feedback.style.display = "block";
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = "Submit Return";
+            }
+        }
+
+        // Close modals on clicking overlay backdrop
+        document.querySelectorAll(".modal-overlay").forEach(overlay => {
+            overlay.addEventListener("click", (e) => {
+                if (e.target === overlay) {
+                    closeCancelModal();
+                    closeReturnModal();
+                }
+            });
+        });
+
+        // Close on Escape key
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeCancelModal();
+                closeReturnModal();
+            }
+        });
+    </script>
+
+</body>
+</html>

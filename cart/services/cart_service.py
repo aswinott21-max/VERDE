@@ -4,6 +4,7 @@ from cart.models import Cart, CartItem
 from products.models import Product, ProductVariant
 from products.services.product_price_service import get_product_sale_price
 from wishlist.services.wishlist_service import remove_from_wishlist
+from products.services.tax_service import calculate_tax
 
 # Get or create an active cart for a logged-in user
 def get_or_create_user_cart(user):
@@ -96,13 +97,6 @@ def add_to_cart(user, product_id, product_variant_id=None, quantity=1):
         #get the current unit price
         unit_price = _get_unit_price(product, variant)
 
-        #reserve the newly added quantity from inventory
-        if variant:
-            variant.stock_quantity -= quantity
-            variant.save(update_fields=["stock_quantity", "updated_at"])
-        else:
-            product.stock_quantity -= quantity
-            product.save(update_fields=["stock_quantity", "updated_at"])
 
         # If the item already exists, increase its quantity
         if cart_item:
@@ -143,19 +137,6 @@ def remove_from_cart(user, cart_item_id):
         if not cart_item:
             return False
 
-        #Get the quantity that was reserved in the cart
-        reverved_quantity = cart_item.quantity
-
-        #Restore the reserved stock
-        if cart_item.product_variant:
-            variant = cart_item.product_variant
-            variant.stock_quantity += reverved_quantity
-            variant.save(update_fields=["stock_quantity", "updated_at"])
-        else:
-            product = cart_item.product
-            product.stock_quantity += reverved_quantity
-            product.save(update_fields=["stock_quantity", "updated_at"])
-
         #Remove from cart
         cart_item.delete()
 
@@ -179,23 +160,17 @@ def get_cart_details(user):
     cart_items = (
         CartItem.objects
         .filter(cart=cart)
-        .select_related(
-            "product",
-            "product_variant",
-        )
-        .prefetch_related(
-            "product__product_images",
-            "product_variant__images",
-        )
-    )
+        .select_related("product","product_variant","product__category",).prefetch_related("product__product_images","product_variant__images",))
 
     items = []
     subtotal = Decimal("0.00")
+    tax_amount = Decimal("0.00")
 
     # Process every cart item
     for item in cart_items:
         item_total = item.unit_price * item.quantity
         subtotal += item_total
+        tax_amount += calculate_tax(item.product, item_total)
 
         primary_image = None
 
@@ -230,7 +205,9 @@ def get_cart_details(user):
     return {
         "items": items,
         "subtotal": subtotal,
-        "total_items": sum(item["quantity"] for item in items),}
+        "tax_amount": tax_amount,
+        "total_items": sum(item["quantity"] for item in items),
+    }
 
 
 # Update the quantity of an item in a logged-in user's cart
@@ -274,28 +251,13 @@ def update_cart_quantity(user, cart_item_id, quantity):
         #calculate how much the reserved quantity is changing
         quantity_difference = quantity - current_quantity
 
-        # Customer is increasing the cart quantity
+        #customer is increasing the cart quantity
         if quantity_difference > 0:
 
             if quantity_difference > available_stock:
                 return None, "Requested quantity exceeds allowed quantity."
 
-            #reserve the additional quantity from stock
-            stock_object.stock_quantity -= quantity_difference
-
-        #Customer is decreasing the cart quantity
-        elif quantity_difference < 0:
-
-            # Restore the quantity released from the cart
-            stock_object.stock_quantity += abs(quantity_difference)
-
-        #Save the updated stock
-        if quantity_difference != 0:
-            stock_object.save(
-                update_fields=["stock_quantity", "updated_at"]
-            )
-
-        #Update
+        #update
         cart_item.quantity = quantity
         cart_item.save(update_fields=["quantity", "updated_at"])
 
