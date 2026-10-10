@@ -4,11 +4,13 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 
 from cart.services.cart_service import (add_to_cart,get_cart_details,remove_from_cart,update_cart_quantity,)
 
 
 @login_required
+@never_cache
 def cart_page(request):
     return render(request,"cart/cart.html",)
 

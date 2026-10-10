@@ -2,30 +2,52 @@ import logging
 from django.db import transaction
 
 from orders.models import Order,OrderStatusHistory,Return,OrderItem
+from products.models import Product,ProductVariant
 from products.services.tax_service import calculate_tax
 
 logger = logging.getLogger(__name__)
 
-@transaction.atomic
-def cancel_order(user,order_number,cancellation_reason=None):
 
-    #find order of loggedin user
-    order = (Order.objects.select_for_update().filter(order_number = order_number, user=user).first())
+@transaction.atomic
+def cancel_order(user, order_number, cancellation_reason=None):
+    order = (Order.objects.select_for_update().filter(order_number=order_number, user=user).first())
 
     if not order:
         return None, "Order not found."
 
-    if order.status not in ["PLACED","PROCESSING","SHIPPED","OUT_FOR_DELIVERY",]:
-        return None, "This order cannot be cancelled"
+    if order.status not in ["PLACED", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY"]:
+        return None, "This order cannot be cancelled."
 
-    
+    #restore stock only for active items whose stock was deducted
+    items = list(order.items.select_for_update().filter(item_status="ACTIVE", stock_deducted=True).order_by("id"))
+
+    for item in items:
+        if item.product_variant_id:
+            variant = (ProductVariant.objects.select_for_update().filter(id=item.product_variant_id).first())
+
+            if variant:
+                variant.stock_quantity += item.quantity
+                variant.save(update_fields=["stock_quantity"])
+
+        else:
+            product = (Product.objects.select_for_update().filter(id=item.product_id).first())
+
+            if product:
+                product.stock_quantity += item.quantity
+                product.save(update_fields=["stock_quantity"])
+
+        
+        item.stock_deducted = False
+        item.save(update_fields=["stock_deducted"])
+
+
     order.status = "CANCELLED"
-    order.cancellation_reason =cancellation_reason
-    order.save(update_fields=["status","cancellation_reason","updated_at"])
+    order.cancellation_reason = cancellation_reason
+    order.save(update_fields=["status", "cancellation_reason", "updated_at"])
 
-    OrderStatusHistory.objects.create(order=order,status="CANCELLED")
+    OrderStatusHistory.objects.create(order=order,status="CANCELLED",)
 
-    logger.info("Cancel order requested: %s | User:%s", order_number, user)
+    logger.info("Order cancelled: %s | User: %s",order_number,user,)
 
     return order, None
 
@@ -81,23 +103,14 @@ def return_order_item(user, order_number, order_item_id, return_reason, user_add
 
     return return_request,None
 
+
 @transaction.atomic
 def update_return_status(return_id, new_status):
-    return_request = (
-        Return.objects
-        .select_for_update(of=("self",))
-        .select_related(
-            "order_item",
-            "order_item__order",
-            "order_item__product",
-            "order_item__product_variant",
-        )
-        .filter(id=return_id)
-        .first()
-    )
+    
+    return_request = (Return.objects.select_for_update(of=("self",)).select_related("order_item","order_item__order","order_item__product","order_item__product_variant",).filter(id=return_id).first())
 
     if not return_request:
-        return None, "Return request not found"
+        return None, "Return request not found."
 
     allowed_transactions = {
         "REQUESTED": ["PICKED"],
@@ -110,34 +123,38 @@ def update_return_status(return_id, new_status):
     allowed_next_statuses = allowed_transactions.get(old_status, [])
 
     if new_status not in allowed_next_statuses:
-        return None, f"Return cannot move from {old_status} to {new_status}"
-
-    #restore stock only when the returned item passes inspection
+        return None, (f"Return cannot move from {old_status} to {new_status}.")
     if new_status == "INSPECT_APPROVED":
-
         order_item = return_request.order_item
 
-        if order_item.product_variant:
-            order_item.product_variant.stock_quantity += order_item.quantity
-            order_item.product_variant.save(
-                update_fields=["stock_quantity"]
-            )
+        if order_item.stock_deducted:
+            if order_item.product_variant_id:
+                variant = (ProductVariant.objects.select_for_update().filter(id=order_item.product_variant_id).first())
 
-        else:
-            order_item.product.stock_quantity += order_item.quantity
-            order_item.product.save(
-                update_fields=["stock_quantity"]
-            )
+                if variant:
+                    variant.stock_quantity += order_item.quantity
+                    variant.save(update_fields=["stock_quantity"])
 
+            else:
+                product = (
+                    Product.objects.select_for_update()
+                    .filter(id=order_item.product_id)
+                    .first()
+                )
+
+                if product:
+                    product.stock_quantity += order_item.quantity
+                    product.save(update_fields=["stock_quantity"])
+
+            #prevent this item from restoring stock again
+            order_item.stock_deducted = False
+            order_item.save(update_fields=["stock_deducted"])
+
+    
     return_request.status = new_status
     return_request.save(update_fields=["status", "updated_at"])
 
-    logger.info(
-        "Return status updated: Return #%s | %s -> %s",
-        return_id,
-        old_status,
-        new_status,
-    )
+    logger.info("Return status updated: Return #%s | %s -> %s",return_id, old_status, new_status,)
 
     return return_request, None
 
@@ -161,65 +178,83 @@ def update_return_note(return_id, internal_note):
 
 
 
+
 @transaction.atomic
-def cancel_order_item(user, order_number, order_item_id, cancellation_reason=None):
+def cancel_order_item(
+    user, order_number, order_item_id, cancellation_reason=None):
     
-    order_item = (OrderItem.objects.select_for_update().select_related("order", "product",).filter(id=order_item_id,order__order_number=order_number,order__user=user,).first())
+    order_item = (OrderItem.objects.select_for_update().select_related("order").filter(id=order_item_id,order__order_number=order_number,order__user=user,).first() )
 
     if not order_item:
         return None, "Order item not found."
 
     order = order_item.order
 
-    #only allow cancellation while the order is still cancellable
+    #allow cancellation only before delivery
     if order.status not in ["PLACED", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY"]:
         return None, "This order item cannot be cancelled."
 
-    #prevent cancelling the same item twice
+    #prevent cancelling the same item twice.
     if order_item.item_status == "CANCELLED":
         return None, "This order item is already cancelled."
 
-    #reduce the order subtotal and tax for the cancelled item
+    #restore stock only if it was deducted at order placement
+    if order_item.stock_deducted:
+        if order_item.product_variant_id:
+            variant = (ProductVariant.objects.select_for_update().filter(id=order_item.product_variant_id).first())
+
+            if variant:
+                variant.stock_quantity += order_item.quantity
+                variant.save(update_fields=["stock_quantity"])
+
+        else:
+            product = (Product.objects.select_for_update().filter(id=order_item.product_id).first())
+
+            if product:
+                product.stock_quantity += order_item.quantity
+                product.save(update_fields=["stock_quantity"])
+
+        #Prevent restoring this items stock twice
+        order_item.stock_deducted = False
+
+    #ppdate order total
     cancelled_item_total = order_item.total_price
-    cancelled_item_tax = calculate_tax(order_item.product,cancelled_item_total)
+    cancelled_item_tax = calculate_tax(order_item.product, cancelled_item_total)
+
     order.subtotal -= cancelled_item_total
     order.tax_amount -= cancelled_item_tax
     order.total_amount -= cancelled_item_total + cancelled_item_tax
-    order.save(update_fields=["subtotal","tax_amount","total_amount","updated_at",])
 
-    #mark only this item as cancelled
+    order.save(update_fields=["subtotal", "tax_amount", "total_amount", "updated_at"])
+
     order_item.item_status = "CANCELLED"
     order_item.cancellation_reason = cancellation_reason
-    order_item.save(update_fields=["item_status", "cancellation_reason"])
+    order_item.save(update_fields=["item_status", "cancellation_reason", "stock_deducted"])
 
-    #Check if any active items are left in the order
-    active_items_exist = order.items.filter(item_status="ACTIVE").exists()
-
-    # If no active items remain, cancel the entire order
-    if not active_items_exist:
+    #If no active items remain cancel the entire order
+    if not order.items.filter(item_status="ACTIVE").exists():
         order.status = "CANCELLED"
         order.save(update_fields=["status", "updated_at"])
 
+        OrderStatusHistory.objects.create(order=order,status="CANCELLED",)
 
-    logger.info("Order item cancelled: %s | Order: %s | User: %s",order_item.id,order_number,user,)
+    logger.info("Order item cancelled: %s | Order: %s | User: %s",order_item.id, order_number, user,)
 
     return order_item, None
 
+
 @transaction.atomic
 def update_order_status(order_number, new_status):
-    order = (
-        Order.objects
-        .select_for_update()
-        .filter(order_number=order_number)
-        .first()
-    )
+
+  
+    order = (Order.objects.select_for_update().filter(order_number=order_number).first())
 
     if not order:
-        return None, "Order not found"
+        return None, "Order not found."
 
     old_status = order.status
 
-    allowed_trasactions = {
+    allowed_transactions = {
         "PLACED": ["PROCESSING", "CANCELLED"],
         "PROCESSING": ["SHIPPED", "CANCELLED"],
         "SHIPPED": ["OUT_FOR_DELIVERY", "CANCELLED"],
@@ -229,73 +264,18 @@ def update_order_status(order_number, new_status):
         "RETURNED": [],
     }
 
-    allowed_next_statuses = allowed_trasactions.get(
-        order.status,
-        []
-    )
+    allowed_next_statuses = allowed_transactions.get(old_status, [])
 
     if new_status not in allowed_next_statuses:
-        return None, f"Order cannot move from {order.status} to {new_status}."
+        return None, (f"Order cannot move from {old_status} to {new_status}.")
 
-
-    #deduct stock only when the order is delivered
-    if new_status == "DELIVERED":
-
-        # Check stock for every active order item
-        for item in order.items.select_related(
-            "product",
-            "product_variant"
-        ):
-
-            if item.item_status != "ACTIVE":
-                continue
-
-            if item.product_variant:
-                if item.product_variant.stock_quantity < item.quantity:
-                    return None, f"Not enough stock for {item.product_name}."
-
-            else:
-                if item.product.stock_quantity < item.quantity:
-                    return None, f"Not enough stock for {item.product_name}."
-
-
-        # Deduct stock after all items pass the stock check
-        for item in order.items.select_related(
-            "product",
-            "product_variant"
-        ):
-
-            if item.item_status != "ACTIVE":
-                continue
-
-            if item.product_variant:
-                item.product_variant.stock_quantity -= item.quantity
-                item.product_variant.save(
-                    update_fields=["stock_quantity"]
-                )
-
-            else:
-                item.product.stock_quantity -= item.quantity
-                item.product.save(
-                    update_fields=["stock_quantity"]
-                )
-
-
+    #pdate the order status
     order.status = new_status
-    order.save(
-        update_fields=["status", "updated_at"]
-    )
+    order.save(update_fields=["status", "updated_at"])
 
-    OrderStatusHistory.objects.create(
-        order=order,
-        status=new_status
-    )
+    #record the status change
+    OrderStatusHistory.objects.create(order=order,status=new_status,)
 
-    logger.info(
-        "Order status updated: %s | %s -> %s",
-        order_number,
-        old_status,
-        new_status,
-    )
+    logger.info("Order status updated: %s | %s -> %s",order_number,old_status,new_status,)
 
     return order, None

@@ -2,14 +2,17 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.views.decorators.cache import never_cache
 
 from orders.models import Order
 from adminpanel.decorators import admin_required
 from orders.services.order_service import (update_order_status,update_return_status,update_return_note)
+from orders.services.invoice_service import generate_invoice_pdf
 
 
 
 @admin_required
+@never_cache
 def admin_order_list(request):
 
     search =request.GET.get("search","").strip()
@@ -60,6 +63,7 @@ def admin_order_list(request):
 
 
 @admin_required
+@never_cache
 def admin_order_details(request, order_number):
     order = (Order.objects.select_related("user","address").prefetch_related("items__returns").filter(order_number=order_number).first())
     if not order:
@@ -68,6 +72,7 @@ def admin_order_details(request, order_number):
 
 
 @admin_required
+@never_cache
 def admin_update_order_status(request, order_number):
 
     if request.method != "POST":
@@ -90,6 +95,7 @@ def admin_update_order_status(request, order_number):
     },status=200)
 
 @admin_required
+@never_cache
 def admin_update_return_status(request, return_id):
 
     if request.method != "POST":
@@ -113,6 +119,7 @@ def admin_update_return_status(request, return_id):
 
 
 @admin_required
+@never_cache
 def admin_update_return_note(request, return_id):
 
     if request.method != "POST":
@@ -131,3 +138,11 @@ def admin_update_return_note(request, return_id):
             "return_id": return_request.id,
         },status=200,)
 
+@admin_required
+@never_cache
+def admin_download_invoice(request, order_number):
+    order = (Order.objects.filter(order_number=order_number).prefetch_related("items").select_related("user", "address").first())
+    if not order:
+        return render(request,"orders/admin_order_not_found.html",status=404,)
+
+    return generate_invoice_pdf(order)

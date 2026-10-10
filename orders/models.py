@@ -39,6 +39,7 @@ class OrderItem(models.Model):
     total_price = models.DecimalField(max_digits=10,decimal_places=2,)
     discount_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0,)
     item_status = models.CharField(max_length=50, default="ACTIVE")
+    stock_deducted = models.BooleanField(default=False)
     cancellation_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

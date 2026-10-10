@@ -422,8 +422,6 @@
     .co-summary-label { color: var(--co-muted); font-weight: 500; }
     .co-summary-value { color: var(--co-text); font-weight: 500; }
     .co-summary-value.discount { color: #27774d; font-weight: 600; }
-    .co-summary-value.free { color: #27774d; font-weight: 600; }
-
     .co-total-row {
       display: flex;
       justify-content: space-between;
@@ -1221,7 +1219,7 @@
               <p class="co-delivery-name">Standard Carbon Neutral</p>
               <p class="co-delivery-sub">3–5 Business Days</p>
             </div>
-            <span class="co-delivery-price" style="color:#27774d;">Free</span>
+            <span class="co-delivery-price">&#8377;150</span>
           </label>
 
           <!-- Express -->
@@ -1541,25 +1539,14 @@
 
   var editingAddressId = null;
 
-  /* ── Shipping / totals calculation
-   * Mirrors checkout_service.py:
-   *   subtotal >= ₹1000 → Free shipping
-   *   subtotal <  ₹1000 → ₹150
-   */
+  /* ── Shipping / totals display ── */
   function updateTotals() {
-    if (!subtotalEl) return;
+    if (!subtotalEl || !shippingEl || !totalEl) return;
     var raw = subtotalEl.textContent.replace(/[^\d.]/g, '');
     var subtotal = parseFloat(raw) || 0;
-    var shipping = subtotal >= 1000 ? 0 : 150;
+    var shipping = parseFloat(shippingEl.textContent.replace(/[^\d.]/g, '')) || 0;
     var total    = subtotal + shipping;
 
-    if (shipping === 0) {
-      shippingEl.textContent = 'Free';
-      shippingEl.classList.add('free');
-    } else {
-      shippingEl.textContent = '\u20B9' + shipping.toLocaleString('en-IN');
-      shippingEl.classList.remove('free');
-    }
     totalEl.textContent = '\u20B9' + total.toLocaleString('en-IN', { maximumFractionDigits: 0 });
   }
   updateTotals();

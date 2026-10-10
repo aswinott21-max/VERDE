@@ -10,6 +10,7 @@ from datetime import timedelta
 
 from orders.services.order_service import (cancel_order,return_order,cancel_order_item,return_order_item)
 from orders.services.invoice_service import generate_invoice_pdf
+from django.views.decorators.cache import never_cache
 
 from orders.models import Order
 
@@ -17,6 +18,7 @@ from orders.models import Order
 logger = logging.getLogger(__name__)
 
 @login_required
+@never_cache
 def order_list(request):
 
     search = request.GET.get("search","").strip()
@@ -47,6 +49,7 @@ def order_list(request):
     return render (request,"orders/order_list.html",{"orders":page_obj,"page_obj":page_obj, "all_orders_count" :all_orders_count,"processing_count":processing_count,"delivered_count":delivered_count,"returned_count" : returned_count,"cancellable_statuses":cancellable_statuses,"returnable_statuses": returnable_statuses,})
 
 @login_required
+@never_cache
 def order_detail(request,order_number):
 
     #order of logged in user
@@ -64,6 +67,7 @@ def order_detail(request,order_number):
     return render(request, "orders/order_detail.html",{"order" : order,"estimated_delivery_start":estimated_delivery_start,"estimated_delivery_end": estimated_delivery_end},)
 
 @login_required
+@never_cache
 def download_invoice(request, order_number):
     order = (Order.objects.filter(order_number = order_number, user=request.user,).prefetch_related("items").select_related("address").first())
     if not order:
@@ -72,9 +76,10 @@ def download_invoice(request, order_number):
 
 @login_required
 @require_POST
+@never_cache
 def cancel_order_api(request, order_number):
     data = json.loads(request.body or "{}")
-    cancellation_reason = data.get("cancellation_reason", "").strip()
+    cancellation_reason = (data.get("cancellation_reason") or  "").strip()
     order, error = cancel_order(user=request.user,order_number=order_number,cancellation_reason=cancellation_reason or None)
 
     if error:
@@ -89,6 +94,7 @@ def cancel_order_api(request, order_number):
 
 @login_required
 @require_POST
+@never_cache
 def return_order_api(request, order_number):
     data = json.loads(request.body or "{}")
 
@@ -107,6 +113,7 @@ def return_order_api(request, order_number):
 
 @login_required
 @require_POST
+@never_cache
 def return_order_item_api(request,order_number, order_item_id):
 
     data = json.loads(request.body or "{}")
@@ -130,6 +137,7 @@ def return_order_item_api(request,order_number, order_item_id):
 
 @login_required
 @require_POST
+@never_cache
 def cancel_order_item_api(request,order_number,order_item_id):
     data= json.loads(request.body or "{}")
     cancellation_reason=data.get("cancellation_reason","").strip()

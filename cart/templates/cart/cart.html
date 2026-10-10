@@ -393,15 +393,6 @@
       }
       .cart-summary-line .label { font-weight: 500; }
       .cart-summary-line .value { font-weight: 500; color: var(--color-text-main); }
-      .cart-summary-line .value.free { color: #2e6930; font-weight: 600; }
-
-      .cart-shipping-info {
-        margin: -4px 0 12px;
-        font-size: 12px;
-        line-height: 1.5;
-        color: var(--color-text-muted);
-      }
-
       .cart-summary-divider {
         height: 1px;
         background: var(--color-border);
@@ -745,7 +736,10 @@
               <span class="label" id="summarySubtotalLabel">Subtotal (0 items)</span>
               <span class="value" id="summarySubtotalValue">&#8377;0</span>
             </div>
-            <p class="cart-shipping-info" id="cartShippingInfo"></p>
+            <div class="cart-summary-line">
+              <span class="label">Shipping</span>
+              <span class="value" id="cartShippingAmount">&#8377;150</span>
+            </div>
 
             <div class="cart-summary-divider"></div>
 
@@ -880,6 +874,13 @@
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+    {% if messages %}
+    <div id="checkoutErrorMessages" hidden>
+      {% for message in messages %}
+      <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="cart-confirm-backdrop" id="clearCartConfirm" aria-hidden="true">
       <section
@@ -931,7 +932,7 @@
       var errorBanner      = document.getElementById('cartErrorBanner');
       var subtotalLabel    = document.getElementById('summarySubtotalLabel');
       var subtotalValue    = document.getElementById('summarySubtotalValue');
-      var shippingInfo     = document.getElementById('cartShippingInfo');
+      var shippingAmount   = document.getElementById('cartShippingAmount');
       var totalValue       = document.getElementById('summaryTotalValue');
       var checkoutBtn      = document.getElementById('cartCheckoutBtn');
       var cartCountBadge   = document.getElementById('cartCountBadge');
@@ -977,6 +978,23 @@
         }, 3400);
       }
 
+      /* ─── Checkout stock error from the existing server-side validation ─── */
+      var checkoutStockProductName = '';
+      var checkoutErrorMessages = document.querySelectorAll('#checkoutErrorMessages p');
+      for (var messageIndex = 0; messageIndex < checkoutErrorMessages.length; messageIndex++) {
+        var checkoutMessage = checkoutErrorMessages[messageIndex].textContent.trim();
+        var stockMessagePrefix = 'Insufficient stock for ';
+        var stockMessageSuffix = '. Please update your cart.';
+        var stockNameStart = checkoutMessage.indexOf(stockMessagePrefix);
+        var stockNameEnd = checkoutMessage.lastIndexOf(stockMessageSuffix);
+        if (stockNameStart === 0 &&
+            stockNameEnd > stockMessagePrefix.length &&
+            stockNameEnd + stockMessageSuffix.length === checkoutMessage.length) {
+          checkoutStockProductName = checkoutMessage.slice(stockMessagePrefix.length, stockNameEnd).trim();
+          break;
+        }
+      }
+
       /* ─── Currency ─── */
       function fmt(val) {
         var n = parseFloat(val) || 0;
@@ -997,10 +1015,8 @@
       function updateSummary() {
         subtotalLabel.textContent = 'Subtotal (' + totalQty + ' item' + (totalQty !== 1 ? 's' : '') + ')';
         subtotalValue.textContent = fmt(cartSubtotal);
-        shippingInfo.textContent = cartSubtotal < 1000
-          ? '\u20B9150 shipping charge will be added for orders below \u20B91,000.'
-          : 'Free shipping on orders \u20B91,000 and above.';
-        totalValue.textContent    = fmt(cartSubtotal);
+        var shipping = parseFloat(shippingAmount.textContent.replace(/[^\d.]/g, '')) || 0;
+        totalValue.textContent = fmt(cartSubtotal + shipping);
 
         if (cartCountBadge) {
           cartCountBadge.textContent = totalQty;
@@ -1087,7 +1103,16 @@
           metaRow.style.display    = 'flex';
           itemCountLabel.textContent = totalQty + ' item' + (totalQty !== 1 ? 's' : '');
           cartItems.forEach(function (item) {
-            itemsList.appendChild(buildItemEl(item));
+            var itemEl = buildItemEl(item);
+            itemsList.appendChild(itemEl);
+            if (checkoutStockProductName &&
+                item.product_name.trim().toLowerCase() === checkoutStockProductName.toLowerCase()) {
+              var stockErrorEl = itemEl.querySelector('.cp-item-error');
+              if (stockErrorEl) {
+                stockErrorEl.textContent = 'Insufficient stock for ' + item.product_name + '. Please update the quantity or remove this product.';
+                stockErrorEl.classList.add('visible');
+              }
+            }
           });
         }
 

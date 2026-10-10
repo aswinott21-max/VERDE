@@ -1,9 +1,10 @@
 import logging
 import json
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 
 from users.models import Address
 
@@ -14,19 +15,36 @@ from checkout.services.checkout_service import create_order
 
 logger = logging.getLogger(__name__)
 
-@login_required
-def checkout_page(request):
 
+@login_required
+@never_cache
+def checkout_page(request):
     cart_data = get_cart_details(request.user)
 
+    for item in cart_data["items"]:
+        product = item["product"]
+        quantity = item["quantity"]
+
+        if product.variants.exists():
+            variant = item.get("product_variant")
+
+            if not variant or not variant.is_active or variant.stock_quantity < quantity:
+                from django.contrib import messages
+                messages.error(request, f"Insufficient stock for {product.name}. Please update your cart.")
+                return redirect("cart:cart_page")
+        elif not product.is_active or product.stock_quantity < quantity:
+            from django.contrib import messages
+            messages.error(request, f"Insufficient stock for {product.name}. Please update your cart.")
+            return redirect("cart:cart_page")
+
     addresses = Address.objects.filter(user=request.user).order_by("-is_default", "-created_at")
+    logger.info("Checkout page opened by user: %s with %s cart items",request.user,len(cart_data["items"]),)
 
-    logger.info("Checkout page opened by user: %s with %s cart items",request.user,len(cart_data["items"])),
-    return render(request,"checkout/checkout.html", {"cart_data" : cart_data, "addresses" : addresses},)
-
+    return render(request,"checkout/checkout.html",{"cart_data": cart_data, "addresses": addresses},)
 
 @login_required
 @require_POST
+@never_cache
 def place_order(request):
     data =json.loads(request.body) 
 
