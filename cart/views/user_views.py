@@ -6,13 +6,97 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 
-from cart.services.cart_service import (add_to_cart,get_cart_details,remove_from_cart,update_cart_quantity,)
+from coupons.models import Coupon
 
+from coupons.services.coupon_service import (is_coupon_valid,is_coupon_usage_available,is_minimum_order_amount_met,)
+from cart.services.cart_service import (add_to_cart,get_cart_details,remove_from_cart,update_cart_quantity,)
+from checkout.services.checkout_service import validate_checkout_coupon
 
 @login_required
 @never_cache
 def cart_page(request):
     return render(request,"cart/cart.html",)
+
+@login_required
+@require_POST
+@never_cache
+def apply_coupon(request):
+    coupon_code = request.POST.get("coupon_code", "").strip()
+
+    if not coupon_code:
+        return JsonResponse({"message": "Enter a coupon code."}, status=400)
+    cart_data = get_cart_details(request.user)
+
+    #prevent coupon apply for empty cart
+    if not cart_data["items"]:
+        return JsonResponse({"message": "Your cart is empty."}, status=400)
+
+    coupon,discount,error = validate_checkout_coupon(coupon_code,cart_data["subtotal"])
+
+    if error:
+        return JsonResponse({"message": error}, status=400)
+
+    #store the selected coupon ID without making it as used
+    request.session["checkout_coupon_id"]=coupon.id
+
+    return JsonResponse({
+        "message": f"Coupon {coupon.code} applied successfully.",
+        "coupon_code": coupon.code,
+        "discount_amount": str(discount),
+    })
+
+@login_required
+@require_POST
+@never_cache
+def remove_coupon(request):
+    request.session.pop("checkout_coupon_id", None)
+    return JsonResponse({"message": "Coupon removed successfully."})
+
+
+@login_required
+@require_GET
+@never_cache
+def available_coupons_api(request):
+
+    cart_data = get_cart_details(request.user)
+    subtotal = cart_data["subtotal"]
+
+    coupons = Coupon.objects.all().order_by("expiry_date")
+    available_coupons =[]
+
+    for coupon in coupons:
+
+        if not is_coupon_valid(coupon):
+            continue
+        if not is_coupon_usage_available(coupon):
+            continue
+
+        #check cart met minimum coupon amuont
+        minimum_met = is_minimum_order_amount_met(coupon, subtotal)
+
+        available_coupons.append({
+            "code": coupon.code,
+            "coupon_name": coupon.coupon_name,
+            "discount_type": coupon.discount_type,
+            "discount_value": str(coupon.discount_value),
+            "max_discount_amount": (
+                str(coupon.max_discount_amount)
+                if coupon.max_discount_amount is not None
+                else None),
+            "minimum_order_amount": str(coupon.minimum_order_amount),
+            "expiry_date": coupon.expiry_date.isoformat(),
+            "minimum_met": minimum_met,
+            "amount_needed": str(max(coupon.minimum_order_amount - subtotal, 0)),
+        })
+
+    return JsonResponse({
+        "status": "success",
+        "subtotal": str(subtotal),
+        "coupons": available_coupons,
+    })
+
+
+
 
 
 
@@ -20,7 +104,7 @@ def cart_page(request):
 @login_required
 @require_GET
 def view_cart_api(request):
-    
+
     cart_data = get_cart_details(request.user)
 
     serialized_items = []
@@ -32,7 +116,7 @@ def view_cart_api(request):
 
         serialized_items.append({
             "cart_item_id": item["cart_item_id"],
-            "product_id": item["product"].id,    
+            "product_id": item["product"].id,
             "product_name": item["product"].name,
             "variant_id": variant.id if variant else None,
             "variant_name": (
@@ -49,7 +133,7 @@ def view_cart_api(request):
                 else None),
             })
 
-   
+
     return JsonResponse(
         {
             "status": "success",
@@ -86,11 +170,11 @@ def add_to_cart_api(request):
                 "message": "product_id is required.",
             },status=400,)
 
-    
+
     #add the product to the user database cart
     cart_item, error_message = add_to_cart(request.user,product_id,variant_id,quantity,)
 
-   
+
     if not cart_item:
         return JsonResponse(
             {
@@ -111,7 +195,7 @@ def add_to_cart_api(request):
 @require_POST
 def remove_from_cart_api(request):
 # Remove an item from the logged-in user's cart
-    
+
     try:
         data = json.loads(request.body)
 
@@ -123,7 +207,7 @@ def remove_from_cart_api(request):
                 "message": "Invalid JSON payload.",
             },status=400,)
 
-    
+
 
     #get the database cart item id
     cart_item_id = data.get("cart_item_id")
@@ -138,7 +222,7 @@ def remove_from_cart_api(request):
     #remove the item from the user's database cart
     success = remove_from_cart(request.user,cart_item_id,)
 
-  
+
     if not success:
         return JsonResponse(
             {
@@ -178,7 +262,7 @@ def update_cart_quantity_api(request):
                 "message": "quantity is required.",
             },status=400,)
 
-   
+
     if not cart_item_id:
         return JsonResponse(
             {

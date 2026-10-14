@@ -7,30 +7,12 @@ from products.models import Review,ReviewImage
 
 def get_reviewable_order_items(user, order_number):
 
-    return (
-        OrderItem.objects
-        .select_related("order", "product", "product_variant")
-        .filter(
-            order__order_number=order_number,
-            order__user=user,
-            order__status="DELIVERED",
-        )
-        .exclude(item_status="CANCELLED")
-        .exclude(returns__isnull=False)
-        .exclude(
-            id__in=Review.objects.filter(user=user)
-            .values_list("order_item_id", flat=True)
-        )
-        .distinct()
-    )
+    return (OrderItem.objects.select_related("order", "product", "product_variant").filter(order__order_number=order_number,order__user=user,order__status="DELIVERED",).exclude(item_status="CANCELLED").exclude(returns__isnull=False).exclude(id__in=Review.objects.filter(user=user).values_list("order_item_id", flat=True)).distinct())
 
 @transaction.atomic
 def create_product_review(user,order_item_id,rating,review_text="",images=None):
     #review only after delivered
-    order_item = (
-        OrderItem.objects
-        .select_related("order", "product", "product_variant")
-        .filter(id=order_item_id,order__user=user,order__status="DELIVERED",).exclude(item_status="CANCELLED").first())
+    order_item = ( OrderItem.objects.select_related("order", "product", "product_variant").filter(id=order_item_id,order__user=user,order__status="DELIVERED",).exclude(item_status="CANCELLED").first())
     if not order_item:
         return None,"This product is not eligible for review"
 

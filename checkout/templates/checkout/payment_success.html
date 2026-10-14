@@ -1,0 +1,491 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Successful | VERDÉ</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Global stylesheet -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+  <style>
+    :root {
+      --co-primary: #102518;
+      --co-primary-hover: #1b3825;
+      --co-bg: #f6f7f5;
+      --co-card: #ffffff;
+      --co-border: #e2e8e3;
+      --co-border-light: #ecefe9;
+      --co-text: #141715;
+      --co-muted: #5e6660;
+      --co-green-light: #edf5f0;
+      --co-green-mid: #2e593d;
+      --font-serif: "Playfair Display", Georgia, serif;
+      --font-sans: "Plus Jakarta Sans", -apple-system, sans-serif;
+      --tr: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.payment-status-page {
+      background: var(--co-bg);
+      color: var(--co-text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+    }
+
+    /* ---- Header ---- */
+    .site-header.co-header {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      z-index: 200;
+    }
+    .co-header .header-container {
+      width: 100%;
+      max-width: none;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 4vw, 40px);
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+    .co-header .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .co-header .action-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      color: var(--co-text);
+      transition: background var(--tr), color var(--tr);
+      text-decoration: none;
+    }
+    .co-header .action-btn:hover { background: var(--co-bg); color: var(--co-primary); }
+    .co-header .action-btn svg { width: 18px; height: 18px; }
+
+    /* ---- Main container ---- */
+    .status-main {
+      flex: 1;
+      width: min(100% - 40px, 640px);
+      margin: 48px auto 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Card shell */
+    .status-card {
+      width: 100%;
+      background: var(--co-card);
+      border: 1px solid var(--co-border);
+      border-radius: 16px;
+      padding: 40px 36px;
+      box-shadow: 0 4px 24px rgba(16, 37, 24, 0.05);
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    /* Botanical illustration / badge */
+    .botanical-badge {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #edf7ef;
+      border: 2px solid #cce5d2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      color: #27774d;
+      box-shadow: 0 8px 20px rgba(39, 119, 77, 0.12);
+    }
+    .botanical-badge svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .status-title {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--co-primary);
+      margin: 0 0 10px;
+    }
+
+    .status-subtitle {
+      font-size: 14px;
+      color: var(--co-muted);
+      line-height: 1.6;
+      margin: 0 0 28px;
+    }
+
+    /* Order details table */
+    .order-summary-box {
+      background: #fbfcfb;
+      border: 1px solid var(--co-border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+    .order-summary-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--co-primary);
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .order-summary-title svg {
+      width: 14px;
+      height: 14px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--co-border-light);
+    }
+    .summary-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .summary-row:first-of-type {
+      padding-top: 0;
+    }
+    .summary-label {
+      color: var(--co-muted);
+      font-weight: 500;
+    }
+    .summary-value {
+      color: var(--co-text);
+      font-weight: 600;
+      text-align: right;
+    }
+    .summary-row.total-highlight {
+      margin-top: 6px;
+      padding-top: 12px;
+      border-top: 1.5px solid var(--co-border);
+      font-size: 15px;
+    }
+    .summary-row.total-highlight .summary-value {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--co-primary);
+      font-weight: 700;
+    }
+
+    /* Action buttons */
+    .status-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .btn-action-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 48px;
+      background: var(--co-primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border-radius: 6px;
+      border: none;
+      text-decoration: none;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: background var(--tr);
+      box-sizing: border-box;
+    }
+    .btn-action-primary:hover {
+      background: var(--co-primary-hover);
+    }
+    .btn-action-primary svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .btn-action-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 48px;
+      background: transparent;
+      color: var(--co-primary);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border-radius: 6px;
+      border: 1.5px solid var(--co-primary);
+      text-decoration: none;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: background var(--tr), color var(--tr);
+      box-sizing: border-box;
+    }
+    .btn-action-secondary:hover {
+      background: var(--co-green-light);
+    }
+    .btn-action-secondary svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* ---- Footer ---- */
+    .co-footer {
+      background: #0d2217;
+      color: #fff;
+      margin-top: auto;
+    }
+    .co-footer-inner {
+      width: min(100% - 48px, 1180px);
+      margin: 0 auto;
+      padding: 52px 0 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+    }
+    .co-footer-logo {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+    .co-footer-tagline {
+      margin-top: 12px;
+      color: #8ea394;
+      font-size: 11px;
+      line-height: 1.8;
+    }
+    .co-footer-groups {
+      display: flex;
+      gap: 56px;
+    }
+    .co-footer-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .co-footer-heading {
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .co-footer-link {
+      color: #8ea394;
+      font-size: 11px;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .co-footer-link:hover { color: #fff; }
+
+    @media (max-width: 520px) {
+      .status-card { padding: 32px 20px; }
+      .status-title { font-size: 23px; }
+      .co-footer-inner { flex-direction: column; gap: 28px; }
+      .co-footer-groups { flex-wrap: wrap; gap: 28px; }
+    }
+  </style>
+</head>
+
+<body class="payment-status-page">
+
+<!-- Header -->
+<header class="site-header co-header" role="banner">
+  <div class="header-container">
+    <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+      <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2"/>
+      </svg>
+      <span class="logo-text">VERDÉ</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Primary Navigation">
+      <ul class="nav-list">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="{% url 'product_list' %}" class="nav-link">Shop</a></li>
+        <li><a href="/#offers" class="nav-link">Offers</a></li>
+        <li><a href="/#about" class="nav-link">About</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <a href="{% url 'cart:cart_page' %}" class="action-btn" aria-label="Cart" title="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+      </a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'profile' %}" class="action-btn" aria-label="Profile" title="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>
+        </svg>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<!-- Main content -->
+<main class="status-main">
+  <div class="status-card">
+
+    <!-- Plant-themed illustration consistent with VERDÉ -->
+    <div class="botanical-badge" aria-hidden="true">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Stem & leaves -->
+        <path d="M32 54V22" stroke-width="3" stroke="#27774d"/>
+        <path d="M32 38C24 38 18 32 18 22C26 22 32 28 32 38Z" fill="#edf7ef" stroke="#27774d" stroke-width="2.5"/>
+        <path d="M32 28C40 28 46 22 46 12C38 12 32 18 32 28Z" fill="#edf7ef" stroke="#27774d" stroke-width="2.5"/>
+        <path d="M32 46C40 46 44 40 44 32C36 32 32 38 32 46Z" fill="#edf7ef" stroke="#27774d" stroke-width="2.5"/>
+        <!-- Success Check in Circle base -->
+        <circle cx="32" cy="54" r="5" fill="#27774d" stroke="#27774d" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <h1 class="status-title">Payment Successful!</h1>
+    <p class="status-subtitle">
+      Thank you for your purchase. Your payment has been received and verified. Your botanical treasures are now being carefully prepared.
+    </p>
+
+    <!-- Confirmation & Order Details -->
+    <div class="order-summary-box">
+      <p class="order-summary-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Order Confirmation
+      </p>
+
+      <div class="summary-row">
+        <span class="summary-label">Order Number</span>
+        <span class="summary-value" style="font-family:monospace;letter-spacing:.03em;">{{ order.order_number }}</span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-label">Date</span>
+        <span class="summary-value">{{ order.created_at|date:"M d, Y h:i A" }}</span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-label">Payment Method</span>
+        <span class="summary-value">Razorpay (Online)</span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-label">Payment Status</span>
+        <span class="summary-value" style="color:#27774d;font-weight:700;">{{ order.payment_status|default:"PAID" }}</span>
+      </div>
+
+      {% if order.delivery_method %}
+      <div class="summary-row">
+        <span class="summary-label">Delivery Method</span>
+        <span class="summary-value">{{ order.delivery_method }}</span>
+      </div>
+      {% endif %}
+
+      <div class="summary-row total-highlight">
+        <span class="summary-label">Amount Paid</span>
+        <span class="summary-value">&#8377;{{ order.total_amount|floatformat:0 }}</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="status-actions">
+      <!-- Button linking to existing order details page -->
+      <a href="{% url 'orders:order_detail' order.order_number %}" class="btn-action-primary">
+        <span>View Order Details</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+
+      <!-- Continue Shopping button linking to existing product listing page -->
+      <a href="{% url 'product_list' %}" class="btn-action-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        <span>Continue Shopping</span>
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="co-footer">
+  <div class="co-footer-inner">
+    <div class="co-footer-brand">
+      <div class="co-footer-logo">VERDÉ</div>
+      <p class="co-footer-tagline">&copy; 2024 VERDÉ. Curating botanical elegance for<br>your domestic spaces.</p>
+    </div>
+    <div class="co-footer-groups">
+      <div class="co-footer-group">
+        <strong class="co-footer-heading">Shop</strong>
+        <a class="co-footer-link" href="{% url 'product_list' %}">Indoor</a>
+        <a class="co-footer-link" href="{% url 'product_list' %}">Outdoor</a>
+        <a class="co-footer-link" href="{% url 'product_list' %}">Accessories</a>
+      </div>
+      <div class="co-footer-group">
+        <strong class="co-footer-heading">Help</strong>
+        <a class="co-footer-link" href="#">Contact</a>
+        <a class="co-footer-link" href="#">FAQ</a>
+        <a class="co-footer-link" href="#">Shipping</a>
+      </div>
+      <div class="co-footer-group">
+        <strong class="co-footer-heading">Account</strong>
+        <a class="co-footer-link" href="{% url 'profile' %}">Profile</a>
+        <a class="co-footer-link" href="{% url 'orders:order_list' %}">Orders</a>
+      </div>
+      <div class="co-footer-group">
+        <strong class="co-footer-heading">Follow</strong>
+        <a class="co-footer-link" href="https://instagram.com">Instagram</a>
+        <a class="co-footer-link" href="https://pinterest.com">Pinterest</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

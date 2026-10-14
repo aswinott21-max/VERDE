@@ -1189,17 +1189,22 @@
 
         <div class="co-summary-row">
           <span class="co-summary-label">Subtotal</span>
-          <span class="co-summary-value" id="coSubtotal">&#8377;{{ cart_data.subtotal|floatformat:0 }}</span>
+          <span class="co-summary-value" id="coSubtotal" data-amount="{{ cart_data.subtotal }}">&#8377;{{ cart_data.subtotal|floatformat:0 }}</span>
         </div>
         <div class="co-summary-row">
           <span class="co-summary-label">Shipping</span>
-          <span class="co-summary-value" id="coShipping">&#8377;150</span>
+          <span class="co-summary-value" id="coShipping" data-amount="150">&#8377;150</span>
         </div>
         <div class="co-summary-row">
           <span class="co-summary-label">Tax</span>
-          <span class="co-summary-value">&#8377;{{ cart_data.tax_amount|floatformat:0 }}</span>
+          <span class="co-summary-value" id="coTax" data-amount="{{ cart_data.tax_amount }}">&#8377;{{ cart_data.tax_amount|floatformat:0 }}</span>
         </div>
-
+        {% if coupon %}
+        <div class="co-summary-row">
+          <span class="co-summary-label">Coupon Discount ({{ coupon.code }})</span>
+          <span class="co-summary-value" id="coCouponDiscount" data-amount="{{ coupon_discount }}">-&#8377;{{ coupon_discount|floatformat:2 }}</span>
+        </div>
+        {% endif %}
         <div class="co-total-row">
           <span class="co-total-label">Total</span>
           <span class="co-total-value" id="coTotal">&#8377;{{ cart_data.subtotal|floatformat:0 }}</span>
@@ -1498,6 +1503,9 @@
 <!-- Cart badge -->
 <script src="{% static 'js/cart-badge.js' %}" defer></script>
 
+<!-- Razorpay Checkout SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <!-- =====================================================================
      CHECKOUT JAVASCRIPT
      All existing backend API calls are preserved exactly.
@@ -1519,6 +1527,7 @@
   /* ── DOM refs ── */
   var subtotalEl    = document.getElementById('coSubtotal');
   var shippingEl    = document.getElementById('coShipping');
+  var taxEl         = document.getElementById('coTax');
   var totalEl       = document.getElementById('coTotal');
   var placeOrderBtn = document.getElementById('coPlaceOrderBtn');
   var errorBanner   = document.getElementById('coErrorBanner');
@@ -1541,13 +1550,15 @@
 
   /* ── Shipping / totals display ── */
   function updateTotals() {
-    if (!subtotalEl || !shippingEl || !totalEl) return;
-    var raw = subtotalEl.textContent.replace(/[^\d.]/g, '');
-    var subtotal = parseFloat(raw) || 0;
-    var shipping = parseFloat(shippingEl.textContent.replace(/[^\d.]/g, '')) || 0;
-    var total    = subtotal + shipping;
+    if (!subtotalEl || !shippingEl || !taxEl || !totalEl) return;
+    var subtotal = parseFloat(subtotalEl.dataset.amount) || 0;
+    var shipping = parseFloat(shippingEl.dataset.amount) || 0;
+    var tax = parseFloat(taxEl.dataset.amount) || 0;
+    var couponDiscountEl = document.getElementById('coCouponDiscount');
+    var couponDiscount = couponDiscountEl ? parseFloat(couponDiscountEl.dataset.amount) || 0 : 0;
+    var total = subtotal + tax + shipping - couponDiscount;
 
-    totalEl.textContent = '\u20B9' + total.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    totalEl.textContent = '\u20B9' + total.toLocaleString('en-IN', { maximumFractionDigits: 2 });
   }
   updateTotals();
 
@@ -1573,8 +1584,9 @@
   function updatePaymentButton() {
     var selectedPayment = document.querySelector('input[name="payment_method"]:checked');
     var isCashOnDelivery = selectedPayment && selectedPayment.value === 'Cash on Delivery';
+    var isRazorpay = selectedPayment && selectedPayment.value === 'Razorpay';
     placeOrderLabel.textContent = isCashOnDelivery ? 'PLACE ORDER' : 'PROCEED TO PAY';
-    placeOrderBtn.disabled = !isCashOnDelivery;
+    placeOrderBtn.disabled = !(isCashOnDelivery || isRazorpay);
   }
   document.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
     radio.addEventListener('change', updatePaymentButton);
@@ -1810,7 +1822,106 @@
     }
   });
 
-  /* ── Place Order — uses existing /checkout/place-order/ API ── */
+  /* ── Razorpay Payment Handler ── */
+  async function handleRazorpayPayment(addressId, deliveryMethod) {
+    if (typeof Razorpay === 'undefined') {
+      showError('Razorpay payment gateway failed to load. Please check your internet connection and try again.');
+      updatePaymentButton();
+      return;
+    }
+
+    placeOrderBtn.disabled = true;
+    placeOrderLabel.textContent = 'INITIATING PAYMENT\u2026';
+
+    var createData;
+    try {
+      var createRes = await fetch('/checkout/create-razorpay-payment/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+          address_id: addressId,
+          delivery_method: deliveryMethod,
+        }),
+      });
+      createData = await createRes.json();
+      if (!createRes.ok) {
+        showError(createData.message || createData.method || 'Unable to initiate payment. Please try again.');
+        updatePaymentButton();
+        return;
+      }
+    } catch (err) {
+      showError('Network error while initiating payment. Please check your connection and try again.');
+      updatePaymentButton();
+      return;
+    }
+
+    var orderNumber = createData.order_number;
+    var razorpayOrderId = createData.razorpay_order_id;
+
+    var options = {
+      key: createData.razorpay_key_id,
+      amount: createData.amount,
+      currency: createData.currency || 'INR',
+      name: 'VERDÉ',
+      description: 'Order ' + orderNumber,
+      order_id: razorpayOrderId,
+      handler: async function (response) {
+        placeOrderBtn.disabled = true;
+        placeOrderLabel.textContent = 'VERIFYING PAYMENT\u2026';
+
+        try {
+          var verifyRes = await fetch('/checkout/verify-razorpay-payment/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+              order_number: orderNumber,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
+          var verifyData = await verifyRes.json();
+
+          if (verifyRes.ok) {
+            window.location.href = "{% url 'checkout:payment_success' %}?order_number=" + encodeURIComponent(verifyData.order_number || orderNumber);
+          } else {
+            window.location.href = "{% url 'checkout:payment_failure' %}?order_number=" + encodeURIComponent(orderNumber) + "&error_message=" + encodeURIComponent(verifyData.message || 'Payment verification failed.');
+          }
+        } catch (err) {
+          showError('Network error while verifying payment. Please refresh or contact support if amount was debited.');
+          updatePaymentButton();
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          window.location.href = "{% url 'checkout:payment_failure' %}?order_number=" + encodeURIComponent(orderNumber) + "&error_message=" + encodeURIComponent('Payment was cancelled by the user.');
+        },
+      },
+      theme: {
+        color: '#102518',
+      },
+    };
+
+    try {
+      var rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        var failureReason = (response.error && response.error.description) ? response.error.description : 'Payment failed. Please try again.';
+        window.location.href = "{% url 'checkout:payment_failure' %}?order_number=" + encodeURIComponent(orderNumber) + "&error_message=" + encodeURIComponent(failureReason);
+      });
+      rzp.open();
+    } catch (err) {
+      showError('Unable to open Razorpay payment window. Please try again.');
+      updatePaymentButton();
+    }
+  }
+
+  /* ── Place Order ── */
   placeOrderBtn.addEventListener('click', async function () {
     hideError();
 
@@ -1821,6 +1932,12 @@
     if (!selAddr)  { showError('Please select a delivery address.'); return; }
     if (!selDeliv) { showError('Please select a delivery method.'); return; }
     if (!selPay)   { showError('Please select a payment method.'); return; }
+
+    if (selPay.value === 'Razorpay') {
+      handleRazorpayPayment(selAddr.value, selDeliv.value);
+      return;
+    }
+
     if (selPay.value !== 'Cash on Delivery') return;
 
     var payload = {
