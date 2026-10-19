@@ -275,7 +275,6 @@ def update_order_status(order_number, new_status):
 
     #record the status change
     OrderStatusHistory.objects.create(order=order,status=new_status,)
-
     logger.info("Order status updated: %s | %s -> %s",order_number,old_status,new_status,)
 
     return order, None

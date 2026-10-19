@@ -21,9 +21,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 pdfmetrics.registerFont(
     TTFont(
         "DejaVuSans",
-        "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf",
-    )
-)
+        "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf",))
 
 pdfmetrics.registerFont(
     TTFont(

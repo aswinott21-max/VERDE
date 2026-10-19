@@ -30,7 +30,7 @@ def is_coupon_usage_available(coupon):
     #Check coupon is still available
 
     if coupon.usage_limit is None:
-        logger.info("Coupon % has no usage limit.", coupon.code)
+        logger.info("Coupon %s has no usage limit.", coupon.code)
         return True
     if coupon.used_count >= coupon.usage_limit:
         logger.info("Coupon has reached its usage limit",coupon.code)
