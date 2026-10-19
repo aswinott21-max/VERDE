@@ -980,7 +980,7 @@
           {% for coupon in coupons %}
           {# Keep card colors consistent regardless of the decorative icon. #}
           {% if forloop.counter|divisibleby:3 %}
-          <article class="coupon-card {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-coupon-card{% else %}variant-light{% endif %}" aria-label="{{ coupon.coupon_name }} coupon">
+          <article class="coupon-card variant-light" aria-label="{{ coupon.coupon_name }} coupon">
 
             <!-- Decorative icon -->
             <div class="coupon-card-icon" aria-hidden="true">
@@ -993,17 +993,10 @@
             </div>
 
             <!-- Tag -->
-            {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}
-            <div class="past-tag-row">
-              <p class="coupon-tag past-tag">{{ coupon.coupon_name }}</p>
-              <span class="expired-badge">Expired</span>
-            </div>
-            {% else %}
             <p class="coupon-tag">{{ coupon.coupon_name }}</p>
-            {% endif %}
 
             <!-- Discount headline -->
-            <h3 class="coupon-discount {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-discount{% endif %}">
+            <h3 class="coupon-discount">
               {% if coupon.discount_type == "percentage" %}
                 {{ coupon.discount_value|floatformat:0 }}% OFF
               {% else %}
@@ -1023,7 +1016,7 @@
 
             <!-- Expiry -->
             <div class="coupon-meta">
-              <span class="coupon-expiry {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-expiry{% endif %}">
+              <span class="coupon-expiry">
                 Expires {{ coupon.expiry_date|date:"M j, Y" }}
               </span>
             </div>
@@ -1057,7 +1050,7 @@
 
           {% else %}
           <!-- LIGHT card -->
-          <article class="coupon-card {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-coupon-card{% else %}variant-light{% endif %}" aria-label="{{ coupon.coupon_name }} coupon">
+          <article class="coupon-card variant-light" aria-label="{{ coupon.coupon_name }} coupon">
 
             <!-- Decorative icon -->
             <div class="coupon-card-icon" aria-hidden="true">
@@ -1068,17 +1061,10 @@
             </div>
 
             <!-- Tag -->
-            {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}
-            <div class="past-tag-row">
-              <p class="coupon-tag past-tag">{{ coupon.coupon_name }}</p>
-              <span class="expired-badge">Expired</span>
-            </div>
-            {% else %}
             <p class="coupon-tag">{{ coupon.coupon_name }}</p>
-            {% endif %}
 
             <!-- Discount headline -->
-            <h3 class="coupon-discount {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-discount{% endif %}">
+            <h3 class="coupon-discount">
               {% if coupon.discount_type == "percentage" %}
                 {{ coupon.discount_value|floatformat:0 }}% OFF
               {% else %}
@@ -1096,7 +1082,7 @@
 
             <!-- Meta row -->
             <div class="coupon-meta">
-              <span class="coupon-expiry {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-expiry{% endif %}">Expires {{ coupon.expiry_date|date:"M j, Y" }}</span>
+              <span class="coupon-expiry">Expires {{ coupon.expiry_date|date:"M j, Y" }}</span>
             </div>
 
             <hr class="coupon-divider" />

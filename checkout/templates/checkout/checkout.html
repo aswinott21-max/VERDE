@@ -1585,8 +1585,9 @@
     var selectedPayment = document.querySelector('input[name="payment_method"]:checked');
     var isCashOnDelivery = selectedPayment && selectedPayment.value === 'Cash on Delivery';
     var isRazorpay = selectedPayment && selectedPayment.value === 'Razorpay';
+    var isWallet = selectedPayment && selectedPayment.value === 'Wallet';
     placeOrderLabel.textContent = isCashOnDelivery ? 'PLACE ORDER' : 'PROCEED TO PAY';
-    placeOrderBtn.disabled = !(isCashOnDelivery || isRazorpay);
+    placeOrderBtn.disabled = !(isCashOnDelivery || isRazorpay || isWallet);
   }
   document.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
     radio.addEventListener('change', updatePaymentButton);
@@ -1938,7 +1939,7 @@
       return;
     }
 
-    if (selPay.value !== 'Cash on Delivery') return;
+    if (selPay.value !== 'Cash on Delivery' && selPay.value !== 'Wallet') return;
 
     var payload = {
       address_id:      selAddr.value,

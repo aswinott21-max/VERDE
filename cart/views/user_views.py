@@ -6,7 +6,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 
-from coupons.models import Coupon
+from coupons.models import Coupon,CouponUsage
 
 from coupons.services.coupon_service import (is_coupon_valid,is_coupon_usage_available,is_minimum_order_amount_met,)
 from cart.services.cart_service import (add_to_cart,get_cart_details,remove_from_cart,update_cart_quantity,)
@@ -31,7 +31,7 @@ def apply_coupon(request):
     if not cart_data["items"]:
         return JsonResponse({"message": "Your cart is empty."}, status=400)
 
-    coupon,discount,error = validate_checkout_coupon(coupon_code,cart_data["subtotal"])
+    coupon, discount, error = validate_checkout_coupon(coupon_code, cart_data["subtotal"], request.user)
 
     if error:
         return JsonResponse({"message": error}, status=400)
@@ -69,6 +69,8 @@ def available_coupons_api(request):
         if not is_coupon_valid(coupon):
             continue
         if not is_coupon_usage_available(coupon):
+            continue
+        if CouponUsage.objects.filter(coupon=coupon, user=request.user).exists():
             continue
 
         #check cart met minimum coupon amuont

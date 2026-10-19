@@ -23,7 +23,7 @@ SUPPORTED_PAYMENT_METHODS = {"Cash on Delivery", "Razorpay", "Wallet"}
 logger = logging.getLogger(__name__)
 
 
-def validate_checkout_coupon(coupon_code, subtotoal):
+def validate_checkout_coupon(coupon_code, subtotoal,user):
     subtotoal = Decimal(str(subtotoal))
 
     coupon = Coupon.objects.filter(code__iexact=coupon_code.strip()).first()
@@ -36,6 +36,8 @@ def validate_checkout_coupon(coupon_code, subtotoal):
         return None, Decimal("0.00"), "This coupon has reached its usage limit"
     if not is_minimum_order_amount_met(coupon,subtotoal):
         return None, Decimal("0.00"), ( f"Minimum product subtotal for this coupon is ₹{coupon.minimum_order_amount}.")
+    if CouponUsage.objects.filter(coupon=coupon, user=user).exists():
+        return None, Decimal("0.00"), "You have already used this coupon"
 
     discount = calculate_coupon_discount(coupon, subtotoal)
 
@@ -91,9 +93,8 @@ def create_pending_razorpay_order(user, address_id, delivery_method,coupon_id=No
     if coupon_id:
         coupon, discount_amount, coupon_error = validate_checkout_coupon(
             Coupon.objects.filter(id=coupon_id).values_list("code", flat=True).first()
-            or "",
-            subtotal,
-        )
+            or "",subtotal,user)
+
         if coupon_error:
             return None, coupon_error
 
@@ -335,7 +336,7 @@ def create_order(user, address_id, delivery_method, payment_method,coupon_id=Non
         if not coupon:
             return None, "Select coupon was not found"
 
-        coupon, discount_amount,coupon_error = validate_checkout_coupon(coupon.code,subtotal)
+        coupon, discount_amount,coupon_error = validate_checkout_coupon(coupon.code,subtotal,user)
 
         if coupon_error:
             return None, coupon_error

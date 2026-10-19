@@ -26,6 +26,11 @@ def user_coupons_page(request):
     if request.user.is_authenticated:
         user_coupons_ids = set(CouponUsage.objects.filter(user=request.user,coupon__in=valid_coupon,).values_list("coupon_id", flat=True))
         used_coupon_ids = user_coupons_ids
+        #hide coupons already used by this customer
+        valid_coupon = [
+            coupon for coupon in valid_coupon
+            if coupon.id not in user_coupons_ids
+        ]
 
     logger.info("Loaded %s valid coupons for user coupon page.",len(valid_coupon),)
 
