@@ -1,0 +1,1783 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VERDÉ | My Wallet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+    <style>
+      /* ==========================================================
+         VERDÉ WALLET PAGE — scoped styles
+         ========================================================== */
+      :root {
+        --w-primary:       #102518;
+        --w-primary-hover: #1b3825;
+        --w-accent:        #2e593d;
+        --w-bg:            #f6f7f5;
+        --w-card:          #ffffff;
+        --w-border:        #e2e8e3;
+        --w-text:          #141715;
+        --w-muted:         #5e6660;
+        --w-green-light:   #edf5f0;
+        --w-green-mid:     #2e593d;
+        --w-credit:        #1a7a44;
+        --w-debit:         #b91c1c;
+        --w-refund:        #0369a1;
+        --font-serif:      "Playfair Display", Georgia, serif;
+        --font-sans:       "Plus Jakarta Sans", -apple-system, sans-serif;
+        --tr:              0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      body.wallet-page {
+        background: var(--w-bg);
+        color: var(--w-text);
+        font-family: var(--font-sans);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Main layout ── */
+      .wl-main {
+        flex: 1;
+        width: min(100% - 48px, 1440px);
+        margin: 48px auto 72px;
+      }
+
+      /* ── Page heading ── */
+      .wl-page-heading {
+        margin: 0 auto 18px;
+        padding: 0 2px;
+      }
+      .wl-page-title {
+        font-family: var(--font-serif);
+        font-size: 34px;
+        font-weight: 600;
+        color: var(--w-primary);
+        margin: 0 0 4px;
+      }
+      .wl-page-subtitle {
+        font-size: 13px;
+        color: var(--w-muted);
+        margin: 0;
+      }
+
+      /* ── Card shell ── */
+      .wl-card {
+        background: var(--w-card);
+        border: 1px solid var(--w-border);
+        border-radius: 14px;
+        box-shadow: 0 2px 14px rgba(16, 37, 24, 0.05);
+        overflow: hidden;
+      }
+
+      /* ── Balance section ── */
+      .wl-balance-section {
+        padding: 28px 32px;
+      }
+      .wl-balance-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 32px;
+        align-items: start;
+      }
+      .wl-balance-left {}
+      .wl-balance-label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--w-muted);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin: 0 0 10px;
+      }
+      .wl-balance-label svg {
+        width: 14px;
+        height: 14px;
+        stroke: var(--w-muted);
+        flex-shrink: 0;
+      }
+      .wl-balance-amount {
+        font-family: var(--font-serif);
+        font-size: 42px;
+        font-weight: 700;
+        color: var(--w-primary);
+        line-height: 1;
+        margin: 0 0 24px;
+        letter-spacing: -0.01em;
+      }
+      .wl-inactive-badge {
+        display: inline-block;
+        margin: 0 0 16px;
+        padding: 4px 12px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 20px;
+        color: #b91c1c;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      /* Add Money button */
+      .wl-add-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 22px;
+        background: var(--w-primary);
+        color: #fff;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: background var(--tr), transform var(--tr);
+      }
+      .wl-add-btn:hover:not(:disabled) {
+        background: var(--w-primary-hover);
+        transform: translateY(-1px);
+      }
+      .wl-add-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .wl-add-btn svg { width: 14px; height: 14px; stroke-width: 2.5; }
+
+      /* Right: summary stats */
+      .wl-summary-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 180px;
+        padding-top: 2px;
+      }
+      .wl-stat {}
+      .wl-stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--w-muted);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin: 0 0 3px;
+      }
+      .wl-stat-value {
+        font-family: var(--font-serif);
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--w-primary);
+        margin: 0;
+      }
+      .wl-stat-value.credit { color: var(--w-credit); }
+      .wl-stat-value.debit  { color: var(--w-debit);  }
+
+      /* ── Add Money inline form ── */
+      .wl-topup-form-wrap {
+        display: none;
+        margin-top: 20px;
+        padding: 20px;
+        border: 1px solid var(--w-border);
+        border-radius: 10px;
+        background: var(--w-green-light);
+        max-width: 380px;
+      }
+      .wl-topup-form-wrap.visible { display: block; }
+      .wl-topup-form-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--w-primary);
+        margin: 0 0 14px;
+      }
+      .wl-topup-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .wl-topup-input-wrap { flex: 1; min-width: 120px; }
+      .wl-topup-input {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px;
+        border: 1.5px solid #c5d6ca;
+        border-radius: 5px;
+        font-size: 14px;
+        color: var(--w-text);
+        background: #fff;
+        font-family: var(--font-sans);
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.15s;
+      }
+      .wl-topup-input:focus { border-color: var(--w-accent); }
+      .wl-topup-input::placeholder { color: #a4aea7; font-size: 13px; }
+      .wl-topup-hint {
+        font-size: 10.5px;
+        color: var(--w-muted);
+        margin: 4px 0 0;
+      }
+      .wl-topup-submit {
+        height: 40px;
+        padding: 0 20px;
+        background: var(--w-primary);
+        color: #fff;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: background var(--tr);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .wl-topup-submit:hover:not(:disabled) { background: var(--w-primary-hover); }
+      .wl-topup-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+      .wl-topup-cancel {
+        height: 40px;
+        padding: 0 16px;
+        background: transparent;
+        color: var(--w-muted);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        border-radius: 5px;
+        border: 1.5px solid var(--w-border);
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: all var(--tr);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .wl-topup-cancel:hover { border-color: #b0c8b8; color: var(--w-text); }
+
+      /* ── Error/success banners ── */
+      .wl-banner {
+        display: none;
+        align-items: flex-start;
+        gap: 9px;
+        padding: 12px 16px;
+        border-radius: 7px;
+        font-size: 13px;
+        margin-top: 14px;
+        max-width: 460px;
+      }
+      .wl-banner.visible { display: flex; }
+      .wl-banner svg { flex-shrink: 0; width: 15px; height: 15px; margin-top: 1px; }
+      .wl-banner.error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+      }
+      .wl-banner.success {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+      }
+      .wl-banner.info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+      }
+
+      /* ── Divider ── */
+      .wl-divider {
+        border: none;
+        border-top: 1px solid var(--w-border);
+      }
+
+      /* ── Transaction History ── */
+      .wl-history-section {
+        padding: 24px 32px 32px;
+      }
+
+      .wl-history-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .wl-history-title {
+        font-family: var(--font-serif);
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--w-primary);
+        margin: 0;
+        flex-shrink: 0;
+      }
+
+      .wl-filters {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      /* Filter selects */
+      .wl-filter-select-wrap {
+        position: relative;
+      }
+      .wl-filter-select {
+        height: 34px;
+        padding: 0 28px 0 12px;
+        border: 1px solid var(--w-border);
+        border-radius: 6px;
+        font-size: 12.5px;
+        color: var(--w-text);
+        background: #fff;
+        font-family: var(--font-sans);
+        font-weight: 500;
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        transition: border-color 0.15s;
+        min-width: 110px;
+      }
+      .wl-filter-select:focus { border-color: var(--w-accent); }
+      .wl-filter-chevron {
+        position: absolute;
+        right: 9px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        stroke: var(--w-muted);
+        pointer-events: none;
+      }
+
+      /* Filter search */
+      .wl-filter-search-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .wl-filter-search-icon {
+        position: absolute;
+        left: 9px;
+        width: 13px;
+        height: 13px;
+        stroke: var(--w-muted);
+        pointer-events: none;
+      }
+      .wl-filter-search {
+        height: 34px;
+        width: 160px;
+        padding: 0 10px 0 30px;
+        border: 1px solid var(--w-border);
+        border-radius: 6px;
+        font-size: 12.5px;
+        color: var(--w-text);
+        background: #fff;
+        font-family: var(--font-sans);
+        outline: none;
+        transition: border-color 0.15s, width 0.2s;
+      }
+      .wl-filter-search:focus {
+        border-color: var(--w-accent);
+        width: 200px;
+      }
+      .wl-filter-search::placeholder { color: #a4aea7; }
+
+      /* Apply / Clear buttons */
+      .wl-filter-apply-btn {
+        height: 34px;
+        padding: 0 16px;
+        background: var(--w-primary);
+        color: #fff;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: background var(--tr);
+        white-space: nowrap;
+      }
+      .wl-filter-apply-btn:hover { background: var(--w-primary-hover); }
+
+      .wl-filter-clear-btn {
+        height: 34px;
+        padding: 0 14px;
+        background: transparent;
+        color: var(--w-muted);
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        border: 1px solid var(--w-border);
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: all var(--tr);
+        white-space: nowrap;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+      }
+      .wl-filter-clear-btn:hover { border-color: #b0c8b8; color: var(--w-text); }
+
+      /* Active filter indicator */
+      .wl-active-filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+        padding: 8px 12px;
+        background: var(--w-green-light);
+        border: 1px solid #c6ddc9;
+        border-radius: 7px;
+        font-size: 12px;
+        color: var(--w-green-mid);
+        font-weight: 500;
+      }
+      .wl-active-filter-bar svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+      /* ── Transaction table ── */
+      .wl-table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--w-border);
+        border-radius: 10px;
+      }
+      .wl-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .wl-table thead th {
+        padding: 11px 16px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--w-muted);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        background: #f8faf8;
+        border-bottom: 1px solid var(--w-border);
+        white-space: nowrap;
+      }
+      .wl-table thead th:last-child,
+      .wl-table tbody td:last-child { text-align: right; }
+
+      .wl-table tbody tr {
+        transition: background var(--tr);
+      }
+      .wl-table tbody tr:hover { background: #fafbfa; }
+      .wl-table tbody tr + tr { border-top: 1px solid #f0f3f0; }
+
+      .wl-table tbody td {
+        padding: 14px 16px;
+        vertical-align: middle;
+        color: var(--w-text);
+        white-space: nowrap;
+      }
+
+      /* Type badge */
+      .wl-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+      .wl-type-badge svg { width: 11px; height: 11px; flex-shrink: 0; }
+      .wl-type-badge.credit  { background: #dcfce7; color: #166534; }
+      .wl-type-badge.debit   { background: #fee2e2; color: #991b1b; }
+      .wl-type-badge.refund  { background: #dbeafe; color: #1e40af; }
+
+      /* Transaction ID cell */
+      .wl-txn-id {
+        font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+        font-size: 11.5px;
+        color: var(--w-muted);
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Amount */
+      .wl-amount-cell {
+        font-weight: 700;
+        font-size: 13.5px;
+      }
+      .wl-amount-cell.credit { color: var(--w-credit); }
+      .wl-amount-cell.debit  { color: var(--w-debit);  }
+      .wl-amount-cell.unknown { color: var(--w-muted); }
+
+      /* Balance after */
+      .wl-bal-cell {
+        color: var(--w-text);
+        font-weight: 600;
+        font-size: 13px;
+        text-align: right;
+      }
+
+      /* Date cell */
+      .wl-date-cell {
+        color: var(--w-muted);
+        font-size: 12.5px;
+      }
+
+      /* ── Empty state ── */
+      .wl-empty {
+        text-align: center;
+        padding: 52px 20px;
+      }
+      .wl-empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        background: var(--w-green-light);
+        color: var(--w-green-mid);
+      }
+      .wl-empty-icon svg { width: 24px; height: 24px; stroke-width: 1.6; }
+      .wl-empty-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--w-primary);
+        margin: 0 0 6px;
+      }
+      .wl-empty-subtitle {
+        font-size: 13px;
+        color: var(--w-muted);
+        margin: 0;
+      }
+
+      /* ── Load More ── */
+      .wl-load-more-wrap {
+        text-align: center;
+        padding: 20px 0 0;
+      }
+      .wl-load-more-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 24px;
+        background: transparent;
+        color: var(--w-accent);
+        font-size: 12.5px;
+        font-weight: 600;
+        border-radius: 6px;
+        border: 1.5px solid #c5d6ca;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: all var(--tr);
+      }
+      .wl-load-more-btn:hover {
+        border-color: var(--w-primary);
+        color: var(--w-primary);
+        background: var(--w-green-light);
+      }
+      .wl-load-more-btn svg { width: 13px; height: 13px; }
+
+      /* ── Payment success modal ── */
+      #wl-success-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(10, 23, 15, 0.52);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease;
+      }
+      #wl-success-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .wl-success-dialog {
+        width: min(100%, 400px);
+        border: 1px solid #cfd5d0;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+        padding: 32px 28px 28px;
+        transform: translateY(-12px) scale(0.98);
+        transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+        text-align: center;
+      }
+      #wl-success-backdrop.open .wl-success-dialog {
+        transform: translateY(0) scale(1);
+      }
+      .wl-success-icon {
+        display: grid;
+        place-items: center;
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        background: #dcfce7;
+        color: #166534;
+      }
+      .wl-success-icon svg { width: 26px; height: 26px; stroke-width: 2; }
+      .wl-success-title {
+        font-family: var(--font-serif);
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--w-primary);
+        margin: 0 0 6px;
+      }
+      .wl-success-subtitle {
+        font-size: 13px;
+        color: var(--w-muted);
+        margin: 0 0 24px;
+        line-height: 1.5;
+      }
+      .wl-success-amount-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border: 1px solid var(--w-border);
+        border-radius: 8px;
+        background: #f8faf8;
+        margin: 0 0 20px;
+        font-size: 13.5px;
+      }
+      .wl-success-amount-label { color: var(--w-muted); font-weight: 500; }
+      .wl-success-amount-val { font-weight: 700; color: var(--w-credit); font-size: 16px; }
+      .wl-success-ok {
+        width: 100%;
+        height: 44px;
+        border: none;
+        border-radius: 6px;
+        background: var(--w-primary);
+        color: #fff;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background var(--tr);
+      }
+      .wl-success-ok:hover { background: var(--w-primary-hover); }
+
+      /* ── Payment failure modal ── */
+      #wl-failure-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(10, 23, 15, 0.52);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease;
+      }
+      #wl-failure-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .wl-failure-dialog {
+        width: min(100%, 400px);
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+        padding: 32px 28px 28px;
+        transform: translateY(-12px) scale(0.98);
+        transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+        text-align: center;
+      }
+      #wl-failure-backdrop.open .wl-failure-dialog {
+        transform: translateY(0) scale(1);
+      }
+      .wl-failure-icon {
+        display: grid;
+        place-items: center;
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .wl-failure-icon svg { width: 26px; height: 26px; stroke-width: 2; }
+      .wl-failure-title {
+        font-family: var(--font-serif);
+        font-size: 22px;
+        font-weight: 600;
+        color: #991b1b;
+        margin: 0 0 6px;
+      }
+      .wl-failure-subtitle {
+        font-size: 13px;
+        color: var(--w-muted);
+        margin: 0 0 24px;
+        line-height: 1.5;
+      }
+      .wl-failure-ok {
+        width: 100%;
+        height: 44px;
+        border: none;
+        border-radius: 6px;
+        background: var(--w-primary);
+        color: #fff;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background var(--tr);
+      }
+      .wl-failure-ok:hover { background: var(--w-primary-hover); }
+
+      /* ── Loading overlay ── */
+      .wl-spinner-wrap {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--w-muted);
+        margin-top: 12px;
+      }
+      .wl-spinner-wrap.visible { display: flex; }
+      @keyframes wl-spin { to { transform: rotate(360deg); } }
+      .wl-spinner {
+        width: 16px; height: 16px;
+        border: 2px solid #d0dbd3;
+        border-top-color: var(--w-accent);
+        border-radius: 50%;
+        animation: wl-spin 0.75s linear infinite;
+        flex-shrink: 0;
+      }
+
+      /* ── Quick amounts ── */
+      .wl-quick-amounts {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .wl-quick-amt {
+        height: 28px;
+        padding: 0 12px;
+        border: 1px solid #c5d6ca;
+        border-radius: 14px;
+        background: #fff;
+        color: var(--w-green-mid);
+        font-size: 12px;
+        font-weight: 600;
+        font-family: var(--font-sans);
+        cursor: pointer;
+        transition: all var(--tr);
+      }
+      .wl-quick-amt:hover {
+        background: var(--w-primary);
+        color: #fff;
+        border-color: var(--w-primary);
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 900px) {
+        .wl-balance-grid {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        .wl-summary-stats {
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 20px 32px;
+        }
+        .wl-history-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .wl-filters {
+          width: 100%;
+        }
+        .wl-filter-search { width: 100%; }
+        .wl-filter-search:focus { width: 100%; }
+      }
+
+      @media (max-width: 640px) {
+        .wl-main { width: min(100% - 32px, 1440px); margin: 32px auto 56px; }
+        .wl-balance-section { padding: 20px 20px; }
+        .wl-history-section { padding: 18px 16px 24px; }
+        .wl-balance-amount { font-size: 32px; }
+        .wl-page-title { font-size: 26px; }
+        .wl-table-wrap { margin: 0 -4px; }
+      }
+
+      @media (max-width: 480px) {
+        .wl-filters { gap: 6px; }
+        .wl-filter-select { min-width: 90px; font-size: 12px; }
+        .wl-txn-id { max-width: 100px; }
+      }
+
+      /* ── Profile tabs (shared with profile page) ── */
+      .profile-tabs {
+        width: 100%;
+        margin: 0 auto 18px;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid #dfe5df;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .profile-tab {
+        min-height: 62px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid #dfe5df;
+        border-radius: 10px;
+        background: #eceae7;
+        color: #2b312d;
+        font-size: 11px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        transition: border-color var(--tr), box-shadow var(--tr), color var(--tr), transform var(--tr), background-color var(--tr);
+      }
+      .profile-tab:hover {
+        border-color: #c6d2c8;
+        color: #1d3127;
+        background: #f2f6f2;
+        transform: translateY(-1px);
+      }
+      .profile-tab svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 1.7;
+      }
+      .profile-tab.active {
+        color: #1d2c24;
+        border-color: #dfe6df;
+        background: #dfeee6;
+        box-shadow: inset 0 0 0 1px rgba(25, 40, 30, 0.04);
+      }
+      .profile-tab.profile-logout {
+        border: 1px solid #dfe5df;
+        background: #eceae7;
+        font-family: var(--font-sans);
+        cursor: pointer;
+      }
+      @media (max-width: 900px) {
+        .profile-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      }
+      @media (max-width: 560px) {
+        .profile-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+      @media (max-width: 380px) {
+        .profile-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+    </style>
+  </head>
+
+  <body class="wallet-page">
+
+    <!-- ===== SITE HEADER ===== -->
+    <header class="site-header" role="banner">
+      <div class="header-container">
+        <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2v20M12 7c2.5-2.5 6-2 7-1s1.5 4.5-1 7-6 2-6 2M12 12c-2.5-2.5-6-2-7-1s-1.5 4.5 1 7 6 2 6 2"/>
+          </svg>
+          <span class="logo-text">VERDÉ</span>
+        </a>
+
+        <nav class="main-nav" aria-label="Primary Navigation">
+          <ul class="nav-list">
+            <li><a href="/" class="nav-link">Home</a></li>
+            <li><a href="{% url 'product_list' %}" class="nav-link">Shop</a></li>
+            <li><a href="/#offers" class="nav-link">Offers</a></li>
+            <li><a href="/#about" class="nav-link">About</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <a href="{% url 'product_list' %}" class="action-btn" aria-label="Search" title="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </a>
+          <a href="/wishlist/" class="action-btn" aria-label="Wishlist" title="Wishlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </a>
+          <a href="{% url 'cart:cart_page' %}"
+             {% if user.is_authenticated %}data-cart-api="{% url 'cart:view_cart' %}"{% endif %}
+             class="action-btn" aria-label="Cart" title="Cart">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span class="badge-count js-cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+          </a>
+          {% if user.is_authenticated %}
+          <a href="{% url 'profile' %}" class="action-btn profile-avatar" aria-label="Profile" title="Profile">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+            {% else %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 20a8 8 0 0 1 16 0"></path>
+            </svg>
+            {% endif %}
+          </a>
+          {% else %}
+          <a href="{% url 'login_page' %}" class="btn-signin">Sign In</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="wl-main">
+
+      <!-- Profile / Account tabs -->
+      <nav class="profile-tabs" aria-label="Account navigation">
+        <a class="profile-tab" href="{% url 'profile' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <circle cx="12" cy="8" r="3" /><path d="M5 21a7 7 0 0 1 14 0" />
+          </svg>
+          Profile
+        </a>
+        <a class="profile-tab" href="{% url 'orders:order_list' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h4" />
+          </svg>
+          Orders
+        </a>
+        <a class="profile-tab" href="{% url 'user_coupons_page' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+            <rect x="9" y="3" width="6" height="4" rx="1" /><path d="M9 12h6M9 16h4" />
+          </svg>
+          Coupons
+        </a>
+        <a class="profile-tab active" href="{% url 'wallet:my_wallet' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M15 13h3" />
+          </svg>
+          Wallet
+        </a>
+        <a class="profile-tab" href="#referrals">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2.5" />
+            <path d="M3 20a6 6 0 0 1 12 0M15 15a5 5 0 0 1 6 5" />
+          </svg>
+          Referrals
+        </a>
+        <a class="profile-tab" href="/profile/addresses/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" />
+            <circle cx="12" cy="9" r="2.5" />
+          </svg>
+          Addresses
+        </a>
+        <button class="profile-tab profile-logout" type="button" id="wlLogoutBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M10 17l5-5-5-5M15 12H3M21 3v18" />
+          </svg>
+          Logout
+        </button>
+      </nav>
+
+      <!-- Page heading -->
+      <div class="wl-page-heading">
+        <h1 class="wl-page-title">My Wallet</h1>
+        <p class="wl-page-subtitle">Manage your VERDÉ wallet balance, credits, and transaction history</p>
+      </div>
+
+      <!-- ===== BALANCE CARD ===== -->
+      <div class="wl-card" style="margin-bottom: 20px;">
+        <div class="wl-balance-section">
+          <div class="wl-balance-grid">
+
+            <!-- Left: balance + add money -->
+            <div class="wl-balance-left">
+              <p class="wl-balance-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M15 13h3" />
+                </svg>
+                Available Balance
+              </p>
+              <div class="wl-balance-amount" id="wlBalanceDisplay">
+                ₹{{ wallet.balance|default:"0.00" }}
+              </div>
+
+              {% if wallet and not wallet.is_active %}
+              <span class="wl-inactive-badge">Wallet Inactive</span>
+              {% endif %}
+
+              <!-- Add Money button (hidden when wallet is inactive) -->
+              {% if not wallet or wallet.is_active %}
+              <button class="wl-add-btn" id="wlAddMoneyBtn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add Money
+              </button>
+              {% endif %}
+
+              <!-- Top-up inline form -->
+              <div class="wl-topup-form-wrap" id="wlTopupFormWrap" aria-live="polite">
+                <p class="wl-topup-form-title">Add Money to Wallet</p>
+                <div class="wl-topup-row">
+                  <div class="wl-topup-input-wrap">
+                    <input
+                      type="number"
+                      id="wlTopupAmount"
+                      class="wl-topup-input"
+                      placeholder="Enter amount (₹)"
+                      min="100"
+                      max="10000"
+                      step="1"
+                      autocomplete="off"
+                    />
+                    <p class="wl-topup-hint">Minimum ₹100 &bull; Maximum ₹10,000</p>
+                  </div>
+                  <button class="wl-topup-submit" id="wlTopupSubmitBtn" type="button">Pay</button>
+                  <button class="wl-topup-cancel" id="wlTopupCancelBtn" type="button">Cancel</button>
+                </div>
+
+                <!-- Quick amounts -->
+                <div class="wl-quick-amounts" aria-label="Quick amount options">
+                  <button class="wl-quick-amt" type="button" data-amount="100">+₹100</button>
+                  <button class="wl-quick-amt" type="button" data-amount="200">+₹200</button>
+                  <button class="wl-quick-amt" type="button" data-amount="500">+₹500</button>
+                  <button class="wl-quick-amt" type="button" data-amount="1000">+₹1,000</button>
+                  <button class="wl-quick-amt" type="button" data-amount="2000">+₹2,000</button>
+                </div>
+
+                <!-- Spinner -->
+                <div class="wl-spinner-wrap" id="wlTopupSpinner" role="status" aria-label="Processing payment">
+                  <span class="wl-spinner"></span>
+                  <span id="wlTopupSpinnerText">Initiating payment…</span>
+                </div>
+              </div>
+
+              <!-- Inline error/success banners -->
+              <div class="wl-banner error" id="wlErrorBanner" role="alert" aria-live="assertive">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span id="wlErrorMsg"></span>
+              </div>
+              <div class="wl-banner success" id="wlSuccessBanner" role="status" aria-live="polite">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span id="wlSuccessMsg"></span>
+              </div>
+            </div>
+
+            <!-- Right: summary stats -->
+            <div class="wl-summary-stats">
+              <div class="wl-stat">
+                <p class="wl-stat-label">Total Added</p>
+                <p class="wl-stat-value credit">₹{{ total_added|default:"0.00" }}</p>
+              </div>
+              <div class="wl-stat">
+                <p class="wl-stat-label">Total Spent</p>
+                <p class="wl-stat-value debit">₹{{ total_spent|default:"0.00" }}</p>
+              </div>
+              <div class="wl-stat">
+                <p class="wl-stat-label">Current Balance</p>
+                <p class="wl-stat-value">₹{{ wallet.balance|default:"0.00" }}</p>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /wl-balance-section -->
+      </div><!-- /balance card -->
+
+      <!-- ===== TRANSACTION HISTORY CARD ===== -->
+      <div class="wl-card">
+        <div class="wl-history-section">
+
+          <!-- Header: title + filters -->
+          <div class="wl-history-header">
+            <h2 class="wl-history-title">Transaction History</h2>
+
+            <form method="get" id="wlFilterForm" class="wl-filters" aria-label="Filter transactions">
+              <!-- Type filter -->
+              <div class="wl-filter-select-wrap">
+                <select name="type" id="wlTypeFilter" class="wl-filter-select" aria-label="Transaction type">
+                  <option value="">All Types</option>
+                  <option value="CREDIT" {% if transaction_type == "CREDIT" %}selected{% endif %}>Credits</option>
+                  <option value="DEBIT"  {% if transaction_type == "DEBIT"  %}selected{% endif %}>Debits</option>
+                </select>
+                <svg class="wl-filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+
+              <!-- Date range filter -->
+              <div class="wl-filter-select-wrap">
+                <select name="date_range" id="wlDateFilter" class="wl-filter-select" aria-label="Date range">
+                  <option value="">All Time</option>
+                  <!-- Keep these values aligned with the supported date-range options. -->
+                  <option value="7"  {% if date_range == "7"  %}selected{% endif %}>Last 7 Days</option>
+                  <option value="30" {% if date_range == "30" %}selected{% endif %}>Last 30 Days</option>
+                  <option value="90" {% if date_range == "90" %}selected{% endif %}>Last 90 Days</option>
+                </select>
+                <svg class="wl-filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+
+              <!-- Search -->
+              <div class="wl-filter-search-wrap">
+                <svg class="wl-filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  id="wlSearch"
+                  name="search"
+                  class="wl-filter-search"
+                  value="{{ search_id }}"
+                  placeholder="Search ID…"
+                  aria-label="Search by transaction ID or amount"
+                  autocomplete="off"
+                />
+              </div>
+
+              <!-- Submit -->
+              <button type="submit" class="wl-filter-apply-btn">Apply</button>
+
+              <!-- Clear (only if filters are active) -->
+              {% if transaction_type or date_range or search_id %}
+              <a href="{% url 'wallet:my_wallet' %}" class="wl-filter-clear-btn" aria-label="Clear all filters">Clear</a>
+              {% endif %}
+            </form>
+          </div>
+
+          <!-- Active filter indicator -->
+          {% if transaction_type or date_range or search_id %}
+          <div class="wl-active-filter-bar" aria-live="polite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            Showing filtered results —
+            {% if transaction_type %}Type: <strong>{{ transaction_type|capfirst }}</strong>{% endif %}
+            {% if date_range %}
+              {% if transaction_type %} &bull; {% endif %}
+              Last <strong>{{ date_range }} days</strong>
+            {% endif %}
+            {% if search_id %}
+              {% if transaction_type or date_range %} &bull; {% endif %}
+              Search: "<strong>{{ search_id }}</strong>"
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <!-- Transactions table -->
+          {% if transactions %}
+          <div class="wl-table-wrap">
+            <table class="wl-table" aria-label="Transaction history">
+              <thead>
+                <tr>
+                  <th scope="col">Type</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Transaction ID</th>
+                  <th scope="col" style="text-align:right">Amount</th>
+                  <th scope="col" style="text-align:right">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in transactions %}
+                <tr>
+                  <!-- Type badge -->
+                  <td>
+                    {% if item.transaction_type == "CREDIT" %}
+                      <span class="wl-type-badge credit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
+                        </svg>
+                        Top-Up
+                      </span>
+                    {% elif item.transaction_type == "DEBIT" %}
+                      <span class="wl-type-badge debit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" />
+                        </svg>
+                        Purchase
+                      </span>
+                    {% else %}
+                      <span class="wl-type-badge">Unknown</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Date -->
+                  <td class="wl-date-cell">
+                    {{ item.created_at|date:"M d, Y" }}
+                  </td>
+
+                  <!-- Transaction ID -->
+                  <td>
+                    <span class="wl-txn-id" title="{{ item.transaction_id }}">
+                      {{ item.transaction_id }}
+                    </span>
+                  </td>
+
+                  <!-- Amount -->
+                  <td style="text-align:right">
+                    <span class="wl-amount-cell {% if item.transaction_type == 'CREDIT' %}credit{% elif item.transaction_type == 'DEBIT' %}debit{% else %}unknown{% endif %}">
+                      {% if item.transaction_type == "CREDIT" %}+{% elif item.transaction_type == "DEBIT" %}-{% endif %}₹{{ item.amount }}
+                    </span>
+                  </td>
+
+                  <!-- Balance after -->
+                  <td>
+                    <span class="wl-bal-cell">₹{{ item.balance_after }}</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Load More (pagination placeholder — backend returns all; client-side show/hide) -->
+          <div class="wl-load-more-wrap" id="wlLoadMoreWrap" style="display:none;">
+            <button class="wl-load-more-btn" id="wlLoadMoreBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+              Load More
+            </button>
+          </div>
+
+          {% else %}
+          <!-- Empty state -->
+          <div class="wl-empty" role="status">
+            <div class="wl-empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M15 13h3" />
+              </svg>
+            </div>
+            {% if transaction_type or date_range or search_id %}
+            <p class="wl-empty-title">No matching transactions</p>
+            <p class="wl-empty-subtitle">Try adjusting or clearing your filters to see more results.</p>
+            {% else %}
+            <p class="wl-empty-title">No transactions yet</p>
+            <p class="wl-empty-subtitle">Add money to your wallet to get started. Your transaction history will appear here.</p>
+            {% endif %}
+          </div>
+          {% endif %}
+
+        </div><!-- /wl-history-section -->
+      </div><!-- /history card -->
+
+    </main><!-- /wl-main -->
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <div class="footer-logo">VERDÉ</div>
+          <p class="footer-tagline">
+            &copy; 2024 VERDÉ. Curating botanical elegance for<br />your domestic spaces.
+          </p>
+        </div>
+        <div class="footer-nav-groups">
+          <div class="footer-group">
+            <strong class="footer-heading">Shop</strong>
+            <a class="footer-link" href="#">Indoor</a>
+            <a class="footer-link" href="#">Outdoor</a>
+            <a class="footer-link" href="#">Accessories</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Help</strong>
+            <a class="footer-link" href="#">Contact</a>
+            <a class="footer-link" href="#">FAQ</a>
+            <a class="footer-link" href="#">Shipping</a>
+          </div>
+          <div class="footer-group">
+            <strong class="footer-heading">Follow</strong>
+            <a class="footer-link" href="https://instagram.com">Instagram</a>
+            <a class="footer-link" href="https://pinterest.com">Pinterest</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ===== SUCCESS MODAL ===== -->
+    <div id="wl-success-backdrop" role="dialog" aria-modal="true"
+         aria-labelledby="wlSuccessTitle" aria-hidden="true">
+      <div class="wl-success-dialog">
+        <div class="wl-success-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <h2 class="wl-success-title" id="wlSuccessTitle">Money Added!</h2>
+        <p class="wl-success-subtitle">Your wallet has been topped up successfully.</p>
+        <div class="wl-success-amount-row">
+          <span class="wl-success-amount-label">Amount Added</span>
+          <span class="wl-success-amount-val" id="wlSuccessAmountVal"></span>
+        </div>
+        <button class="wl-success-ok" id="wlSuccessOkBtn" type="button">Done</button>
+      </div>
+    </div>
+
+    <!-- ===== FAILURE MODAL ===== -->
+    <div id="wl-failure-backdrop" role="dialog" aria-modal="true"
+         aria-labelledby="wlFailureTitle" aria-hidden="true">
+      <div class="wl-failure-dialog">
+        <div class="wl-failure-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        </div>
+        <h2 class="wl-failure-title" id="wlFailureTitle">Payment Failed</h2>
+        <p class="wl-failure-subtitle" id="wlFailureMsg">The payment could not be completed. Please try again.</p>
+        <button class="wl-failure-ok" id="wlFailureOkBtn" type="button">Try Again</button>
+      </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <!-- Razorpay SDK (loaded only on this page) -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Cart badge updater -->
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
+
+    <script>
+    (function () {
+      'use strict';
+
+      /* ── CSRF helper ── */
+      function getCookie(name) {
+        var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        return v ? v[2] : null;
+      }
+
+      /* ── DOM references ── */
+      var addMoneyBtn      = document.getElementById('wlAddMoneyBtn');
+      var topupFormWrap    = document.getElementById('wlTopupFormWrap');
+      var topupAmountInput = document.getElementById('wlTopupAmount');
+      var topupSubmitBtn   = document.getElementById('wlTopupSubmitBtn');
+      var topupCancelBtn   = document.getElementById('wlTopupCancelBtn');
+      var topupSpinner     = document.getElementById('wlTopupSpinner');
+      var topupSpinnerText = document.getElementById('wlTopupSpinnerText');
+      var errorBanner      = document.getElementById('wlErrorBanner');
+      var errorMsg         = document.getElementById('wlErrorMsg');
+      var successBanner    = document.getElementById('wlSuccessBanner');
+      var successMsg       = document.getElementById('wlSuccessMsg');
+      var balanceDisplay   = document.getElementById('wlBalanceDisplay');
+
+      /* Success/failure modals */
+      var successBackdrop  = document.getElementById('wl-success-backdrop');
+      var successAmountVal = document.getElementById('wlSuccessAmountVal');
+      var successOkBtn     = document.getElementById('wlSuccessOkBtn');
+      var failureBackdrop  = document.getElementById('wl-failure-backdrop');
+      var failureMsgEl     = document.getElementById('wlFailureMsg');
+      var failureOkBtn     = document.getElementById('wlFailureOkBtn');
+
+      /* Load more (client-side) */
+      var TABLE_INITIAL_ROWS = 10;
+      var allRows            = document.querySelectorAll('.wl-table tbody tr');
+      var loadMoreWrap       = document.getElementById('wlLoadMoreWrap');
+      var loadMoreBtn        = document.getElementById('wlLoadMoreBtn');
+      var visibleRows        = 0;
+      var topupInProgress = false;
+      var verificationPending = false;
+      var retryVerification = null;
+
+      /* ── Utility: show/hide error ── */
+      function showError(msg) {
+        errorMsg.textContent = msg;
+        errorBanner.classList.add('visible');
+        successBanner.classList.remove('visible');
+      }
+      function hideError() {
+        errorBanner.classList.remove('visible');
+        errorMsg.textContent = '';
+      }
+      function showSuccess(msg) {
+        successMsg.textContent = msg;
+        successBanner.classList.add('visible');
+        errorBanner.classList.remove('visible');
+      }
+
+      /* ── Toggle top-up form ── */
+      if (addMoneyBtn) {
+        addMoneyBtn.addEventListener('click', function () {
+          topupFormWrap.classList.add('visible');
+          addMoneyBtn.style.display = 'none';
+          hideError();
+          successBanner.classList.remove('visible');
+          setTimeout(function () { topupAmountInput.focus(); }, 80);
+        });
+      }
+
+      if (topupCancelBtn) {
+        topupCancelBtn.addEventListener('click', function () {
+          // Do not reset the form while an order or its payment status is unresolved.
+          if (topupInProgress || verificationPending) return;
+          topupFormWrap.classList.remove('visible');
+          if (addMoneyBtn) addMoneyBtn.style.display = '';
+          topupAmountInput.value = '';
+          hideError();
+        });
+      }
+
+      /* ── Quick amount buttons ── */
+      document.querySelectorAll('.wl-quick-amt').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          topupAmountInput.value = this.dataset.amount;
+          topupAmountInput.focus();
+        });
+      });
+
+      /* ── Form-level validation ── */
+      function validateAmount(raw) {
+        var n = parseFloat(raw);
+        if (!raw || isNaN(n)) return 'Please enter a valid amount.';
+        if (n < 100)   return 'Minimum top-up amount is ₹100.';
+        if (n > 10000) return 'Maximum top-up amount is ₹10,000.';
+        var parts = raw.split('.');
+        if (parts[1] && parts[1].length > 2) return 'Amount can have at most two decimal places.';
+        return null;
+      }
+
+      /* ── Show/hide spinner ── */
+      function setLoading(active, text) {
+        if (active) {
+          topupSpinner.classList.add('visible');
+          topupSpinnerText.textContent = text || 'Processing…';
+          if (topupSubmitBtn)   topupSubmitBtn.disabled = true;
+          if (topupCancelBtn)   topupCancelBtn.disabled = true;
+          if (addMoneyBtn)      addMoneyBtn.disabled    = true;
+        } else {
+          topupSpinner.classList.remove('visible');
+          if (topupSubmitBtn)   topupSubmitBtn.disabled = topupInProgress || verificationPending;
+          if (topupCancelBtn)   topupCancelBtn.disabled = topupInProgress || verificationPending;
+          if (addMoneyBtn)      addMoneyBtn.disabled    = false;
+        }
+      }
+
+      /* ── Success modal ── */
+      function openSuccessModal(amountRupees) {
+        successAmountVal.textContent = '+₹' + parseFloat(amountRupees).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        successBackdrop.classList.add('open');
+        successBackdrop.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { successOkBtn.focus(); }, 100);
+      }
+      function closeSuccessModal() {
+        successBackdrop.classList.remove('open');
+        successBackdrop.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+      successOkBtn.addEventListener('click', function () {
+        closeSuccessModal();
+        window.location.reload();
+      });
+      successBackdrop.addEventListener('click', function (e) {
+        if (e.target === successBackdrop) { closeSuccessModal(); window.location.reload(); }
+      });
+
+      /* ── Failure modal ── */
+      function openFailureModal(msg) {
+        failureMsgEl.textContent = msg || 'The payment could not be completed. Please try again.';
+        failureBackdrop.classList.add('open');
+        failureBackdrop.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { failureOkBtn.focus(); }, 100);
+      }
+      function closeFailureModal() {
+        failureBackdrop.classList.remove('open');
+        failureBackdrop.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+      failureOkBtn.addEventListener('click', function () {
+        if (retryVerification) {
+          var retry = retryVerification;
+          closeFailureModal();
+          retry();
+          return;
+        }
+        closeFailureModal();
+        /* Re-enable form so user can retry */
+        setLoading(false);
+        topupFormWrap.classList.add('visible');
+        if (addMoneyBtn) addMoneyBtn.style.display = 'none';
+      });
+      failureBackdrop.addEventListener('click', function (e) {
+        if (e.target === failureBackdrop && !verificationPending) closeFailureModal();
+      });
+
+      /* Dismiss modals on Escape */
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          if (successBackdrop.classList.contains('open')) { closeSuccessModal(); window.location.reload(); }
+          if (failureBackdrop.classList.contains('open') && !verificationPending) closeFailureModal();
+        }
+      });
+
+      /* ── Razorpay top-up flow ── */
+      async function handleTopUp() {
+        if (topupInProgress || verificationPending) return;
+        hideError();
+        var rawAmount = topupAmountInput.value.trim();
+        var validationError = validateAmount(rawAmount);
+        if (validationError) { showError(validationError); return; }
+
+        if (typeof Razorpay === 'undefined') {
+          showError('Razorpay payment gateway failed to load. Please check your internet connection and try again.');
+          return;
+        }
+
+        // Lock the flow until this order is dismissed or its verification is resolved.
+        topupInProgress = true;
+        setLoading(true, 'Creating payment order…');
+
+        /* Step 1: create Razorpay order via create_wallet_topup */
+        var formData = new FormData();
+        formData.append('amount', rawAmount);
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+        var createData;
+        try {
+          var createRes = await fetch('{% url "wallet:create_wallet_topup" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            body: formData,
+          });
+          createData = await createRes.json();
+          if (!createRes.ok) {
+            topupInProgress = false;
+            setLoading(false);
+            showError(createData.error || 'Unable to initiate payment. Please try again.');
+            return;
+          }
+        } catch (err) {
+          topupInProgress = false;
+          setLoading(false);
+          showError('Network error while creating order. Please check your connection and try again.');
+          return;
+        }
+
+        /* Step 2: open Razorpay modal */
+        var topupId      = createData.topup_id;
+        var amountPaise  = createData.amount;
+        var amountRupees = amountPaise / 100;
+
+        var options = {
+          key:      createData.key_id,
+          amount:   amountPaise,
+          currency: createData.currency || 'INR',
+          name:     'VERDÉ',
+          description: 'Wallet Top-Up',
+          order_id: createData.razorpay_order_id,
+          prefill:  {},
+          theme:    { color: '#102518' },
+
+          /* Step 3: verify on successful payment — calls verify_wallet_topup */
+          handler: async function (response) {
+            setLoading(true, 'Verifying payment…');
+
+            var verifyFormData = new FormData();
+            verifyFormData.append('razorpay_order_id',  response.razorpay_order_id);
+            verifyFormData.append('razorpay_payment_id', response.razorpay_payment_id);
+            verifyFormData.append('razorpay_signature',  response.razorpay_signature);
+            verifyFormData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+            // Retry uses the same Razorpay callback fields and never creates another order.
+            retryVerification = function () {
+              verificationPending = true;
+              verifyWalletTopUp(verifyFormData, amountRupees);
+            };
+            verificationPending = true;
+            await verifyWalletTopUp(verifyFormData, amountRupees);
+          },
+
+          modal: {
+            ondismiss: function () {
+              topupInProgress = false;
+              setLoading(false);
+              /* Payment cancelled by user — don't show failure modal, just re-enable form */
+              showError('Payment was cancelled. You can try again.');
+            },
+          },
+        };
+
+        try {
+          var rzp = new Razorpay(options);
+          rzp.on('payment.failed', function (response) {
+            topupInProgress = false;
+            setLoading(false);
+            var reason = (response.error && response.error.description) ? response.error.description : 'Payment failed. Please try again.';
+            openFailureModal(reason);
+          });
+          rzp.open();
+        } catch (err) {
+          topupInProgress = false;
+          setLoading(false);
+          showError('Unable to open the payment window. Please try again.');
+        }
+      }
+
+      async function verifyWalletTopUp(formData, amountRupees) {
+        setLoading(true, 'Verifying payment…');
+        try {
+          var verifyRes = await fetch('{% url "wallet:verify_wallet_topup" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            body: formData,
+          });
+          var verifyData;
+          try {
+            verifyData = await verifyRes.json();
+          } catch (err) {
+            throw new Error('The verification response could not be read.');
+          }
+
+          if (verifyRes.ok && verifyData && (
+            verifyData.message === 'Wallet topped up successfully.' ||
+            verifyData.message === 'This top-up has already been credited.'
+          )) {
+            verificationPending = false;
+            topupInProgress = false;
+            retryVerification = null;
+            setLoading(false);
+            topupFormWrap.classList.remove('visible');
+            if (addMoneyBtn) addMoneyBtn.style.display = '';
+            openSuccessModal(amountRupees);
+            return;
+          }
+
+          if (!verifyRes.ok) {
+            verificationPending = true;
+            topupInProgress = false;
+            setLoading(false);
+            failureOkBtn.textContent = 'Retry Verification';
+            var responseError = verifyData && verifyData.error ? verifyData.error + ' ' : '';
+            openFailureModal(responseError + 'We could not confirm whether the payment was charged. Retry verification with the same payment details; do not start another top-up until its status is resolved.');
+            return;
+          }
+
+          // Any unrecognized success-shaped response remains pending until confirmed.
+          verificationPending = true;
+          topupInProgress = false;
+          setLoading(false);
+          failureOkBtn.textContent = 'Retry Verification';
+          openFailureModal('We could not confirm the payment status. Retry verification with the same payment details before starting another top-up.');
+        } catch (err) {
+          verificationPending = true;
+          topupInProgress = false;
+          setLoading(false);
+          failureOkBtn.textContent = 'Retry Verification';
+          openFailureModal('We could not confirm the payment status. Retry verification with the same payment details before starting another top-up.');
+        }
+      }
+
+      if (topupSubmitBtn) {
+        topupSubmitBtn.addEventListener('click', handleTopUp);
+      }
+
+      /* Also allow Enter key in the amount input */
+      if (topupAmountInput) {
+        topupAmountInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); handleTopUp(); }
+        });
+        /* Clear error on input */
+        topupAmountInput.addEventListener('input', function () { hideError(); });
+      }
+
+      /* ── Client-side "Load More" for long transaction lists ── */
+      if (allRows.length > TABLE_INITIAL_ROWS) {
+        /* Hide rows beyond initial */
+        allRows.forEach(function (row, idx) {
+          if (idx >= TABLE_INITIAL_ROWS) row.style.display = 'none';
+        });
+        visibleRows = TABLE_INITIAL_ROWS;
+        loadMoreWrap.style.display = 'block';
+      }
+
+      if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function () {
+          var batchSize = 10;
+          var shown = 0;
+          allRows.forEach(function (row) {
+            if (row.style.display === 'none' && shown < batchSize) {
+              row.style.display = '';
+              shown++;
+              visibleRows++;
+            }
+          });
+          if (visibleRows >= allRows.length) {
+            loadMoreWrap.style.display = 'none';
+          }
+        });
+      }
+
+      /* ── Logout ── */
+      var logoutBtn = document.getElementById('wlLogoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async function () {
+          try {
+            var res = await fetch('/logout/', { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
+            if (res.ok) {
+              window.location.href = '/login-page/';
+            } else {
+              showError('Unable to log out. Please try again.');
+            }
+          } catch (err) {
+            showError('Network error while logging out. Please check your connection and try again.');
+          }
+        });
+      }
+
+      /* ── Auto-submit filters on dropdown change ── */
+      var typeFilter = document.getElementById('wlTypeFilter');
+      var dateFilter = document.getElementById('wlDateFilter');
+      var filterForm = document.getElementById('wlFilterForm');
+      function autoSubmitFilter() {
+        if (filterForm) filterForm.submit();
+      }
+      if (typeFilter) typeFilter.addEventListener('change', autoSubmitFilter);
+      if (dateFilter) dateFilter.addEventListener('change', autoSubmitFilter);
+
+    })();
+    </script>
+
+  </body>
+</html>

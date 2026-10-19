@@ -56,8 +56,7 @@ def checkout_page(request):
         selected_coupon = Coupon.objects.filter(id=coupon_id).first()
 
         if selected_coupon:
-            coupon, coupon_discount, error = validate_checkout_coupon(selected_coupon.code, cart_data["subtotal"])
-
+            coupon, coupon_discount, error = validate_checkout_coupon(selected_coupon.code, cart_data["subtotal"], request.user)
             #remove invalid coupon from session to prevent stale discount
             if error:
                 request.session.pop("checkout_coupon_id", None)
@@ -101,7 +100,22 @@ def place_order(request):
     )
 
     if error:
-        return JsonResponse({"message":error},status=400)
+        # Clear the selected coupon only when coupon validation fails.
+        coupon_errors = {
+            "Coupon code not found",
+            "This coupon is inactive or expired",
+            "You have already used this coupon",
+            "This coupon has reached its usage limit",
+            "Select coupon was not found",
+        }
+
+        if error in coupon_errors or error.startswith(
+            "Minimal product subtotal for this coupon is ₹"
+        ):
+            request.session.pop("checkout_coupon_id", None)
+
+        return JsonResponse({"message": error}, status=400)
+
     return JsonResponse({"message":"Order placed successfully", "order_number":order.order_number}, status=201)
 
 

@@ -14,8 +14,10 @@ from orders.task import send_order_confirmation_email
 
 from coupons.models import Coupon,CouponUsage
 from coupons.services.coupon_service import (is_coupon_valid,is_coupon_usage_available,is_minimum_order_amount_met,calculate_coupon_discount,)
+from wallet.services.wallet_service import debit_wallet
 
 SHIPPING_CHARGE = Decimal("150.00")
+SUPPORTED_PAYMENT_METHODS = {"Cash on Delivery", "Razorpay", "Wallet"}
 
 
 logger = logging.getLogger(__name__)

@@ -3,10 +3,11 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
 
 from orders.models import Order
 from adminpanel.decorators import admin_required
-from orders.services.order_service import (update_order_status,update_return_status,update_return_note)
+from orders.services.order_service import (update_order_status,update_return_status,update_return_note,mark_cod_payment_collected,process_approved_return_refund)
 from orders.services.invoice_service import generate_invoice_pdf
 
 
@@ -146,3 +147,37 @@ def admin_download_invoice(request, order_number):
         return render(request,"orders/admin_order_not_found.html",status=404,)
 
     return generate_invoice_pdf(order)
+
+@admin_required
+@never_cache
+@require_POST
+def admin_mark_cod_payment_collected(request, order_number):
+
+    order,error = mark_cod_payment_collected(order_number=order_number)
+
+    if error:
+        return JsonResponse({"message":error}, status=400)
+
+    return JsonResponse(
+        {
+            "message": "COD payment marked as collected.",
+            "order_number": order.order_number,
+            "payment_status": order.payment_status,
+        },status=200)
+
+
+@admin_required
+@never_cache
+@require_POST
+def admin_process_return_refund(request, return_id):
+    refund, error = process_approved_return_refund(return_id=return_id)
+    if error:
+        return JsonResponse({"message":error},status=400)
+    return JsonResponse(
+        {
+            "message": "Return refund processed successfully.",
+            "return_id": refund.return_request_id,
+            "refund_id": refund.id,
+            "amount": str(refund.amount),
+            "status": refund.status,
+        },status=200)

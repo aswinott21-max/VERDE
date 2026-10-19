@@ -1,7 +1,8 @@
 from django.urls import path
 
 from orders.views.user_views import (order_list,order_detail,cancel_order_api,return_order_api,return_order_item_api,cancel_order_item_api,download_invoice)
-from orders.views.admin_views import(admin_order_list,admin_order_details,admin_update_order_status,admin_update_return_status,admin_update_return_note,admin_download_invoice)
+from orders.views.admin_views import(admin_order_list,admin_order_details,admin_update_order_status,admin_update_return_status,admin_update_return_note,admin_download_invoice,admin_mark_cod_payment_collected,admin_process_return_refund)
+
 
 
 app_name = "orders"
@@ -11,10 +12,13 @@ urlpatterns = [
     #Admin
     path("admin/", admin_order_list, name="admin_order_list"),
     path("admin/<str:order_number>/",admin_order_details, name="admin_order_details"),
+    path("admin/<str:order_number>/cod-payment-collected/",admin_mark_cod_payment_collected,name="admin_mark_cod_payment_collected"),
+    path("admin/returns/<int:return_id>/process-refund/",admin_process_return_refund,name="admin_process_return_refund"),
     path("admin/<str:order_number>/status/",admin_update_order_status, name="admin_update_order_status"),
     path("admin/return/<int:return_id>/status/",admin_update_return_status,name="admin_update_return_status"),
     path("admin/return/<int:return_id>/note/", admin_update_return_note, name="admin_update_return_note"),
     path("admin/<str:order_number>/invoice/",admin_download_invoice, name="admin_download_invoice"),
+
     #User
     path("",order_list,name="order_list"),
     path("<str:order_number>/", order_detail, name="order_detail"),
