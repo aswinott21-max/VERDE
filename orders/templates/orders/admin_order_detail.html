@@ -1631,12 +1631,10 @@
                             <div class="info-row">
                                 <span class="info-label">Status:</span>
                                 <div>
-                                    {% if order.status == "CANCELLED" %}
-                                        <span class="status-badge badge-cancelled">CANCELLED</span>
-                                    {% elif order.payment_method|lower == "cod" and order.status != "DELIVERED" %}
-                                        <span class="status-badge badge-pending">PENDING</span>
-                                    {% else %}
+                                    {% if order.payment_status == "PAID" %}
                                         <span class="status-badge badge-paid">PAID</span>
+                                    {% else %}
+                                        <span class="status-badge badge-pending">{{ order.payment_status }}</span>
                                     {% endif %}
                                 </div>
                             </div>

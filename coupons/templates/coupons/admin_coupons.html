@@ -1,4 +1,4 @@
-{% load static %}
+{% load static tz %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1430,8 +1430,8 @@
                                                 '{{ coupon.discount_value }}',
                                                 '{{ coupon.minimum_order_amount }}',
                                                 '{{ coupon.max_discount_amount|default_if_none:"" }}',
-                                                '{{ coupon.start_date|date:"Y-m-d\TH:i" }}',
-                                                '{{ coupon.expiry_date|date:"Y-m-d\TH:i" }}',
+                                                '{{ coupon.start_date|timezone:"Asia/Kolkata"|date:"Y-m-d\TH:i" }}',
+                                                '{{ coupon.expiry_date|timezone:"Asia/Kolkata"|date:"Y-m-d\TH:i" }}',
                                                 '{{ coupon.usage_limit|default_if_none:"" }}',
                                                 '{{ coupon.status }}'
                                             )"
@@ -1854,6 +1854,16 @@
     const addStartDateInput = document.getElementById('add_start_date');
     const addExpiryDateInput = document.getElementById('add_expiry_date');
 
+    const displayedCouponErrors = new Set();
+    addCouponModal.querySelectorAll('.form-errors li').forEach(function (errorItem) {
+        const message = errorItem.textContent.trim();
+        if (displayedCouponErrors.has(message)) {
+            errorItem.remove();
+        } else {
+            displayedCouponErrors.add(message);
+        }
+    });
+
     openAddCouponBtn.addEventListener('click', function () {
         openAddCouponModal();
     });
@@ -1875,11 +1885,34 @@
         return formatLocalDateTime(localMidnight);
     }
 
-    function setAddCouponDateMinimums() {
-        const localDateTime = getBrowserLocalDateMinimum();
+    function getISTDateTimeMinimum() {
+        const roundedUpMinute = new Date(Math.ceil(Date.now() / 60000) * 60000);
+        const istDate = new Date(roundedUpMinute.getTime() + 330 * 60000);
+        const pad = function (value) {
+            return String(value).padStart(2, '0');
+        };
 
-        addStartDateInput.min = localDateTime;
-        addExpiryDateInput.min = localDateTime;
+        return istDate.getUTCFullYear() + '-' +
+            pad(istDate.getUTCMonth() + 1) + '-' +
+            pad(istDate.getUTCDate()) + 'T' +
+            pad(istDate.getUTCHours()) + ':' +
+            pad(istDate.getUTCMinutes());
+    }
+
+    function setAddCouponDateMinimums() {
+        addStartDateInput.min = getISTDateTimeMinimum();
+        addExpiryDateInput.min = getBrowserLocalDateMinimum();
+    }
+
+    function keepTodayStartDateValid() {
+        const minimum = getISTDateTimeMinimum();
+        addStartDateInput.min = minimum;
+
+        if (addStartDateInput.value &&
+            addStartDateInput.value.slice(0, 10) === minimum.slice(0, 10) &&
+            addStartDateInput.value < minimum) {
+            addStartDateInput.value = minimum;
+        }
     }
 
     function openAddCouponModal() {
@@ -1892,6 +1925,8 @@
         addCouponModal.classList.remove('active');
         document.body.style.overflow = '';
     }
+
+    addStartDateInput.addEventListener('change', keepTodayStartDateValid);
 
     // Close modal when clicking the backdrop
     addCouponModal.addEventListener('click', function (e) {

@@ -484,30 +484,6 @@
         background: rgba(127, 232, 174, 0.08) !important;
       }
 
-      /* ----- Auto-applied row (dark card only) ----- */
-      .coupon-auto-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 4px;
-      }
-
-      .coupon-auto-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 10px;
-        font-weight: 600;
-        color: #7faa8e;
-        letter-spacing: 0.03em;
-      }
-
-      .coupon-auto-badge svg {
-        width: 11px;
-        height: 11px;
-        stroke-width: 2;
-      }
-
       /* ----- Apply button (ready for later wiring) ----- */
       .btn-apply-coupon {
         display: inline-flex;
@@ -620,6 +596,67 @@
         font-size: 10.5px;
         color: #9ba6a0;
         margin-top: 6px;
+      }
+
+      /* Expired card state when displayed in coupons grid */
+      .coupon-card.past-coupon-card {
+        background: #f0f2f0;
+        border: 1px solid #e2e8e3;
+        border-radius: 14px;
+        box-shadow: none;
+        opacity: 0.75;
+        max-width: none;
+      }
+
+      .coupon-card.past-coupon-card:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      .coupon-card.past-coupon-card .past-tag-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        margin-right: 36px;
+      }
+
+      .coupon-card.past-coupon-card .past-tag-row .coupon-tag {
+        margin-bottom: 0;
+        color: #9ba6a0;
+      }
+
+      .coupon-card.past-coupon-card .coupon-discount {
+        color: #b0b8b3;
+      }
+
+      .coupon-card.past-coupon-card .coupon-description {
+        color: #9ba6a0;
+      }
+
+      .coupon-card.past-coupon-card .coupon-expiry {
+        color: #9ba6a0;
+      }
+
+      .coupon-card.past-coupon-card .coupon-card-icon {
+        background: #e5e9e6;
+        color: #8e9c94;
+      }
+
+      .coupon-card.past-coupon-card .coupon-code-pill {
+        background: #e5e9e6;
+        border-color: #d8deda;
+        color: #8e9c94;
+      }
+
+      .coupon-card.past-coupon-card .btn-copy-code {
+        border-color: #d8deda;
+        color: #8e9c94;
+        background: transparent;
+      }
+
+      .coupon-card.past-coupon-card .coupon-divider {
+        border-color: #e2e8e3;
       }
 
       /* =========================================================
@@ -894,7 +931,7 @@
           </svg>
           Coupons
         </a>
-        <a class="profile-tab" href="#">
+        <a class="profile-tab" href="{% url 'wallet:my_wallet' %}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
             <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M15 13h3" />
           </svg>
@@ -941,10 +978,9 @@
 
         <div class="coupons-grid">
           {% for coupon in coupons %}
-          {# Alternate between light and dark card; every 3rd card gets a dark variant #}
+          {# Keep card colors consistent regardless of the decorative icon. #}
           {% if forloop.counter|divisibleby:3 %}
-          <!-- DARK / PREMIUM card -->
-          <article class="coupon-card variant-dark" aria-label="{{ coupon.coupon_name }} coupon">
+          <article class="coupon-card {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-coupon-card{% else %}variant-light{% endif %}" aria-label="{{ coupon.coupon_name }} coupon">
 
             <!-- Decorative icon -->
             <div class="coupon-card-icon" aria-hidden="true">
@@ -957,10 +993,17 @@
             </div>
 
             <!-- Tag -->
+            {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}
+            <div class="past-tag-row">
+              <p class="coupon-tag past-tag">{{ coupon.coupon_name }}</p>
+              <span class="expired-badge">Expired</span>
+            </div>
+            {% else %}
             <p class="coupon-tag">{{ coupon.coupon_name }}</p>
+            {% endif %}
 
             <!-- Discount headline -->
-            <h3 class="coupon-discount">
+            <h3 class="coupon-discount {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-discount{% endif %}">
               {% if coupon.discount_type == "percentage" %}
                 {{ coupon.discount_value|floatformat:0 }}% OFF
               {% else %}
@@ -978,24 +1021,43 @@
 
             <hr class="coupon-divider" />
 
-            <!-- Expiry + auto-applied -->
-            <div class="coupon-auto-row">
-              <span class="coupon-expiry">
+            <!-- Expiry -->
+            <div class="coupon-meta">
+              <span class="coupon-expiry {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-expiry{% endif %}">
                 Expires {{ coupon.expiry_date|date:"M j, Y" }}
               </span>
-              <span class="coupon-auto-badge">
+            </div>
+
+            <hr class="coupon-divider" />
+
+            <!-- Code + copy button -->
+            <div class="coupon-code-row">
+              <span class="coupon-code-pill" data-coupon-code="{{ coupon.code }}">{{ coupon.code }}</span>
+              <button
+                class="btn-copy-code"
+                type="button"
+                data-code="{{ coupon.code }}"
+                aria-label="Copy coupon code {{ coupon.code }}"
+              >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
-                Auto-Applied
-              </span>
+                Copy Code
+              </button>
+            </div>
+
+            <div style="margin-top: 10px;">
+              <button class="btn-apply-coupon" type="button" data-coupon-code="{{ coupon.code }}" disabled>
+                Apply Coupon
+              </button>
             </div>
 
           </article>
 
           {% else %}
           <!-- LIGHT card -->
-          <article class="coupon-card variant-light" aria-label="{{ coupon.coupon_name }} coupon">
+          <article class="coupon-card {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-coupon-card{% else %}variant-light{% endif %}" aria-label="{{ coupon.coupon_name }} coupon">
 
             <!-- Decorative icon -->
             <div class="coupon-card-icon" aria-hidden="true">
@@ -1006,10 +1068,17 @@
             </div>
 
             <!-- Tag -->
+            {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}
+            <div class="past-tag-row">
+              <p class="coupon-tag past-tag">{{ coupon.coupon_name }}</p>
+              <span class="expired-badge">Expired</span>
+            </div>
+            {% else %}
             <p class="coupon-tag">{{ coupon.coupon_name }}</p>
+            {% endif %}
 
             <!-- Discount headline -->
-            <h3 class="coupon-discount">
+            <h3 class="coupon-discount {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-discount{% endif %}">
               {% if coupon.discount_type == "percentage" %}
                 {{ coupon.discount_value|floatformat:0 }}% OFF
               {% else %}
@@ -1027,7 +1096,7 @@
 
             <!-- Meta row -->
             <div class="coupon-meta">
-              <span class="coupon-expiry">Expires {{ coupon.expiry_date|date:"M j, Y" }}</span>
+              <span class="coupon-expiry {% if coupon.id in used_coupon_ids or coupon.id in user_coupons_ids %}past-expiry{% endif %}">Expires {{ coupon.expiry_date|date:"M j, Y" }}</span>
             </div>
 
             <hr class="coupon-divider" />
