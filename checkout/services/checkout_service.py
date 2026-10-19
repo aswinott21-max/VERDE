@@ -241,6 +241,10 @@ def finalize_razorpay_order(order_id, razorpay_payment_id):# Accept the payment 
 
 @transaction.atomic
 def create_order(user, address_id, delivery_method, payment_method,coupon_id=None):
+
+    if not isinstance(payment_method, str) or payment_method not in SUPPORTED_PAYMENT_METHODS:
+        return None, "Unsupported payment method."
+
     address = Address.objects.filter(id=address_id, user=user).first()
 
     if not address:
@@ -340,21 +344,39 @@ def create_order(user, address_id, delivery_method, payment_method,coupon_id=Non
     #apply the shipping charge to every order
     shipping_amount = SHIPPING_CHARGE
 
-    #create the order.
+
+    #calculate the final total before processing payment
+    total_amount = subtotal + shipping_amount + tax_amount - discount_amount
+    order_number = f"VERDE--{uuid.uuid4().hex[:10].upper()}"
+
+    # Debit the wallet before creating the order.
+    if payment_method == "Wallet":
+        try:
+            debit_wallet(
+                user=user,
+                amount=total_amount,
+                reference_id=order_number,
+                transaction_id=f"ORDER-PAYMENT-{order_number}",
+            )
+        except ValueError as error:
+            return None, str(error)
+
+    #wallet payments are paid immediately; other methods remain pending
     order = Order.objects.create(
         user=user,
         address=None,
         coupon_id=coupon.id if coupon else None,
-        order_number=f"VERDE--{uuid.uuid4().hex[:10].upper()}",
+        order_number=order_number,
         delivery_method=delivery_method,
         payment_method=payment_method,
+        payment_status="PAID" if payment_method == "Wallet" else "PENDING",
         discount_amount=discount_amount,
         shipping_amount=shipping_amount,
         subtotal=subtotal,
         tax_amount=tax_amount,
-        total_amount=subtotal + shipping_amount + tax_amount - discount_amount,
-        status="PLACED")
-
+        total_amount=total_amount,
+        status="PLACED",
+    )
     if coupon:
         CouponUsage.objects.create(coupon=coupon,user=user,order=order,discount_amount=discount_amount)
         coupon.used_count +=1

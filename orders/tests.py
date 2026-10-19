@@ -26,6 +26,7 @@ class ReturnRefundCalculationTests(TestCase):
             description="A ceramic planter",
             regular_price=Decimal("200.00"),
             stock_quantity=10,
+        )
     def create_order(
         self,
         order_number,
