@@ -789,6 +789,10 @@
         border-color: #e2ece4;
       }
 
+      .offer-display-label {
+        cursor: default;
+      }
+
       .offer-trigger.empty {
         color: #7a8c80;
         font-weight: 600;
@@ -2968,7 +2972,12 @@
 
                   <!-- Offer -->
                   <td class="text-center" id="offer-cell-{{ product.id }}">
-                    {% if product.has_active_offer %}
+                    {% if product.category.discount_value > 0 %}
+                      <span class="offer-trigger category-offer offer-display-label">
+                        {{ product.category.discount_value|floatformat:0 }}% Cat.off
+                      </span>
+                    {% endif %}
+                    {% if product.product_offer > 0 %}
                       <button
                         type="button"
                         class="offer-trigger product-offer"
@@ -2981,22 +2990,7 @@
                         onclick="openProductOfferModal(this)"
                         title="Product offer: {{ product.product_offer|floatformat:0 }}%. Click to edit."
                       >
-                        {{ product.product_offer }}%
-                      </button>
-                    {% elif product.sale_price < product.regular_price and product.category.discount_value > 0 %}
-                      <button
-                        type="button"
-                        class="offer-trigger category-offer"
-                        data-product-id="{{ product.id }}"
-                        data-product-name="{{ product.name|escape }}"
-                        data-discount=""
-                        data-offer-start=""
-                        data-offer-end=""
-                        data-has-product-offer="false"
-                        onclick="openProductOfferModal(this)"
-                        title="Category offer applied: {{ product.category.name }} ({{ product.category.discount_value|floatformat:0 }}%). Click to add product offer."
-                      >
-                        {{ product.category.discount_value|floatformat:0 }}%
+                        {{ product.product_offer|floatformat:0 }}%
                       </button>
                     {% else %}
                       <button

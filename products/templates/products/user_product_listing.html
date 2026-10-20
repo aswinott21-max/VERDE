@@ -981,10 +981,8 @@
               {% for product in products %}
               <article class="item-product-card">
                 <div class="item-media-box">
-                  {% if product.has_active_offer %}
-                  <span class="item-badge-pill badge-discount-red">{{ product.product_offer|floatformat:0 }}% OFF</span>
-                  {% elif product.sale_price < product.regular_price and product.category.discount_value > 0 %}
-                  <span class="item-badge-pill badge-discount-red">{{ product.category.discount_value|floatformat:0 }}% OFF</span>
+                  {% if product.effective_discount_percentage > 0 %}
+                  <span class="item-badge-pill badge-discount-red">{{ product.effective_discount_percentage|floatformat:0 }}% OFF</span>
                   {% elif product.is_featured %}
                   <span class="item-badge-pill badge-neutral">FEATURED</span>
                   {% endif %}

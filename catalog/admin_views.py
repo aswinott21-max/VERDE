@@ -5,6 +5,9 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.views.decorators.cache import never_cache
 from django.db.models import Count
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+from decimal import Decimal, InvalidOperation
 
 from .models import Category
 
@@ -151,47 +154,95 @@ def toggle_category_status(request, category_id):
 
 @admin_required
 def set_category_offer(request, category_id):
-
     if request.method != "POST":
-        return JsonResponse({"succes":False,"message":"Only POST request are allowed."}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Only POST requests are allowed."},status=405,)
 
-    #find category
-    category =  get_object_or_404(Category, id=category_id)
+    category = get_object_or_404(Category, id=category_id)
 
-    # Get offer data from the request
-    discount_value = request.POST.get("discount_value")
-    offer_start_at = request.POST.get("offer_start_at")
-    offer_end_at = request.POST.get("offer_end_at")
-
-    # Check whether the request is asking to remove the offer
-    remove_offer = request.POST.get("remove_offer")
-
-    if remove_offer == "true":
+    if request.POST.get("remove_offer") == "true":
         category.discount_value = 0
         category.offer_start_at = None
-        category.offer_end_at =None
-
-        # Save the changes 
+        category.offer_end_at = None
         category.save()
 
         return JsonResponse({
-            "success": True, "message": "Offer removed successfully.", "data": { "category_id": category.id }
+            "success": True,
+            "message": "Offer removed successfully.",
+            "data": {"category_id": category.id},
         })
 
-    # Save the offer data to the category
-    category .discount_value = discount_value
-    category. offer_start_at = offer_start_at or None
-    category. offer_end_at = offer_end_at or None
+    discount_raw = request.POST.get("discount_value", "").strip()
+    start_raw = request.POST.get("offer_start_at", "").strip()
+    end_raw = request.POST.get("offer_end_at", "").strip()
 
+    if not discount_raw:
+        return JsonResponse(
+            {"success": False, "message": "Discount value is required."},
+            status=400,
+        )
+    if not start_raw:
+        return JsonResponse(
+            {"success": False, "message": "Start date and time are required."},
+            status=400,
+        )
+    if not end_raw:
+        return JsonResponse(
+            {"success": False, "message": "End date and time are required."},
+            status=400,
+        )
+
+    try:
+        discount_value = Decimal(discount_raw)
+    except (InvalidOperation, ValueError):
+        return JsonResponse(
+            {"success": False, "message": "Enter a valid discount."},status=400,)
+
+    if not discount_value.is_finite() or not Decimal("0") <= discount_value <= Decimal("100"):
+        return JsonResponse(
+            {"success": False, "message": "Discount must be between 0 and 100."},status=400,)
+
+    offer_start_at = parse_datetime(start_raw)
+    offer_end_at = parse_datetime(end_raw)
+
+    if start_raw and offer_start_at is None:
+        return JsonResponse(
+            {"success": False, "message": "Enter a valid start date and time."},
+            status=400,
+        )
+
+    if end_raw and offer_end_at is None:
+        return JsonResponse(
+            {"success": False, "message": "Enter a valid end date and time."},
+            status=400,
+        )
+
+    if offer_start_at and timezone.is_naive(offer_start_at):
+        offer_start_at = timezone.make_aware(offer_start_at)
+
+    if offer_end_at and timezone.is_naive(offer_end_at):
+        offer_end_at = timezone.make_aware(offer_end_at)
+
+    now = timezone.now()
+
+    if offer_start_at and offer_start_at < now:
+        return JsonResponse({"success": False, "message": "Offer start cannot be in the past."},status=400,)
+
+    if offer_start_at and offer_end_at and offer_end_at < offer_start_at:
+        return JsonResponse({"success": False, "message": "Offer end must be after the start."},status=400,)
+
+    category.discount_value = discount_value
+    category.offer_start_at = offer_start_at
+    category.offer_end_at = offer_end_at
     category.save()
 
     return JsonResponse({
-        "success" : True,
-        "message" : "Offer applied successfully.",
-        "data" :{
+        "success": True,
+        "message": "Offer applied successfully.",
+        "data": {
             "category_id": category.id,
-            "discount_value": discount_value,
-            "offer_start_at": offer_start_at,
-            "offer_end_at": offer_end_at
-        }
+            "discount_value": str(discount_value),
+            "offer_start_at": start_raw,
+            "offer_end_at": end_raw,
+        },
     })

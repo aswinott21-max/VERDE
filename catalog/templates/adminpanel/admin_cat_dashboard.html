@@ -1005,6 +1005,17 @@
         letter-spacing: 0.4px;
       }
 
+      .offer-upcoming-badge {
+        margin-left: 6px;
+        padding: 2px 6px;
+        border: 1px solid #f0d98a;
+        border-radius: var(--radius-sm);
+        background-color: #fff7d6;
+        color: #806100;
+        font-size: 10px;
+        font-weight: 700;
+      }
+
       /* Status Badge */
       .status-badge {
         display: inline-block;
@@ -1821,7 +1832,8 @@
 
                   <!-- Offer -->
                   <td class="col-offer">
-                    {% if cat.discount_value and cat.discount_value > 0 %}
+                    {% now "U" as current_timestamp %}
+                    {% if cat.discount_value > 0 and not cat.offer_end_at or cat.discount_value > 0 and cat.offer_end_at|date:"U"|add:"0" >= current_timestamp|add:"0" %}
                     <button
                       type="button"
                       class="offer-trigger"
@@ -1830,10 +1842,15 @@
                       data-discount="{{ cat.discount_value }}"
                       data-offer-start="{{ cat.offer_start_at|date:'Y-m-d\TH:i' }}"
                       data-offer-end="{{ cat.offer_end_at|date:'Y-m-d\TH:i' }}"
+                      data-offer-start-timestamp="{{ cat.offer_start_at|date:'U' }}"
+                      data-offer-end-timestamp="{{ cat.offer_end_at|date:'U' }}"
                       onclick="openCategoryOfferModal(this)"
                       title="Manage category offer"
                     >
                       {{ cat.discount_value|floatformat:0 }}%
+                      {% if cat.offer_start_at and cat.offer_start_at|date:"U"|add:"0" > current_timestamp|add:"0" %}
+                      <span class="offer-upcoming-badge">Upcoming</span>
+                      {% endif %}
                     </button>
                     {% else %}
                     <button
@@ -2117,6 +2134,7 @@
                   class="form-input"
                   min="0"
                   step="0.01"
+                  required
                   inputmode="decimal"
                   placeholder="e.g. 10"
                 />
@@ -2133,6 +2151,7 @@
                   id="offerStart"
                   name="offer_start"
                   class="form-input"
+                  required
                 />
                 <span
                   id="offerStartError"
@@ -2147,6 +2166,7 @@
                   id="offerEnd"
                   name="offer_end"
                   class="form-input"
+                  required
                 />
                 <span
                   id="offerEndError"
@@ -2155,6 +2175,7 @@
                 ></span>
               </div>
             </div>
+            <div id="offerGeneralError" class="field-error" role="alert"></div>
           </div>
           <div class="modal-footer">
             <button
@@ -2172,7 +2193,9 @@
             >
               CANCEL
             </button>
-            <button type="submit" class="btn-modal-save">SAVE OFFER</button>
+            <button type="submit" class="btn-modal-save" formnovalidate>
+              SAVE OFFER
+            </button>
           </div>
         </form>
       </div>
@@ -2340,6 +2363,27 @@
         error.classList.remove("visible");
       }
 
+      function clearCategoryOfferGeneralError() {
+        const error = document.getElementById("offerGeneralError");
+        error.textContent = "";
+        error.classList.remove("visible");
+      }
+
+      function showCategoryOfferBackendError(message) {
+        const normalizedMessage = message.toLowerCase();
+        if (normalizedMessage.includes("discount")) {
+          showFieldError("offerDiscount", "offerDiscountError", message);
+        } else if (normalizedMessage.includes("end")) {
+          showFieldError("offerEnd", "offerEndError", message);
+        } else if (normalizedMessage.includes("start")) {
+          showFieldError("offerStart", "offerStartError", message);
+        } else {
+          const error = document.getElementById("offerGeneralError");
+          error.textContent = message;
+          error.classList.add("visible");
+        }
+      }
+
       // Add Category Submission
       async function handleAddCategory(event) {
         event.preventDefault();
@@ -2438,23 +2482,81 @@
 
       let activeOfferTrigger = null;
 
+      function getLocalDateTimeValue(date = new Date()) {
+        const pad = (value) => String(value).padStart(2, "0");
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      }
+
+      function getLocalDateTimeFromTimestamp(timestamp) {
+        if (!timestamp) {
+          return "";
+        }
+
+        const date = new Date(Number(timestamp) * 1000);
+        return Number.isNaN(date.getTime()) ? "" : getLocalDateTimeValue(date);
+      }
+
+      function updateCategoryOfferEndMinimum(validateRange = true) {
+        const startInput = document.getElementById("offerStart");
+        const endInput = document.getElementById("offerEnd");
+        endInput.min = startInput.value || getLocalDateTimeValue();
+
+        if (!validateRange) {
+          return;
+        }
+
+        if (startInput.value && endInput.value && startInput.value > endInput.value) {
+          endInput.value = "";
+          showFieldError(
+            "offerEnd",
+            "offerEndError",
+            "Offer end must be after the start date and time.",
+          );
+        } else {
+          clearFieldError("offerEnd", "offerEndError");
+        }
+      }
+
+      document
+        .getElementById("offerStart")
+        .addEventListener("input", () => {
+          updateCategoryOfferEndMinimum();
+          clearFieldError("offerStart", "offerStartError");
+          clearCategoryOfferGeneralError();
+        });
+      document.getElementById("offerDiscount").addEventListener("input", () => {
+        clearFieldError("offerDiscount", "offerDiscountError");
+        clearCategoryOfferGeneralError();
+      });
+      document.getElementById("offerEnd").addEventListener("input", () => {
+        clearFieldError("offerEnd", "offerEndError");
+        clearCategoryOfferGeneralError();
+      });
+
       function openCategoryOfferModal(trigger) {
         activeOfferTrigger = trigger;
         const categoryId = trigger.dataset.categoryId;
         const categoryName = trigger.dataset.categoryName;
         const discount = trigger.dataset.discount || "";
-        const offerStart = trigger.dataset.offerStart || "";
-        const offerEnd = trigger.dataset.offerEnd || "";
+        const offerStart = getLocalDateTimeFromTimestamp(
+          trigger.dataset.offerStartTimestamp,
+        );
+        const offerEnd = getLocalDateTimeFromTimestamp(
+          trigger.dataset.offerEndTimestamp,
+        );
 
         document.getElementById("offerCategoryId").value = categoryId;
         document.getElementById("offerCategoryName").textContent = categoryName;
         document.getElementById("offerDiscount").value = discount;
         document.getElementById("offerStart").value = offerStart;
         document.getElementById("offerEnd").value = offerEnd;
+        document.getElementById("offerStart").min = getLocalDateTimeValue();
 
         clearFieldError("offerDiscount", "offerDiscountError");
         clearFieldError("offerStart", "offerStartError");
         clearFieldError("offerEnd", "offerEndError");
+        clearCategoryOfferGeneralError();
+        updateCategoryOfferEndMinimum(false);
 
         const removeButton = document.getElementById(
           "removeCategoryOfferButton",
@@ -2473,6 +2575,57 @@
       function closeCategoryOfferModal() {
         document.getElementById("categoryOfferModal").classList.remove("open");
       }
+
+      function updateOfferDisplay(button) {
+        const now = Date.now();
+        const startTimestamp = button.dataset.offerStartTimestamp
+          ? Number(button.dataset.offerStartTimestamp) * 1000
+          : null;
+        const endTimestamp = button.dataset.offerEndTimestamp
+          ? Number(button.dataset.offerEndTimestamp) * 1000
+          : null;
+
+        if (endTimestamp !== null && now > endTimestamp) {
+          button.classList.add("empty");
+          button.dataset.discount = "";
+          button.dataset.offerStart = "";
+          button.dataset.offerEnd = "";
+          button.dataset.offerStartTimestamp = "";
+          button.dataset.offerEndTimestamp = "";
+          button.textContent = "+ ADD OFFER";
+          button.title = "Add category offer";
+          return;
+        }
+
+        if (startTimestamp !== null && now >= startTimestamp) {
+          button.querySelector(".offer-upcoming-badge")?.remove();
+        }
+      }
+
+      function scheduleOfferDisplayUpdate(button, timestamp, isEnd = false) {
+        const target = timestamp * 1000 + (isEnd ? 1 : 0);
+        const delay = target - Date.now();
+        if (delay <= 0 || button.classList.contains("empty")) {
+          return;
+        }
+
+        setTimeout(() => {
+          updateOfferDisplay(button);
+          if (Date.now() < target && !button.classList.contains("empty")) {
+            scheduleOfferDisplayUpdate(button, timestamp, isEnd);
+          }
+        }, Math.min(delay, 2147483647));
+      }
+
+      document.querySelectorAll(".offer-trigger:not(.empty)").forEach((button) => {
+        updateOfferDisplay(button);
+        if (button.dataset.offerStartTimestamp) {
+          scheduleOfferDisplayUpdate(button, Number(button.dataset.offerStartTimestamp));
+        }
+        if (button.dataset.offerEndTimestamp) {
+          scheduleOfferDisplayUpdate(button, Number(button.dataset.offerEndTimestamp), true);
+        }
+      });
 
       async function removeCategoryOffer(event) {
         if (event) {
@@ -2571,6 +2724,7 @@
         clearFieldError("offerDiscount", "offerDiscountError");
         clearFieldError("offerStart", "offerStartError");
         clearFieldError("offerEnd", "offerEndError");
+        clearCategoryOfferGeneralError();
 
         if (!discount) {
           showFieldError(
@@ -2580,7 +2734,31 @@
           );
           return;
         }
+        if (!start) {
+          showFieldError(
+            "offerStart",
+            "offerStartError",
+            "Start date and time are required.",
+          );
+          return;
+        }
+        if (!end) {
+          showFieldError(
+            "offerEnd",
+            "offerEndError",
+            "End date and time are required.",
+          );
+          return;
+        }
         if (Number.isNaN(Number(discount)) || Number(discount) < 0) {
+          showFieldError(
+            "offerDiscount",
+            "offerDiscountError",
+            "Enter a valid non-negative discount.",
+          );
+          return;
+        }
+        if (discountInput.validity.stepMismatch) {
           showFieldError(
             "offerDiscount",
             "offerDiscountError",
@@ -2604,7 +2782,17 @@
           );
           return;
         }
+        if (end && endInput.validity.rangeUnderflow) {
+          showFieldError(
+            "offerEnd",
+            "offerEndError",
+            "Offer end must be after the start date and time.",
+          );
+          return;
+        }
 
+        const startUtc = start ? new Date(start).toISOString() : "";
+        const endUtc = end ? new Date(end).toISOString() : "";
         const csrfToken =
           getCookie("csrftoken") ||
           document.querySelector('input[name="csrfmiddlewaretoken"]')?.value ||
@@ -2612,8 +2800,8 @@
 
         const formData = new FormData();
         formData.append("discount_value", discount);
-        formData.append("offer_start_at", start);
-        formData.append("offer_end_at", end);
+        formData.append("offer_start_at", startUtc);
+        formData.append("offer_end_at", endUtc);
         if (csrfToken) {
           formData.append("csrfmiddlewaretoken", csrfToken);
         }
@@ -2632,28 +2820,37 @@
             },
           );
 
-          let result = {};
+          let result;
           try {
             result = await response.json();
           } catch (parseErr) {
             console.error("Save offer response parsing error:", parseErr);
+            const error = document.getElementById("offerGeneralError");
+            error.textContent = "Unable to save offer. Please try again.";
+            error.classList.add("visible");
+            return;
           }
 
-          if (response.ok && result.success) {
+          if (response.ok && result.success === true) {
             showAlert(result.message || "Offer saved successfully.", "success");
             closeCategoryOfferModal();
             setTimeout(() => {
               window.location.reload();
             }, 1500);
           } else {
-            showAlert(result.message || "Failed to save offer.", "error");
+            if (typeof result.message === "string" && result.message) {
+              showCategoryOfferBackendError(result.message);
+            } else {
+              const error = document.getElementById("offerGeneralError");
+              error.textContent = "Unable to save offer. Please try again.";
+              error.classList.add("visible");
+            }
           }
         } catch (err) {
           console.error("Save category offer error:", err);
-          showAlert(
-            "Failed to save category offer. Please try again.",
-            "error",
-          );
+          const error = document.getElementById("offerGeneralError");
+          error.textContent = "Unable to save offer. Please try again.";
+          error.classList.add("visible");
         }
       }
 

@@ -977,8 +977,8 @@
           <div class="showcase-media-box" id="showcaseMediaContainer">
             {% if product.is_featured %}
             <span class="badge-featured-pill">FEATURED</span>
-            {% elif product.has_active_offer %}
-            <span class="badge-discount-pill">{{ product.product_offer|floatformat:0 }}% OFF</span>
+            {% elif product.effective_discount_percentage > 0 %}
+            <span class="badge-discount-pill">{{ product.effective_discount_percentage|floatformat:0 }}% OFF</span>
             {% endif %}
 
             {% if product.product_images.first %}
@@ -1214,8 +1214,8 @@
               {% if sale_price and sale_price < product.regular_price %}
                 <span class="price-main-val">₹{{ sale_price }}</span>
                 <span class="price-struck-val">₹{{ product.regular_price }}</span>
-                {% if product.has_active_offer %}
-                  <span class="badge-discount-tag">{{ product.product_offer|floatformat:0 }}% OFF</span>
+                {% if product.effective_discount_percentage > 0 %}
+                  <span class="badge-discount-tag">{{ product.effective_discount_percentage|floatformat:0 }}% OFF</span>
                 {% endif %}
               {% else %}
                 <span class="price-main-val">₹{{ product.regular_price }}</span>

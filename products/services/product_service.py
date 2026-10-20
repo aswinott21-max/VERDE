@@ -4,7 +4,7 @@ from django.db.models import Avg, Count
 from django.utils import timezone
 
 from products.models import Product, Review
-from products.services.product_price_service import get_product_sale_price
+from products.services.product_price_service import (get_product_sale_price,get_effective_discount_percentage)
 from products.services.category_service import get_category_and_subcategory_ids
 
 
@@ -58,7 +58,7 @@ def get_active_products(search_query=None,category_id=None,min_price=None,max_pr
 
         #check product currently has active product offer.
         product.has_active_offer = (product.product_offer > 0 and (product.offer_start_at is None or current_time >= product.offer_start_at) and (product.offer_ends_at is None or current_time <= product.offer_ends_at) )
-
+        product.effective_discount_percentage = get_effective_discount_percentage(product)
 
     return {
         "products": page_object.object_list,
@@ -80,6 +80,7 @@ def get_product_details(product_id):
 
     if product:
         product.sale_price = get_product_sale_price(product)
+        product.effective_discount_percentage = get_effective_discount_percentage(product)
 
         #Check the product offer is active.
         current_time = timezone.now()

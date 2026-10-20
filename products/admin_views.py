@@ -22,7 +22,7 @@ from .services.pot_product_validation import (validate_pot_product_data,validate
 from .services.equipment_product_validation import(validate_equipment_product_data,validate_equipment_images)
 from .services.category_service import (get_subcategories_by_parent,get_subcategory_by_parent, get_product_type,_find_parent_category)
 from .services.product_edit_service import get_product_edit_data
-from .services.product_price_service import get_product_sale_price
+from .services.product_price_service import get_product_sale_price,get_effective_discount_percentage
 
 
 @never_cache
@@ -49,6 +49,7 @@ def product_dashboard(request):
     #calculate sale price and check offer status for products on the current page.
     for product in page_obj:
         product.sale_price = get_product_sale_price(product)
+        product.effective_discount_percentage = get_effective_discount_percentage(product)
 
         #check whether the product currently has an active offer.
         product.has_active_offer = (
