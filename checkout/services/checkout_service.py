@@ -10,8 +10,8 @@ from users.models import Address
 from products.models import Product, ProductVariant
 
 from products.services.tax_service import calculate_tax
+from products.services.product_price_service import get_effective_discount_percentage
 from orders.task import send_order_confirmation_email
-
 from coupons.models import Coupon,CouponUsage
 from coupons.services.coupon_service import (is_coupon_valid,is_coupon_usage_available,is_minimum_order_amount_met,calculate_coupon_discount,)
 from wallet.services.wallet_service import debit_wallet
@@ -21,6 +21,16 @@ SUPPORTED_PAYMENT_METHODS = {"Cash on Delivery", "Razorpay", "Wallet"}
 
 
 logger = logging.getLogger(__name__)
+
+def calculate_coupon_eligible_subtotal(items):
+    #Sum item totals only for products without an active offer
+    eligible_subtotal =Decimal("0.00")
+
+    for product, item_total in items:
+        if get_effective_discount_percentage(product) <=0:
+            eligible_subtotal += Decimal(str(item_total))
+    return eligible_subtotal
+
 
 
 def validate_checkout_coupon(coupon_code, subtotoal,user):
@@ -34,6 +44,10 @@ def validate_checkout_coupon(coupon_code, subtotoal,user):
         return None, Decimal("0.00"), "This coupon is inactive or expired"
     if not is_coupon_usage_available(coupon):
         return None, Decimal("0.00"), "This coupon has reached its usage limit"
+    # Reject coupons when no products are eligible for a discount.
+    if subtotoal <= 0:
+        return None, Decimal("0.00"), "No eligible products remain for this coupon."
+
     if not is_minimum_order_amount_met(coupon,subtotoal):
         return None, Decimal("0.00"), ( f"Minimum product subtotal for this coupon is ₹{coupon.minimum_order_amount}.")
     if CouponUsage.objects.filter(coupon=coupon, user=user).exists():
@@ -91,9 +105,16 @@ def create_pending_razorpay_order(user, address_id, delivery_method,coupon_id=No
     discount_amount = Decimal("0.00")
 
     if coupon_id:
+        eligible_subtotal = calculate_coupon_eligible_subtotal(
+            (product, cart_item.unit_price * cart_item.quantity)
+            for cart_item, product in validated_items
+        )
+
         coupon, discount_amount, coupon_error = validate_checkout_coupon(
-            Coupon.objects.filter(id=coupon_id).values_list("code", flat=True).first()
-            or "",subtotal,user)
+            Coupon.objects.filter(id=coupon_id).values_list("code", flat=True).first() or "",
+            eligible_subtotal,
+            user,
+        )
 
         if coupon_error:
             return None, coupon_error
@@ -336,7 +357,11 @@ def create_order(user, address_id, delivery_method, payment_method,coupon_id=Non
         if not coupon:
             return None, "Select coupon was not found"
 
-        coupon, discount_amount,coupon_error = validate_checkout_coupon(coupon.code,subtotal,user)
+        eligible_subtotal = calculate_coupon_eligible_subtotal(
+            (product, cart_item.unit_price * cart_item.quantity)
+            for cart_item, product, stock_key in validated_items )
+
+        coupon, discount_amount, coupon_error = validate_checkout_coupon(coupon.code, eligible_subtotal, user)
 
         if coupon_error:
             return None, coupon_error

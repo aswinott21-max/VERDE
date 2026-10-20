@@ -10,7 +10,11 @@ from products.models import Product
 from users.models import Address, User
 from wallet.models import Wallet, WalletTransaction
 
-from checkout.services.checkout_service import create_order
+from checkout.services.checkout_service import (create_order,calculate_coupon_eligible_subtotal,validate_checkout_coupon,)
+from django.utils import timezone
+from datetime import timedelta
+from coupons.models import Coupon
+
 
 
 class CreateOrderWalletPaymentTests(TestCase):
@@ -147,3 +151,99 @@ class CreateOrderWalletPaymentTests(TestCase):
         self.assertIsNone(error)
         self.assertEqual(order.payment_status, "PENDING")
         self.assertFalse(WalletTransaction.objects.exists())
+
+
+class CouponOfferEligibilityTests(TestCase):
+    def setUp(self):
+        now = timezone.now()
+
+        self.user = User.objects.create_user(
+            email="coupon-offer@example.com",
+            full_name="Coupon Offer",
+            phone="1234567891",
+            password="test-password",
+        )
+
+        self.category = Category.objects.create(name="Offer Test Category")
+
+        self.offered_product = Product.objects.create(
+            category=self.category,
+            name="Offered Plant",
+            description="Plant with an active offer",
+            regular_price=Decimal("200.00"),
+            product_offer=Decimal("20.00"),
+            offer_start_at=now - timedelta(days=1),
+            offer_ends_at=now + timedelta(days=1),
+            stock_quantity=10,
+        )
+
+        self.regular_product = Product.objects.create(
+            category=self.category,
+            name="Regular Plant",
+            description="Plant without an offer",
+            regular_price=Decimal("50.00"),
+            stock_quantity=10,
+        )
+
+        self.coupon = Coupon.objects.create(
+            code="ELIGIBLE10",
+            coupon_name="Eligible Products Discount",
+            discount_type="percentage",
+            discount_value=Decimal("10.00"),
+            minimum_order_amount=Decimal("0.00"),
+            start_date=now - timedelta(days=1),
+            expiry_date=now + timedelta(days=1),
+            usage_limit=10,
+            status="active",
+        )
+
+    def test_mixed_cart_coupon_applies_only_to_non_offered_products(self):
+        eligible_subtotal = calculate_coupon_eligible_subtotal([
+            (self.offered_product, Decimal("200.00")),
+            (self.regular_product, Decimal("50.00")),
+        ])
+
+        self.assertEqual(eligible_subtotal, Decimal("50.00"))
+
+        coupon, discount, error = validate_checkout_coupon(
+            self.coupon.code,
+            eligible_subtotal,
+            self.user,
+        )
+
+        self.assertIsNone(error)
+        self.assertEqual(coupon, self.coupon)
+        self.assertEqual(discount, Decimal("5.00"))
+
+    def test_coupon_is_rejected_when_all_products_have_active_offers(self):
+        eligible_subtotal = calculate_coupon_eligible_subtotal([
+            (self.offered_product, Decimal("200.00")),
+        ])
+
+        self.assertEqual(eligible_subtotal, Decimal("0.00"))
+
+        coupon, discount, error = validate_checkout_coupon(
+            self.coupon.code,
+            eligible_subtotal,
+            self.user,
+        )
+
+        self.assertIsNone(coupon)
+        self.assertEqual(discount, Decimal("0.00"))
+        self.assertEqual(
+            error,
+            "No eligible products remain for this coupon.",
+        )
+
+    def test_active_category_offer_excludes_product_from_coupon(self):
+        now = timezone.now()
+        self.category.discount_value = Decimal("15.00")
+        self.category.offer_start_at = now - timedelta(days=1)
+        self.category.offer_end_at = now + timedelta(days=1)
+        self.category.save()
+
+        eligible_subtotal = calculate_coupon_eligible_subtotal([
+            (self.regular_product, Decimal("50.00")),
+        ])
+
+        self.assertEqual(eligible_subtotal, Decimal("0.00"))

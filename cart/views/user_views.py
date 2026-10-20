@@ -10,7 +10,7 @@ from coupons.models import Coupon,CouponUsage
 
 from coupons.services.coupon_service import (is_coupon_valid,is_coupon_usage_available,is_minimum_order_amount_met,)
 from cart.services.cart_service import (add_to_cart,get_cart_details,remove_from_cart,update_cart_quantity,)
-from checkout.services.checkout_service import validate_checkout_coupon
+from checkout.services.checkout_service import (validate_checkout_coupon,calculate_coupon_eligible_subtotal)
 
 @login_required
 @never_cache
@@ -31,7 +31,14 @@ def apply_coupon(request):
     if not cart_data["items"]:
         return JsonResponse({"message": "Your cart is empty."}, status=400)
 
-    coupon, discount, error = validate_checkout_coupon(coupon_code, cart_data["subtotal"], request.user)
+    eligible_subtotal = calculate_coupon_eligible_subtotal(
+        (item["product"], item["item_total"])
+        for item in cart_data["items"]
+    )
+
+    coupon, discount, error = validate_checkout_coupon(
+        coupon_code, eligible_subtotal, request.user
+    )
 
     if error:
         return JsonResponse({"message": error}, status=400)
@@ -60,6 +67,9 @@ def available_coupons_api(request):
 
     cart_data = get_cart_details(request.user)
     subtotal = cart_data["subtotal"]
+    eligible_subtotal = calculate_coupon_eligible_subtotal(
+        (item["product"], item["item_total"])
+        for item in cart_data["items"])
 
     coupons = Coupon.objects.all().order_by("expiry_date")
     available_coupons =[]
@@ -74,7 +84,7 @@ def available_coupons_api(request):
             continue
 
         #check cart met minimum coupon amuont
-        minimum_met = is_minimum_order_amount_met(coupon, subtotal)
+        minimum_met = is_minimum_order_amount_met(coupon, eligible_subtotal)
 
         available_coupons.append({
             "code": coupon.code,
@@ -88,7 +98,7 @@ def available_coupons_api(request):
             "minimum_order_amount": str(coupon.minimum_order_amount),
             "expiry_date": coupon.expiry_date.isoformat(),
             "minimum_met": minimum_met,
-            "amount_needed": str(max(coupon.minimum_order_amount - subtotal, 0)),
+            "amount_needed": str(max(coupon.minimum_order_amount - eligible_subtotal, 0)),
         })
 
     return JsonResponse({

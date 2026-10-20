@@ -14,7 +14,7 @@ from coupons.models import Coupon
 from django.conf import settings
 
 from cart.services.cart_service import get_cart_details
-from checkout.services.checkout_service import create_order,create_pending_razorpay_order,finalize_razorpay_order
+from checkout.services.checkout_service import create_order,create_pending_razorpay_order,finalize_razorpay_order, validate_checkout_coupon,calculate_coupon_eligible_subtotal
 from checkout.services.razorpay_service import create_razorpay_order,verify_razorpay_payment
 
 # Create your views here.
@@ -56,7 +56,11 @@ def checkout_page(request):
         selected_coupon = Coupon.objects.filter(id=coupon_id).first()
 
         if selected_coupon:
-            coupon, coupon_discount, error = validate_checkout_coupon(selected_coupon.code, cart_data["subtotal"], request.user)
+            eligible_subtotal = calculate_coupon_eligible_subtotal(
+                (item["product"], item["item_total"])
+                for item in cart_data["items"])
+
+            coupon, coupon_discount, error = validate_checkout_coupon(selected_coupon.code, eligible_subtotal, request.user)
             #remove invalid coupon from session to prevent stale discount
             if error:
                 request.session.pop("checkout_coupon_id", None)
