@@ -2,6 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Count, F, Sum,Q
+from django.db.models.functions import TruncDate, TruncMonth
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
@@ -17,7 +18,67 @@ def admin_dashboard_page(request):
 
     #Use paid, non-cancelled orders as the basis for sales figures
     today = timezone.localdate()
+    chart_period = request.GET.get("period","week")
+    if chart_period not in {"week","month","year"}:
+        chart_period ="week"
+
     paid_orders = Order.objects.filter(payment_status="PAID").exclude(status="CANCELLED")
+
+    if chart_period == "week":
+        chart_start = today - timedelta(days=6)
+        chart_grouping = TruncDate("created_at")
+    elif chart_period == "month":
+        chart_start = today.replace(day=1)
+        chart_grouping = TruncDate("created_at")
+    else:
+        chart_start = today.replace(month=1, day=1)
+        chart_grouping = TruncMonth("created_at")
+
+    chart_sales = (
+        paid_orders.filter(created_at__date__gte=chart_start,
+                           created_at__date__lte=today)
+        .annotate(period=chart_grouping)
+        .values("period")
+        .annotate(sales=Sum("total_amount"))
+        .order_by("period")
+    )
+
+    #fill missing dates with zero sales and calculate relative bar heights
+    sales_by_period = {}
+    for entry in chart_sales:
+        period_date = entry["period"]
+        if hasattr(period_date, "date"):
+            period_date = period_date.date()
+        sales_by_period[period_date] = entry["sales"] or Decimal("0.00")
+
+    if chart_period == "week":
+        chart_dates = [today - timedelta(days=offset) for offset in range(6, -1, -1)]
+        chart_labels = [day.strftime("%a") for day in chart_dates]
+    elif chart_period == "month":
+        chart_dates = [today.replace(day=day) for day in range(1, today.day + 1)]
+        chart_labels = [day.strftime("%d") for day in chart_dates]
+    else:
+        chart_dates = [today.replace(month=month, day=1) for month in range(1, today.month + 1)]
+        chart_labels = [day.strftime("%b") for day in chart_dates]
+
+    chart_values = [
+        sales_by_period.get(
+            day.replace(day=1) if chart_period == "year" else day,
+            Decimal("0.00"),
+        )
+        for day in chart_dates
+    ]
+    max_sales = max(chart_values, default=Decimal("0.00"))
+
+    chart_data = [
+        {
+            "label": label,
+            "sales": sales,
+            "height": round(float(sales / max_sales * 100), 1) if max_sales else 0,
+        }
+        for label, sales in zip(chart_labels, chart_values)
+    ]
+
     total_sales = paid_orders.aggregate(amount=Sum("total_amount"))["amount"] or Decimal("0.00")
 
     #remove only completed refunds belonging to eligible sales
@@ -108,6 +169,8 @@ def admin_dashboard_page(request):
         "low_stock_products": low_stock_products,
         "best_sellers": best_sellers,
         "best_selling_categories": best_selling_categories,
+        "chart_data": chart_data,
+        "chart_period": chart_period,
     }
 
     return render(request,"adminpanel/admin_dashboard.html",context)

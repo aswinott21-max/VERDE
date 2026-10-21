@@ -576,6 +576,9 @@
             cursor: pointer;
             padding-bottom: 2px;
             transition: color 0.15s ease;
+            /* neutralise <a> defaults when used as a link */
+            text-decoration: none;
+            display: inline-block;
         }
 
         .tab-btn.active {
@@ -600,18 +603,7 @@
             overflow: hidden;
         }
 
-        .chart-placeholder-text {
-            position: absolute;
-            top: 45%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            color: #929d95;
-            text-transform: uppercase;
-            pointer-events: none;
-        }
+        /* (chart-placeholder-text removed — placeholder div no longer used) */
 
         .chart-bars-wrap {
             display: flex;
@@ -634,13 +626,24 @@
         .chart-bar {
             width: 100%;
             max-width: 44px;
-            background-color: #cfd6d1;
+            /* muted sage green — sits naturally inside VERDÉ's botanical palette */
+            background-color: #8aab90;
             border-radius: 4px 4px 0 0;
             transition: background-color 0.2s ease, height 0.3s ease;
         }
 
         .chart-bar-col:hover .chart-bar {
-            background-color: #b1bdb4;
+            /* slightly deeper forest green on hover — still subtle, not electric */
+            background-color: #5c7f65;
+        }
+
+        .chart-label {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-top: 6px;
+            white-space: nowrap;
+            text-align: center;
         }
 
         /* Store Snapshot Dark Card */
@@ -1438,35 +1441,33 @@
                     <div class="chart-header">
                         <h3 class="card-heading">Sales Performance</h3>
                         <div class="time-filter-tabs">
-                            <button class="tab-btn active">Week</button>
-                            <button class="tab-btn">Month</button>
-                            <button class="tab-btn">Year</button>
+                            <a href="?period=week"
+                               class="tab-btn{% if chart_period == 'week' %} active{% endif %}"
+                               aria-pressed="{% if chart_period == 'week' %}true{% else %}false{% endif %}">Week</a>
+                            <a href="?period=month"
+                               class="tab-btn{% if chart_period == 'month' %} active{% endif %}"
+                               aria-pressed="{% if chart_period == 'month' %}true{% else %}false{% endif %}">Month</a>
+                            <a href="?period=year"
+                               class="tab-btn{% if chart_period == 'year' %} active{% endif %}"
+                               aria-pressed="{% if chart_period == 'year' %}true{% else %}false{% endif %}">Year</a>
                         </div>
                     </div>
                     <div class="chart-container">
-                        <div class="chart-placeholder-text">Chart Visualization Area</div>
                         <div class="chart-bars-wrap">
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 38%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 52%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 42%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 76%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 94%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 82%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 60%;"></div>
-                            </div>
+                            {% if chart_data %}
+                                {% for item in chart_data %}
+                                <div class="chart-bar-col"
+                                     title="&#8377;{{ item.sales|floatformat:2 }}">
+                                    <div class="chart-bar"
+                                         style="height: {{ item.height }}%;"></div>
+                                    <span class="chart-label">{{ item.label }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div style="display:flex;align-items:center;justify-content:center;width:100%;font-size:12px;color:var(--color-text-muted);">
+                                    No sales data for this period.
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
