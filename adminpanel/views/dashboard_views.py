@@ -1,9 +1,113 @@
+from datetime import timedelta
+from decimal import Decimal
+
+from django.db.models import Count, F, Sum,Q
 from django.shortcuts import render
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from ..decorators import admin_required
+
+from adminpanel.decorators import admin_required
+from users.models import User
+from orders.models import Order, OrderItem, Return, Refund
+from products.models import Product,ProductImage
 
 @never_cache
 @admin_required
 def admin_dashboard_page(request):
 
-    return render(request,"adminpanel/admin_dashboard.html")
+    #Use paid, non-cancelled orders as the basis for sales figures
+    today = timezone.localdate()
+    paid_orders = Order.objects.filter(payment_status="PAID").exclude(status="CANCELLED")
+    total_sales = paid_orders.aggregate(amount=Sum("total_amount"))["amount"] or Decimal("0.00")
+
+    #remove only completed refunds belonging to eligible sales
+    complete_refunds = Refund.objects.filter(status="COMPLETED", return_request__order_item__order__in=paid_orders,).aggregate(amount=Sum("amount"))["amount"] or Decimal("0.00")
+
+    net_revenue = total_sales - complete_refunds
+
+    today_orders = paid_orders.filter(created_at__date=today)
+    today_sales = today_orders.aggregate(amount=Sum("total_amount"))["amount"] or Decimal("0.00")
+
+    today_refunds = Refund.objects.filter(status="COMPLETED",return_request__order_item__order__in=today_orders,).aggregate(amount=Sum("amount"))["amount"] or Decimal("0.00")
+
+    #build the dashboard's recent-activity and inventory sections
+    recent_orders = Order.objects.select_related("user").order_by("-created_at")[:7]
+
+    pending_returns = Return.objects.filter(status__in=["REQUESTED", "PICKED"]).count()
+
+    pending_refunds = Refund.objects.filter(status="PENDING").count()
+    low_stock_products = Product.objects.filter(is_active=True,stock_quantity__lte=F("low_stock_threshold"))
+
+
+    #get best sellers and their images without per-product queries
+    best_sellers = list(
+        OrderItem.objects.filter(order__payment_status="PAID")
+        .exclude(order__status="CANCELLED")
+        .exclude(item_status="CANCELLED")
+        .values("product_id", "product_name")
+        .annotate(units_sold=Sum("quantity"))
+        .order_by("-units_sold")
+    )
+
+    product_ids = [item["product_id"] for item in best_sellers]
+
+    images = (
+        ProductImage.objects.filter(
+            Q(product_id__in=product_ids)
+            | Q(product_variant__product_id__in=product_ids)
+        )
+        .select_related("product_variant")
+        .order_by("-is_primary", "sort_order", "id")
+    )
+
+    #attach the first available image URL to each best seller
+    image_urls = {}
+    for image in images:
+        product_id = (
+            image.product_id
+            if image.product_id
+            else image.product_variant.product_id
+        )
+        if product_id not in image_urls and image.image_url:
+            image_urls[product_id] = image.image_url.url
+
+    for item in best_sellers:
+        item["image_url"] = image_urls.get(item["product_id"])
+
+
+    best_selling_categories = (
+        OrderItem.objects.filter(
+            order__payment_status="PAID",
+            product__isnull=False,
+        )
+        .exclude(order__status="CANCELLED")
+        .exclude(item_status="CANCELLED")
+        .values(
+            "product__category_id",
+            "product__category__name",
+        )
+        .annotate(units_sold=Sum("quantity"))
+        .order_by("-units_sold")[:10]
+    )
+
+    context ={
+        "total_revenue": net_revenue,
+        "total_orders": paid_orders.count(),
+        "total_customers": User.objects.filter(is_active=True,is_staff=False,).count(),
+        "total_products" : Product.objects.filter(is_active=True).count(),
+        "today_orders_count": today_orders.count(),
+        "today_revenue": today_sales - today_refunds,
+        "average_order_value": (
+            net_revenue / paid_orders.count()
+            if paid_orders.exists()
+            else Decimal("0.00")),
+        "recent_orders": recent_orders,
+        "pending_returns_count": pending_returns,
+        "pending_refunds_count": pending_refunds,
+        "low_stock_count": low_stock_products.count(),
+        "low_stock_products": low_stock_products,
+        "best_sellers": best_sellers,
+        "best_selling_categories": best_selling_categories,
+    }
+
+    return render(request,"adminpanel/admin_dashboard.html",context)
