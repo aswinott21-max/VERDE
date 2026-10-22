@@ -36,6 +36,7 @@ urlpatterns = [
     path("coupons/",include("coupons.urls")),
     path("checkout/", include("checkout.urls")),
     path("wallet/", include("wallet.urls")),
+    path("admin-sales-report/", include("sales_reports.urls")),
 
 
 
