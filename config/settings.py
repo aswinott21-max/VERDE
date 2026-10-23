@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'checkout',
     'wallet',
     'sales_reports',
+    'referrals',
 
 
     "practice",

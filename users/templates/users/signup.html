@@ -224,6 +224,18 @@
               <span class="field-error" id="confirmPasswordError" role="alert" aria-live="polite"></span>
             </div>
 
+            <div class="signup-field">
+              <label for="referral_code">Referral Code</label>
+              <input
+                type="text"
+                id="referral_code"
+                name="referral_code"
+                placeholder="Enter referral code (optional)"
+                autocomplete="off"
+              />
+              <span class="field-error" id="referralCodeError" role="alert" aria-live="polite"></span>
+            </div>
+
             <p
               class="signup-error"
               id="signupError"
@@ -280,12 +292,14 @@
       const phoneInput = document.getElementById("phone");
       const passwordInput = document.getElementById("password");
       const confirmPasswordInput = document.getElementById("confirm_password");
+      const referralCodeInput = document.getElementById("referral_code");
 
       const nameError = document.getElementById("nameError");
       const emailError = document.getElementById("emailError");
       const phoneError = document.getElementById("phoneError");
       const passwordError = document.getElementById("passwordError");
       const confirmPasswordError = document.getElementById("confirmPasswordError");
+      const referralCodeError = document.getElementById("referralCodeError");
 
       const requirementChecks = [
         [document.getElementById("signupLength"), (value) => value.length >= 8],
@@ -340,10 +354,11 @@
         clearFieldError(phoneInput, phoneError);
         clearFieldError(passwordInput, passwordError);
         clearFieldError(confirmPasswordInput, confirmPasswordError);
+        clearFieldError(referralCodeInput, referralCodeError);
         if (signupError) signupError.textContent = "";
       }
 
-      [nameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput].forEach((input) => {
+      [nameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput, referralCodeInput].forEach((input) => {
         if (input) {
           input.addEventListener("input", () => {
             if (input === nameInput) clearFieldError(nameInput, nameError);
@@ -351,6 +366,7 @@
             if (input === phoneInput) clearFieldError(phoneInput, phoneError);
             if (input === passwordInput) clearFieldError(passwordInput, passwordError);
             if (input === confirmPasswordInput) clearFieldError(confirmPasswordInput, confirmPasswordError);
+            if (input === referralCodeInput) clearFieldError(referralCodeInput, referralCodeError);
             if (signupError) signupError.textContent = "";
           });
         }
@@ -393,6 +409,7 @@
         const phoneVal = phoneInput.value.trim();
         const passwordVal = passwordInput.value;
         const confirmPasswordVal = confirmPasswordInput.value;
+        const referralCodeVal = referralCodeInput ? referralCodeInput.value.trim() : "";
 
         let hasClientError = false;
         if (!nameVal) {
@@ -450,6 +467,7 @@
               phone: phoneVal,
               password: passwordVal,
               confirm_password: confirmPasswordVal,
+              referral_code: referralCodeVal,
             }),
           });
           const result = await response.json();
@@ -481,6 +499,9 @@
             } else if (lowerErr.includes("password")) {
               setFieldError(passwordInput, passwordError, err);
               passwordInput.focus();
+            } else if (lowerErr.includes("referral")) {
+              setFieldError(referralCodeInput, referralCodeError, err);
+              if (referralCodeInput) referralCodeInput.focus();
             } else {
               signupError.textContent = err;
             }
