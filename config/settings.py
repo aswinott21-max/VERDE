@@ -41,6 +41,15 @@ CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/1"
 CELERY_TASK_IGNORE_RESULT = True
 
 
+CELERY_BEAT_SCHEDULE = {
+    "process-pending-referrals-every-15-minutes": {
+        "task": "referrals.tasks.process_pending_referrals",
+        "schedule": 900.0,  # Run every 15 minutes.
+    },
+}
+
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
@@ -74,6 +83,8 @@ INSTALLED_APPS = [
     'coupons',
     'checkout',
     'wallet',
+    'sales_reports',
+    'referrals',
 
 
     "practice",

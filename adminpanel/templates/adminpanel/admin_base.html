@@ -1,0 +1,486 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VERDÉ Admin{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Brand & System Palette */
+            --bg-sidebar: #091a10;
+            --sidebar-hover: rgba(255, 255, 255, 0.06);
+            --sidebar-active: #142a1d;
+            --sidebar-text: #8ea896;
+            --sidebar-text-active: #ffffff;
+            --sidebar-heading: #4b6854;
+
+            --bg-main: #f5f3f0;
+            --bg-header: #ffffff;
+            --bg-card: #ffffff;
+            --card-border: #edf0eb;
+            --border-light: #f0f3ef;
+
+            --color-text-main: #141715;
+            --color-text-muted: #64746a;
+            --color-text-light: #94a399;
+
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+            --shadow-subtle: 0 2px 10px rgba(16, 37, 24, 0.03);
+            --shadow-card: 0 4px 20px rgba(16, 37, 24, 0.04);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-main);
+            color: var(--color-text-main);
+            min-height: 100vh;
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .admin-sidebar {
+            width: 230px;
+            min-width: 230px;
+            background-color: var(--bg-sidebar);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 30;
+        }
+
+        .admin-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 24px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+        }
+
+        .brand-title {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .brand-subtitle {
+            font-size: 9px;
+            letter-spacing: 3.5px;
+            color: #6b8a74;
+            font-weight: 600;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        .nav-section {
+            margin-top: 14px;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--sidebar-heading);
+            padding: 6px 12px 4px;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--sidebar-text);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            color: var(--sidebar-text-active);
+            background-color: var(--sidebar-hover);
+        }
+
+        .nav-item.active a {
+            color: var(--sidebar-text-active);
+            background-color: var(--sidebar-active);
+            font-weight: 600;
+        }
+
+        .nav-item svg {
+            width: 17px;
+            height: 17px;
+            stroke-width: 1.8;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+
+        .nav-item.active svg {
+            opacity: 1;
+            stroke: #72ba88;
+        }
+
+        .admin-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+        }
+
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+            padding: 14px 44px;
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #434e46;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 6px;
+            border-radius: 50%;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .header-icon-btn:hover {
+            color: var(--color-text-main);
+            background-color: #f0f4f1;
+        }
+
+        .header-icon-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 6px;
+            height: 6px;
+            background-color: #e53935;
+            border-radius: 50%;
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 22px;
+            background-color: #e2e8e3;
+        }
+
+        .profile-dropdown-wrapper {
+            position: relative;
+        }
+
+        .admin-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: none;
+            border: none;
+            padding: 4px 6px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .admin-profile-btn:hover {
+            background-color: #f0f4f1;
+        }
+
+        .admin-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #2b4533;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12.5px;
+            font-weight: 600;
+            border: 1px solid #142a1d;
+            overflow: hidden;
+        }
+
+        .chevron-icon {
+            color: #728477;
+            transition: transform 0.2s ease;
+        }
+
+        .profile-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 10px);
+            width: 200px;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 28px rgba(16, 37, 24, 0.08);
+            padding: 6px 0;
+            z-index: 50;
+        }
+
+        .dropdown-header {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f3ef;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .dropdown-user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .dropdown-user-role {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #38453d;
+            transition: background-color 0.15s ease;
+            width: 100%;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f5f8f5;
+            color: var(--color-text-main);
+        }
+
+        .dropdown-item svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 1.8;
+            color: #64746a;
+        }
+
+        .logout-btn {
+            color: #c93434;
+        }
+
+        .logout-btn:hover {
+            background-color: #fdebee;
+            color: #b71c1c;
+        }
+
+        .logout-btn svg {
+            color: inherit;
+        }
+
+        .admin-footer {
+            background-color: #ffffff;
+            border-top: 1px solid var(--card-border);
+            padding: 20px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #7a8a80;
+            margin-top: auto;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: #7a8a80;
+            transition: color 0.15s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-text-main);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% include "adminpanel/includes/admin_sidebar.html" with active_menu=active_menu %}
+
+    <main class="admin-main">
+        <header class="admin-header">
+            {% block header_search %}{% endblock %}
+            <div class="header-actions">
+                <button class="header-icon-btn" aria-label="Notifications" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="notification-dot"></span>
+                </button>
+                <div class="header-divider"></div>
+                <div class="profile-dropdown-wrapper" id="profileDropdown">
+                    <button class="admin-profile-btn" id="profileToggleBtn" aria-expanded="false" aria-haspopup="true" onclick="toggleProfileDropdown(event)" type="button">
+                        <div class="admin-avatar">
+                            {% if request.user.full_name %}
+                                {{ request.user.full_name|slice:":2"|upper }}
+                            {% else %}
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <span class="admin-name">{{ request.user.full_name|default:"Aswin Admin" }}</span>
+                        <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="profile-dropdown-menu" id="profileMenu">
+                        <div class="dropdown-header">
+                            <span class="dropdown-user-name">{{ request.user.full_name|default:"Aswin Admin" }}</span>
+                            <span class="dropdown-user-role">Administrator</span>
+                        </div>
+                        <a href="{% url 'admin_dashboard_page' %}" class="dropdown-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <form action="/adminpanel/admin-logout/" method="POST" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item logout-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>Sign Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+
+        <footer class="admin-footer">
+            <span class="footer-copy">&copy; 2024 VERDÉ Botanical. All rights reserved.</span>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookies</a>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const btn = document.getElementById('profileToggleBtn');
+            const menu = document.getElementById('profileMenu');
+            const isCurrentlyOpen = menu.style.display === 'block';
+            menu.style.display = isCurrentlyOpen ? 'none' : 'block';
+            btn.setAttribute('aria-expanded', !isCurrentlyOpen);
+        }
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('profileMenu');
+            const btn = document.getElementById('profileToggleBtn');
+            if (menu && menu.style.display === 'block') {
+                if (!menu.contains(event.target) && !btn.contains(event.target)) {
+                    menu.style.display = 'none';
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

@@ -1,26 +1,33 @@
 import json
-from users.models import User, Address
 from django.http import JsonResponse
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from .services.validation_service import(validate_user_email,validate_user_phone,validate_user_name,validate_user_password,is_phone_taken,is_email_taken,validate_pin,validate_address_line,validate_city)
-from .services.otp_service import generate_otp, get_otp_expiry, send_otp_email
 from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
-from .services.auth_service import hash_user_password
 from django.core.paginator import Paginator
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+from .services.auth_service import hash_user_password
+from django.core.mail import send_mail
+
+from users.models import User, Address
+from referrals.models import Referral,ReferralCode,ReferralOffer
+
+from .services.validation_service import(validate_user_email,validate_user_phone,validate_user_name,validate_user_password,is_phone_taken,is_email_taken,validate_pin,validate_address_line,validate_city)
+from .services.otp_service import generate_otp, get_otp_expiry, send_otp_email
+from referrals.services import generate_referral_code
+
 
 #Google OAuth
 from authlib.integrations.django_client import OAuth
 from django.conf import settings
 
-from django.views.decorators.csrf import ensure_csrf_cookie
+
 
 #create google OAuth client
 oauth = OAuth()
@@ -52,6 +59,7 @@ def signup(request):
     phone = data.get("phone")
     password = data.get("password")
     confirm_password = data.get("confirm_password")
+    referral_code = data.get("referral_code", "").strip().upper()
 
 
 
@@ -91,6 +99,16 @@ def signup(request):
             "error": "phone number already exists"
     }, status=400)
 
+
+    if referral_code:
+        code_exists = ReferralCode.objects.filter(code=referral_code,is_active=True,user__is_active=True).exists()
+
+        if not code_exists:
+            return JsonResponse({"error":"Invalid or inactive referral code"},status=400)
+        if not ReferralOffer.objects.filter(is_active=True).exists():
+            return JsonResponse({"error":"The referral program is currently unavailable"},status=400)
+
+
     #Password validation
     if not validate_user_password(password):
         return JsonResponse({
@@ -117,6 +135,7 @@ def signup(request):
         "name": name,
         "email": email,
         "phone": phone,
+        "referral_code": referral_code,
         "password": hash_user_password(password), #Hash password using the authentication service
         "otp": otp,
         "otp_expires_at" : otp_expires_at.isoformat(),
@@ -125,9 +144,7 @@ def signup(request):
     }
     
 
-    return JsonResponse({
-        "message" : "OTP generated successfully"
-    })
+    return JsonResponse({"message" : "OTP generated successfully"})
 
 
 @csrf_exempt
@@ -233,17 +250,49 @@ def create_account(request):
             "error" : "Please verify your email first"
         }, status=400)
 
-    #Create user
-    user = User(
-        email=signup_data["email"],
-        full_name = signup_data["name"],
-        phone = signup_data["phone"],
-        password = signup_data["password"]
-       )
+    #revalidate the referral code before creating the account
+    referral_code = signup_data.get("referral_code","")
+    referrer_code = None
+    referral_offer = None
 
-    # Mark email as verified
-    user. is_verified = True
-    user.save()
+    if referral_code:
+        referrer_code = ReferralCode.objects.filter(code=referral_code,is_active=True,user__is_active=True).first()
+        referral_offer = ReferralOffer.objects.filter(is_active=True).first()
+
+        if not referrer_code or not referral_offer:
+            return JsonResponse({
+                "error": "The referral code or referral offer is no longer available"}, status=400)
+
+        # Prevent self-referral
+        if referrer_code.user.email.lower() == signup_data["email"].lower():
+            return JsonResponse({"error": "You cannot use your own referral code"}, status=400)
+
+
+
+
+    # Create the account and referral records atomically
+    with transaction.atomic():
+        user = User(
+            email=signup_data["email"],
+            full_name=signup_data["name"],
+            phone=signup_data["phone"],
+            password=signup_data["password"],
+            is_verified=True,
+        )
+        user.save()
+
+        # Generate this customer's own shareable referral code
+        generate_referral_code(user)
+
+        # Record who referred this customer, if a code was entered
+        if referrer_code:
+            Referral.objects.create(
+                referrer=referrer_code.user,
+                referred_user=user,
+                referral_code=referrer_code.code,
+                referral_offer=referral_offer,
+                reward_amount=referral_offer.reward_amount,
+            )
 
     #Clear signup data from session
     request.session.pop("signup_data", None)

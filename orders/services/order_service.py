@@ -2,6 +2,7 @@ import logging
 from django.db import transaction
 from decimal import Decimal, ROUND_HALF_UP
 from django.utils import timezone
+from datetime import timedelta
 
 
 from orders.models import Order,OrderStatusHistory,Return,OrderItem, Refund
@@ -11,6 +12,21 @@ from products.services.tax_service import calculate_tax
 from wallet.services.wallet_service import credit_wallet
 
 logger = logging.getLogger(__name__)
+
+def _get_return_window_error(order):
+    #Check whether an order is still within its 3-calendar-day return window
+    delivery_history = (order.status_history.filter(status="DELIVERED").order_by("created_at").first())
+
+    if not delivery_history:
+        return "Delivery date is unavailable. Please contact support."
+
+    delivery_date = timezone.localdate(delivery_history.created_at)
+    last_return_date = delivery_date + timedelta(days=3)
+
+    if timezone.localdate() > last_return_date:
+        return "The 3-day return window has expired"
+
+    return None
 
 
 def _calculate_return_refund_amount(order, item):
@@ -83,6 +99,10 @@ def return_order(user, order_number, return_reason):
     if order.status != "DELIVERED":
         return None,"Only delivered orders can be returned"
 
+    return_window_error =_get_return_window_error(order)
+    if return_window_error:
+        return None, return_window_error
+
     #get only items not cancelled
     items = order.items.filter(item_status="ACTIVE").exclude(returns__isnull=False)
 
@@ -114,6 +134,10 @@ def return_order_item(user, order_number, order_item_id, return_reason, user_add
     #return only after delivery
     if order.status != "DELIVERED":
         return None, "Only delivered orders can be returned"
+
+    return_window_error =_get_return_window_error(order)
+    if return_window_error:
+        return None, return_window_error
 
     item = (order.items.filter(id=order_item_id,item_status ="ACTIVE").first())
 

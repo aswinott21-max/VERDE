@@ -576,6 +576,9 @@
             cursor: pointer;
             padding-bottom: 2px;
             transition: color 0.15s ease;
+            /* neutralise <a> defaults when used as a link */
+            text-decoration: none;
+            display: inline-block;
         }
 
         .tab-btn.active {
@@ -600,18 +603,7 @@
             overflow: hidden;
         }
 
-        .chart-placeholder-text {
-            position: absolute;
-            top: 45%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            color: #929d95;
-            text-transform: uppercase;
-            pointer-events: none;
-        }
+        /* (chart-placeholder-text removed — placeholder div no longer used) */
 
         .chart-bars-wrap {
             display: flex;
@@ -634,13 +626,24 @@
         .chart-bar {
             width: 100%;
             max-width: 44px;
-            background-color: #cfd6d1;
+            /* muted sage green — sits naturally inside VERDÉ's botanical palette */
+            background-color: #8aab90;
             border-radius: 4px 4px 0 0;
             transition: background-color 0.2s ease, height 0.3s ease;
         }
 
         .chart-bar-col:hover .chart-bar {
-            background-color: #b1bdb4;
+            /* slightly deeper forest green on hover — still subtle, not electric */
+            background-color: #5c7f65;
+        }
+
+        .chart-label {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-top: 6px;
+            white-space: nowrap;
+            text-align: center;
         }
 
         /* Store Snapshot Dark Card */
@@ -826,6 +829,96 @@
             color: var(--red-badge-text);
         }
 
+        .dot-placed { background-color: #1976d2; }
+        .dot-out-for-delivery { background-color: #00897b; }
+        .dot-cancelled { background-color: #d32f2f; }
+        .dot-returned { background-color: #7b1fa2; }
+
+        /* Low Stock Items in Needs Attention */
+        .low-stock-section {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .low-stock-heading {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+        }
+
+        .low-stock-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding-right: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .low-stock-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .low-stock-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .low-stock-list::-webkit-scrollbar-thumb {
+            background: #d4ded6;
+            border-radius: 4px;
+        }
+
+        .low-stock-list::-webkit-scrollbar-thumb:hover {
+            background: #b8c7bc;
+        }
+
+        .low-stock-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12.5px;
+            padding-right: 2px;
+        }
+
+        .low-stock-name {
+            color: var(--color-text-main);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+            margin-right: 8px;
+        }
+
+        .product-img-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background-color: #f1f4f1;
+            color: #7b8e80;
+        }
+
+        .product-img-placeholder svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        .empty-state-message {
+            padding: 24px 0 8px;
+            font-size: 13px;
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
         /* ==========================================================================
            Bottom Section: Best Sellers
            ========================================================================== */
@@ -837,17 +930,61 @@
             box-shadow: var(--shadow-subtle);
         }
 
-        .best-sellers-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 16px;
+        /* Horizontal scroll strip — shows ~5 items, rest scrollable */
+        .best-sellers-scroll-wrap {
+            /*
+             * Scroll viewport: overflow-x:auto shows the scrollbar only when
+             * the inner .best-sellers-grid is wider than this box.
+             * scrollbar-width:auto / height:8px  =  full OS scrollbar, draggable.
+             */
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             margin-top: 16px;
+            scrollbar-width: auto;
+            scrollbar-color: #a8bfad #e8f0e9;
         }
 
+        /* WebKit visible, draggable scrollbar */
+        .best-sellers-scroll-wrap::-webkit-scrollbar { height: 8px; }
+        .best-sellers-scroll-wrap::-webkit-scrollbar-track {
+            background: #e8f0e9;
+            border-radius: 4px;
+        }
+        .best-sellers-scroll-wrap::-webkit-scrollbar-thumb {
+            background: #a8bfad;
+            border-radius: 4px;
+        }
+        .best-sellers-scroll-wrap::-webkit-scrollbar-thumb:hover {
+            background: #7b9e83;
+        }
+
+        /*
+         * Inner flex row: must NOT have overflow itself.
+         * min-width:max-content lets it grow as wide as all cards need —
+         * wider than .best-sellers-scroll-wrap — triggering the scrollbar.
+         * flex-wrap:nowrap keeps every card on one line.
+         */
+        .best-sellers-grid {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 16px;
+            padding-bottom: 10px;
+            min-width: max-content;
+        }
+
+        /*
+         * Product card: 200 px ≈ original 5-column grid card size
+         * (container ~1098 px – 4 × 16 px gap) / 5 ≈ 207 px.
+         * flex: 0 0 200px  →  never shrinks, never stretches.
+         * Restores the original visual card dimensions.
+         */
         .product-item {
             display: flex;
             flex-direction: column;
             text-align: center;
+            width: 200px;
+            flex: 0 0 200px;
         }
 
         .product-img-wrap {
@@ -890,6 +1027,61 @@
             font-weight: 500;
         }
 
+        /* Category card variant */
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 0 0 calc(20% - 13px);
+            min-width: 110px;
+            scroll-snap-align: start;
+            background-color: #f6f9f6;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 18px 12px 14px;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .category-item:hover {
+            box-shadow: 0 4px 14px rgba(44, 90, 60, 0.10);
+            transform: translateY(-2px);
+        }
+
+        .category-icon-wrap {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #e8f0e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            color: var(--color-brand);
+        }
+
+        .category-icon-wrap svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .category-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .category-sales {
+            font-size: 11.5px;
+            color: var(--color-text-muted);
+            font-weight: 500;
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 1100px) {
             .stats-grid {
@@ -898,8 +1090,9 @@
             .grid-2col {
                 grid-template-columns: 1fr;
             }
-            .best-sellers-grid {
-                grid-template-columns: repeat(3, 1fr);
+            /* product-item stays 200 px — scroll kicks in on narrower screens automatically */
+            .category-item {
+                flex: 0 0 calc(33.333% - 11px);
             }
         }
 
@@ -919,8 +1112,14 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-            .best-sellers-grid {
-                grid-template-columns: repeat(2, 1fr);
+            /* On mobile, 160 px preserves proportional appearance while still scrolling */
+            .product-item {
+                width: 160px;
+                flex: 0 0 160px;
+            }
+            .category-item {
+                flex: 0 0 calc(40% - 8px);
+                min-width: 100px;
             }
         }
     </style>
@@ -930,172 +1129,7 @@
     <!-- ========================================================================
        Left Sidebar Navigation
        ======================================================================== -->
-    <aside class="admin-sidebar" aria-label="Admin Navigation">
-        <!-- Logo & Header -->
-        <div class="sidebar-brand">
-            <div class="brand-logo-wrap">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2L12 22"></path>
-                    <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
-                    <path d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"></path>
-                    <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
-                </svg>
-                <div class="brand-title">VERDÉ</div>
-                <div class="brand-subtitle">ADMIN</div>
-            </div>
-        </div>
-
-        <!-- Section: Overview -->
-        <div class="nav-section">
-            <div class="nav-section-title">OVERVIEW</div>
-            <ul class="nav-list">
-                <li class="nav-item active">
-                    <a href="/adminpanel/admin-dashboard/">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Section: Catalog -->
-        <div class="nav-section">
-            <div class="nav-section-title">CATALOG</div>
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="/products/admin/products/">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                        <span>Products</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/catalog/admin/categories/">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                            <polyline points="2 17 12 22 22 17"></polyline>
-                            <polyline points="2 12 12 17 22 12"></polyline>
-                        </svg>
-                        <span>Categories</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Section: Sales -->
-        <div class="nav-section">
-            <div class="nav-section-title">SALES</div>
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="{% url 'orders:admin_order_list' %}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <path d="M16 10a4 4 0 0 1-8 0"></path>
-                        </svg>
-                        <span>Orders</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'admin_coupons_page' %}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                        </svg>
-                        <span>Coupons</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Section: Customers -->
-        <div class="nav-section">
-            <div class="nav-section-title">CUSTOMERS</div>
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="/adminpanel/admin-panel/users/">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        <span>Users</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="18" cy="5" r="3"></circle>
-                            <circle cx="6" cy="12" r="3"></circle>
-                            <circle cx="18" cy="19" r="3"></circle>
-                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                        </svg>
-                        <span>Referrals</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Section: Content -->
-        <div class="nav-section">
-            <div class="nav-section-title">CONTENT</div>
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="#">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>
-                        <span>Banners</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Section: Analytics -->
-        <div class="nav-section">
-            <div class="nav-section-title">ANALYTICS</div>
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="#">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="20" x2="18" y2="10"></line>
-                            <line x1="12" y1="20" x2="12" y2="4"></line>
-                            <line x1="6" y1="20" x2="6" y2="14"></line>
-                        </svg>
-                        <span>Sales &amp; Revenue</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Section: System -->
-        <div class="nav-section">
-            <div class="nav-section-title">SYSTEM</div>
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="#">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                        </svg>
-                        <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </aside>
+    {% include "adminpanel/includes/admin_sidebar.html" with active_menu="dashboard" %}
 
     <!-- ========================================================================
        Main Content
@@ -1175,7 +1209,7 @@
             <!-- Greeting & Date Row -->
             <div class="greeting-section">
                 <div>
-                    <h2 class="greeting-heading">Good morning, Aswin.</h2>
+                    <h2 class="greeting-heading">Good morning, {{ user.full_name|default:"Aswin" }}.</h2>
                     <p class="greeting-subtext">Here is what's happening at VERDÉ today.</p>
                 </div>
                 <button class="date-picker-btn">
@@ -1185,7 +1219,7 @@
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    <span>August 10, 2026</span>
+                    <span>{% now "F j, Y" %}</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; margin-left: 2px;">
                         <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
@@ -1198,8 +1232,8 @@
                 <div class="stat-card">
                     <span class="stat-card-title">Revenue</span>
                     <div class="stat-card-value-row">
-                        <span class="stat-card-value">&#8377;2,48,650</span>
-                        <span class="stat-badge badge-positive">+12.5%</span>
+                        <span class="stat-card-value">&#8377;{{ total_revenue|default:"0.00"|floatformat:2 }}</span>
+                        {% if revenue_growth %}<span class="stat-badge badge-positive">{{ revenue_growth }}</span>{% endif %}
                     </div>
                 </div>
 
@@ -1207,8 +1241,8 @@
                 <div class="stat-card">
                     <span class="stat-card-title">Orders</span>
                     <div class="stat-card-value-row">
-                        <span class="stat-card-value">1,248</span>
-                        <span class="stat-badge badge-positive">+8.3%</span>
+                        <span class="stat-card-value">{{ total_orders|default:"0" }}</span>
+                        {% if orders_growth %}<span class="stat-badge badge-positive">{{ orders_growth }}</span>{% endif %}
                     </div>
                 </div>
 
@@ -1216,8 +1250,8 @@
                 <div class="stat-card">
                     <span class="stat-card-title">Customers</span>
                     <div class="stat-card-value-row">
-                        <span class="stat-card-value">3,842</span>
-                        <span class="stat-badge badge-positive">+6.4%</span>
+                        <span class="stat-card-value">{{ total_customers|default:"0" }}</span>
+                        {% if customers_growth %}<span class="stat-badge badge-positive">{{ customers_growth }}</span>{% endif %}
                     </div>
                 </div>
 
@@ -1225,8 +1259,12 @@
                 <div class="stat-card">
                     <span class="stat-card-title">Products</span>
                     <div class="stat-card-value-row">
-                        <span class="stat-card-value">186</span>
-                        <span class="stat-badge badge-warning">12 low stock</span>
+                        <span class="stat-card-value">{{ total_products|default:"0" }}</span>
+                        {% if low_stock_count %}
+                        <span class="stat-badge badge-warning">{{ low_stock_count }} low stock</span>
+                        {% else %}
+                        <span class="stat-badge badge-positive">All in stock</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -1238,35 +1276,33 @@
                     <div class="chart-header">
                         <h3 class="card-heading">Sales Performance</h3>
                         <div class="time-filter-tabs">
-                            <button class="tab-btn active">Week</button>
-                            <button class="tab-btn">Month</button>
-                            <button class="tab-btn">Year</button>
+                            <a href="?period=week"
+                               class="tab-btn{% if chart_period == 'week' %} active{% endif %}"
+                               aria-pressed="{% if chart_period == 'week' %}true{% else %}false{% endif %}">Week</a>
+                            <a href="?period=month"
+                               class="tab-btn{% if chart_period == 'month' %} active{% endif %}"
+                               aria-pressed="{% if chart_period == 'month' %}true{% else %}false{% endif %}">Month</a>
+                            <a href="?period=year"
+                               class="tab-btn{% if chart_period == 'year' %} active{% endif %}"
+                               aria-pressed="{% if chart_period == 'year' %}true{% else %}false{% endif %}">Year</a>
                         </div>
                     </div>
                     <div class="chart-container">
-                        <div class="chart-placeholder-text">Chart Visualization Area</div>
                         <div class="chart-bars-wrap">
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 38%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 52%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 42%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 76%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 94%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 82%;"></div>
-                            </div>
-                            <div class="chart-bar-col">
-                                <div class="chart-bar" style="height: 60%;"></div>
-                            </div>
+                            {% if chart_data %}
+                                {% for item in chart_data %}
+                                <div class="chart-bar-col"
+                                     title="&#8377;{{ item.sales|floatformat:2 }}">
+                                    <div class="chart-bar"
+                                         style="height: {{ item.height }}%;"></div>
+                                    <span class="chart-label">{{ item.label }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div style="display:flex;align-items:center;justify-content:center;width:100%;font-size:12px;color:var(--color-text-muted);">
+                                    No sales data for this period.
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -1279,19 +1315,19 @@
                     <div class="snapshot-list">
                         <div class="snapshot-item">
                             <span class="snapshot-label">Orders Today</span>
-                            <span class="snapshot-value">42</span>
+                            <span class="snapshot-value">{{ today_orders_count|default:"0" }}</span>
                         </div>
                         <div class="snapshot-item">
                             <span class="snapshot-label">Revenue Today</span>
-                            <span class="snapshot-value">&#8377;8,420</span>
+                            <span class="snapshot-value">&#8377;{{ today_revenue|default:"0.00"|floatformat:2 }}</span>
                         </div>
                         <div class="snapshot-item">
                             <span class="snapshot-label">Avg. Order Value</span>
-                            <span class="snapshot-value">&#8377;1,240</span>
+                            <span class="snapshot-value">&#8377;{{ average_order_value|default:"0.00"|floatformat:2 }}</span>
                         </div>
                         <div class="snapshot-item">
                             <span class="snapshot-label">Conversion Rate</span>
-                            <span class="snapshot-value">3.2%</span>
+                            <span class="snapshot-value">{{ conversion_rate|default:"—" }}</span>
                         </div>
                     </div>
                 </div>
@@ -1303,7 +1339,7 @@
                 <div class="card">
                     <div class="orders-header">
                         <h3 class="card-heading">Recent Orders</h3>
-                        <a href="#" class="view-all-link">View All &rarr;</a>
+                        <a href="{% url 'orders:admin_order_list' %}" class="view-all-link">View All &rarr;</a>
                     </div>
                     <table class="orders-table">
                         <thead>
@@ -1316,54 +1352,24 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for order in recent_orders %}
                             <tr>
-                                <td class="order-id">#12485</td>
-                                <td class="order-customer">Eleanor Vance</td>
-                                <td class="order-date">Aug 10</td>
-                                <td class="order-total">&#8377;3,450</td>
+                                <td class="order-id">#{{ order.order_number }}</td>
+                                <td class="order-customer">{{ order.user.full_name|default:order.user.email|default:"Guest Customer" }}</td>
+                                <td class="order-date">{{ order.created_at|date:"M d" }}</td>
+                                <td class="order-total">&#8377;{{ order.total_amount|floatformat:2 }}</td>
                                 <td>
                                     <span class="status-badge">
-                                        <span class="status-dot dot-processing"></span>
-                                        <span>Processing</span>
+                                        <span class="status-dot {% if order.status == 'DELIVERED' %}dot-delivered{% elif order.status == 'SHIPPED' or order.status == 'OUT_FOR_DELIVERY' %}dot-shipped{% elif order.status == 'PROCESSING' or order.status == 'PLACED' %}dot-processing{% elif order.status == 'CANCELLED' %}dot-cancelled{% elif order.status == 'RETURNED' %}dot-returned{% else %}dot-processing{% endif %}"></span>
+                                        <span>{{ order.status|title }}</span>
                                     </span>
                                 </td>
                             </tr>
+                            {% empty %}
                             <tr>
-                                <td class="order-id">#12484</td>
-                                <td class="order-customer">Julian Crain</td>
-                                <td class="order-date">Aug 10</td>
-                                <td class="order-total">&#8377;1,200</td>
-                                <td>
-                                    <span class="status-badge">
-                                        <span class="status-dot dot-shipped"></span>
-                                        <span>Shipped</span>
-                                    </span>
-                                </td>
+                                <td colspan="5" class="empty-state-message">No recent orders found.</td>
                             </tr>
-                            <tr>
-                                <td class="order-id">#12483</td>
-                                <td class="order-customer">Sarah Manning</td>
-                                <td class="order-date">Aug 09</td>
-                                <td class="order-total">&#8377;9,900</td>
-                                <td>
-                                    <span class="status-badge">
-                                        <span class="status-dot dot-delivered"></span>
-                                        <span>Delivered</span>
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="order-id">#12482</td>
-                                <td class="order-customer">Cosima Niehaus</td>
-                                <td class="order-date">Aug 09</td>
-                                <td class="order-total">&#8377;450</td>
-                                <td>
-                                    <span class="status-badge">
-                                        <span class="status-dot dot-delivered"></span>
-                                        <span>Delivered</span>
-                                    </span>
-                                </td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -1381,7 +1387,7 @@
                                 </svg>
                                 <span>Returns</span>
                             </div>
-                            <span class="count-pill">12</span>
+                            <span class="count-pill {% if pending_returns_count %}pill-danger{% endif %}">{{ pending_returns_count|default:"0" }}</span>
                         </div>
 
                         <!-- Item 2: Refunds -->
@@ -1394,7 +1400,7 @@
                                 </svg>
                                 <span>Refunds</span>
                             </div>
-                            <span class="count-pill">5</span>
+                            <span class="count-pill {% if pending_refunds_count %}pill-danger{% endif %}">{{ pending_refunds_count|default:"0" }}</span>
                         </div>
 
                         <!-- Item 3: Low Inventory -->
@@ -1407,74 +1413,87 @@
                                 </svg>
                                 <span>Low Inventory</span>
                             </div>
-                            <span class="count-pill pill-danger">12</span>
-                        </div>
-
-                        <!-- Item 4: Expiring Banners -->
-                        <div class="attention-item">
-                            <div class="attention-left">
-                                <svg class="attention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                    <polyline points="21 15 16 10 5 21"></polyline>
-                                </svg>
-                                <span>Expiring Banners</span>
-                            </div>
-                            <span class="count-pill">3</span>
+                            <span class="count-pill pill-danger">{{ low_stock_count|default:"0" }}</span>
                         </div>
                     </div>
+
+                    <!-- Low Stock Products List -->
+                    {% if low_stock_products %}
+                    <div class="low-stock-section">
+                        <div class="low-stock-heading">Low Stock Products</div>
+                        <ul class="low-stock-list">
+                            {% for product in low_stock_products %}
+                            <li class="low-stock-item">
+                                <span class="low-stock-name" title="{{ product.name }}">{{ product.name }}</span>
+                                <span class="count-pill pill-danger">{{ product.stock_quantity }} left</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
             <!-- Bottom Row: Best Sellers -->
             <div class="best-sellers-card">
-                <h3 class="card-heading">Best Sellers</h3>
-                <div class="best-sellers-grid">
-                    <!-- Product 1 -->
-                    <div class="product-item">
-                        <div class="product-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=400&q=80" alt="Monstera Deliciosa" class="product-img">
+                <h3 class="card-heading">Best Selling Products</h3>
+                {% if best_sellers %}
+                <div class="best-sellers-scroll-wrap">
+                    <div class="best-sellers-grid">
+                        {% for item in best_sellers %}
+                        <div class="product-item">
+                            <div class="product-img-wrap">
+                                {% if item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="product-img" loading="lazy">
+                                {% else %}
+                                    <div class="product-img-placeholder">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 2L12 22"></path>
+                                            <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                                            <path d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"></path>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <span class="product-name" title="{{ item.product_name }}">{{ item.product_name }}</span>
+                            <span class="product-sales">{{ item.units_sold }} sold</span>
                         </div>
-                        <span class="product-name">Monstera Deliciosa</span>
-                        <span class="product-sales">412 sold</span>
-                    </div>
-
-                    <!-- Product 2 -->
-                    <div class="product-item">
-                        <div class="product-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1597055181300-e3633a917c9c?auto=format&fit=crop&w=400&q=80" alt="Fiddle Leaf Fig" class="product-img">
-                        </div>
-                        <span class="product-name">Fiddle Leaf Fig</span>
-                        <span class="product-sales">389 sold</span>
-                    </div>
-
-                    <!-- Product 3 -->
-                    <div class="product-item">
-                        <div class="product-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1632207691143-643e2a9a9361?auto=format&fit=crop&w=400&q=80" alt="ZZ Plant" class="product-img">
-                        </div>
-                        <span class="product-name">ZZ Plant</span>
-                        <span class="product-sales">342 sold</span>
-                    </div>
-
-                    <!-- Product 4 -->
-                    <div class="product-item">
-                        <div class="product-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1599598425947-5202edd564c9?auto=format&fit=crop&w=400&q=80" alt="Calathea Orbifolia" class="product-img">
-                        </div>
-                        <span class="product-name">Calathea Orbifolia</span>
-                        <span class="product-sales">290 sold</span>
-                    </div>
-
-                    <!-- Product 5 -->
-                    <div class="product-item">
-                        <div class="product-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1598880940371-c756e015fea1?auto=format&fit=crop&w=400&q=80" alt="Snake Plant" class="product-img">
-                        </div>
-                        <span class="product-name">Snake Plant</span>
-                        <span class="product-sales">215 sold</span>
+                        {% endfor %}
                     </div>
                 </div>
+                {% else %}
+                <div class="empty-state-message">
+                    No best-selling products recorded yet.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Bottom Row: Best Selling Categories -->
+            <div class="best-sellers-card" style="margin-top: 20px;">
+                <h3 class="card-heading">Best Selling Categories</h3>
+                {% if best_selling_categories %}
+                <div class="best-sellers-scroll-wrap">
+                    <div class="best-sellers-grid">
+                        {% for cat in best_selling_categories %}
+                        <div class="category-item">
+                            <div class="category-icon-wrap" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2L12 22"></path>
+                                    <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                                    <path d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"></path>
+                                </svg>
+                            </div>
+                            <span class="category-name" title="{{ cat.product__category__name }}">{{ cat.product__category__name }}</span>
+                            <span class="category-sales">{{ cat.units_sold }} sold</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state-message">
+                    No category sales data recorded yet.
+                </div>
+                {% endif %}
             </div>
 
         </div>

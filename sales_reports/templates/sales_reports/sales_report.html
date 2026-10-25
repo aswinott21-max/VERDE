@@ -1,0 +1,1597 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERDÉ | Sales & Revenue</title>
+
+    <!-- Fonts (same as admin dashboard) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================================
+           Design Tokens — mirror of admin_dashboard.html palette
+           ============================================================ */
+        :root {
+            --bg-sidebar:        #091a10;
+            --sidebar-hover:     rgba(255,255,255,0.06);
+            --sidebar-active:    #142a1d;
+            --sidebar-text:      #8ea896;
+            --sidebar-text-active: #ffffff;
+            --sidebar-heading:   #4b6854;
+
+            --bg-main:           #f8f9f5;
+            --bg-card:           #ffffff;
+            --card-border:       #edf0eb;
+            --color-brand:       #2c5a3c;
+            --color-text-main:   #141715;
+            --color-text-muted:  #64746a;
+            --color-text-light:  #94a399;
+
+            --green-badge-bg:    #eaf6ed;
+            --green-badge-text:  #23834c;
+            --red-badge-bg:      #fdebee;
+            --red-badge-text:    #d32f2f;
+            --gray-badge-bg:     #f1f3f0;
+            --gray-badge-text:   #505d54;
+
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans:  'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+            --shadow-subtle: 0 2px 10px rgba(16,37,24,0.03);
+            --shadow-card:   0 4px 20px rgba(16,37,24,0.05);
+            --radius-sm:  6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        /* ============================================================
+           Resets
+           ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-main);
+            color: var(--color-text-main);
+            min-height: 100vh;
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+        }
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; font-family: inherit; }
+
+        /* ============================================================
+           Sidebar
+           ============================================================ */
+        .admin-sidebar {
+            width: 230px;
+            min-width: 230px;
+            background-color: var(--bg-sidebar);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+        .admin-sidebar::-webkit-scrollbar { width: 4px; }
+        .admin-sidebar::-webkit-scrollbar-thumb { background: #2a4030; border-radius: 4px; }
+
+        .sidebar-brand {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .brand-logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo-wrap svg {
+            width: 22px;
+            height: 22px;
+            color: #a8d4b0;
+            flex-shrink: 0;
+            stroke-width: 1.6;
+        }
+        .brand-title {
+            font-family: var(--font-serif);
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.04em;
+        }
+        .brand-subtitle {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: var(--sidebar-heading);
+            text-transform: uppercase;
+        }
+
+        .nav-section { padding: 18px 12px 6px; }
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--sidebar-heading);
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 6px;
+        }
+        .nav-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--sidebar-text);
+            transition: background 0.15s, color 0.15s;
+        }
+        .nav-item a:hover {
+            background-color: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+        .nav-item.active a {
+            background-color: var(--sidebar-active);
+            color: var(--sidebar-text-active);
+        }
+        .nav-item svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            stroke-width: 1.8;
+        }
+        .nav-item.active svg { color: #a8d4b0; }
+
+        /* ============================================================
+           Main Layout
+           ============================================================ */
+        .admin-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+            overflow-x: hidden;
+        }
+
+        /* ── Top Header ─────────────────────────────────────────── */
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .header-title {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .header-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-muted);
+        }
+        .header-icon-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+        .header-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: #2c5a3c;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── Dashboard Content ─────────────────────────────────── */
+        .dashboard-container {
+            padding: 28px 32px 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── Greeting / Controls Row ────────────────────────────── */
+        .page-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .page-head-text h2 {
+            font-family: var(--font-serif);
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+        .page-head-text p {
+            margin-top: 4px;
+            font-size: 13px;
+            color: var(--color-text-muted);
+        }
+        .page-head-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Period pill tabs */
+        .period-tabs {
+            display: flex;
+            gap: 4px;
+            background: #f1f3f0;
+            padding: 3px;
+            border-radius: 8px;
+        }
+        .period-tab {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            border: none;
+            background: transparent;
+            transition: background 0.15s, color 0.15s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .period-tab.active {
+            background: #fff;
+            color: var(--color-text-main);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .period-tab:hover:not(.active) { color: var(--color-text-main); }
+
+        /* Date range form */
+        .date-range-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .date-range-form input[type="date"] {
+            padding: 7px 10px;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-sans);
+            font-size: 12px;
+            color: var(--color-text-main);
+            background: #fff;
+        }
+        .date-range-form .date-sep {
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+        .btn-generate {
+            padding: 8px 18px;
+            background-color: #2c5a3c;
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: background 0.15s;
+        }
+        .btn-generate:hover { background-color: #1f4129; }
+
+        /* Export button */
+        .btn-export {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 16px;
+            background-color: #2c5a3c;
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: background 0.15s;
+        }
+        .btn-export:hover { background-color: #1f4129; }
+        .btn-export svg { width: 14px; height: 14px; stroke-width: 2; flex-shrink: 0; }
+
+        /* Error banner */
+        .error-banner {
+            padding: 10px 16px;
+            background-color: var(--red-badge-bg);
+            color: var(--red-badge-text);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* ── KPI Cards Row ─────────────────────────────────────── */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 20px 22px;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            letter-spacing: -0.5px;
+        }
+        .kpi-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            width: fit-content;
+        }
+        .kpi-badge.positive { background: var(--green-badge-bg); color: var(--green-badge-text); }
+        .kpi-badge.negative { background: var(--red-badge-bg);   color: var(--red-badge-text); }
+        .kpi-badge.neutral  { background: var(--gray-badge-bg);  color: var(--gray-badge-text); }
+        .kpi-badge .dummy-tag {
+            font-size: 9px;
+            opacity: 0.7;
+            font-weight: 500;
+        }
+
+        /* ── Two-column section grid ───────────────────────────── */
+        .grid-2col { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .grid-2col-even { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        /* ── Generic card shell ────────────────────────────────── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 22px 24px;
+            box-shadow: var(--shadow-subtle);
+        }
+        .card-heading {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            margin-bottom: 16px;
+        }
+
+        /* ── Revenue Breakdown ─────────────────────────────────── */
+        .breakdown-list { display: flex; flex-direction: column; gap: 10px; }
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        .breakdown-label { color: var(--color-text-muted); font-weight: 500; }
+        .breakdown-value { font-weight: 700; color: var(--color-text-main); }
+        .breakdown-value.negative { color: #c0392b; }
+        .breakdown-divider {
+            border: none;
+            border-top: 1px solid var(--card-border);
+            margin: 8px 0;
+        }
+        .breakdown-net-label { font-weight: 700; color: var(--color-text-main); }
+        .breakdown-net-value { font-size: 16px; font-weight: 700; color: var(--color-text-main); }
+
+        /* ── Sales Performance Chart (matching Admin Dashboard) ── */
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .time-filter-tabs {
+            display: flex;
+            gap: 14px;
+        }
+
+        .tab-btn {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-light);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding-bottom: 2px;
+            transition: color 0.15s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .tab-btn.active {
+            color: var(--color-text-main);
+            font-weight: 700;
+            border-bottom: 2px solid var(--color-text-main);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--color-text-muted);
+        }
+
+        .chart-container {
+            background-color: #f5f6f4;
+            border-radius: var(--radius-md);
+            height: 230px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px 28px 16px;
+            overflow: hidden;
+        }
+
+        .chart-bars-wrap {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 100%;
+            padding-top: 40px;
+            gap: 12px;
+        }
+
+        .chart-bar-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .chart-bar {
+            width: 100%;
+            max-width: 44px;
+            background-color: #8aab90;
+            border-radius: 4px 4px 0 0;
+            transition: background-color 0.2s ease, height 0.3s ease;
+        }
+
+        .chart-bar-col:hover .chart-bar {
+            background-color: #5c7f65;
+        }
+
+        .chart-label {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-top: 6px;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* ── Chart placeholder ─────────────────────────────────── */
+        .chart-placeholder {
+            height: 200px;
+            background: #f4f6f2;
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--color-text-light);
+        }
+        .chart-placeholder svg { width: 28px; height: 28px; stroke-width: 1.5; }
+        .chart-placeholder span { font-size: 12px; font-weight: 500; }
+        .placeholder-label {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 3px 9px;
+            background: #e8ece5;
+            color: var(--color-text-muted);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* ── Best Selling Category horizontal bar chart ────────── */
+        .category-chart-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 4px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #d4ded6 transparent;
+        }
+        .category-chart-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .category-chart-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .category-chart-list::-webkit-scrollbar-thumb {
+            background: #d4ded6;
+            border-radius: 4px;
+        }
+        .category-chart-list::-webkit-scrollbar-thumb:hover {
+            background: #b8c7bc;
+        }
+        .category-chart-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .category-chart-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .category-chart-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .category-chart-rank {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #edf0eb;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--color-brand);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .category-chart-units {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+        }
+        .category-bar-track {
+            height: 8px;
+            background: #f5f6f4;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .category-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background-color: #8aab90;
+            transition: background-color 0.2s ease, width 0.3s ease;
+        }
+        .category-chart-row:hover .category-bar-fill {
+            background-color: #5c7f65;
+        }
+
+        /* ── Best-seller list (placeholder rows) ──────────────── */
+        .best-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #d4ded6 transparent;
+        }
+        .best-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .best-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .best-list::-webkit-scrollbar-thumb {
+            background: #d4ded6;
+            border-radius: 4px;
+        }
+        .best-list::-webkit-scrollbar-thumb:hover {
+            background: #b8c7bc;
+        }
+        .best-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .best-rank {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #edf0eb;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .best-img {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: #f0f3ee;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-light);
+            position: relative;
+        }
+        .best-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .best-img svg { width: 18px; height: 18px; stroke-width: 1.5; }
+        .best-info { flex: 1; min-width: 0; }
+        .best-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .best-units { font-size: 11px; color: var(--color-text-muted); }
+        .best-amount { font-size: 13px; font-weight: 700; color: var(--color-text-main); }
+
+        /* ── Operations Summary ────────────────────────────────── */
+        .ops-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .ops-tile {
+            background: #f6f8f5;
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+        }
+        .ops-tile-label { font-size: 11px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .ops-tile-value { font-size: 22px; font-weight: 700; color: var(--color-text-main); margin-top: 4px; }
+        .ops-tile.accent-red .ops-tile-label { color: #c0392b; }
+        .ops-tile.accent-red .ops-tile-value { color: #c0392b; }
+
+        /* ── Payment Method bars ───────────────────────────────── */
+        .payment-list { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+        .payment-row { display: flex; flex-direction: column; gap: 4px; }
+        .payment-row-head { display: flex; justify-content: space-between; align-items: center; }
+        .payment-name { font-size: 13px; font-weight: 600; color: var(--color-text-main); display: flex; align-items: center; gap: 7px; }
+        .payment-icon {
+            width: 26px; height: 26px; border-radius: 6px;
+            background: #edf0eb; display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; color: var(--color-brand);
+        }
+        .payment-pct { font-size: 12px; font-weight: 700; color: var(--color-text-main); }
+        .payment-bar-track {
+            height: 6px; background: #edf0eb; border-radius: 3px; overflow: hidden;
+        }
+        .payment-bar-fill {
+            height: 100%; border-radius: 3px;
+            background: linear-gradient(90deg, #5a9068, #2c5a3c);
+            transition: width 0.4s ease;
+        }
+
+        /* ── Recent Sales table ────────────────────────────────── */
+        .table-wrap { overflow-x: auto; }
+        .coupon-table-wrap {
+            max-height: 220px;
+            overflow-y: auto;
+            overflow-x: auto;
+            padding-right: 2px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #d4ded6 transparent;
+        }
+        .coupon-table-wrap::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .coupon-table-wrap::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .coupon-table-wrap::-webkit-scrollbar-thumb {
+            background: #d4ded6;
+            border-radius: 4px;
+        }
+        .coupon-table-wrap::-webkit-scrollbar-thumb:hover {
+            background: #b8c7bc;
+        }
+        .coupon-table-wrap thead th {
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            z-index: 1;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid var(--card-border);
+        }
+        tbody td {
+            padding: 13px 14px;
+            border-bottom: 1px solid #f4f6f2;
+            vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background-color: #fafbf9; }
+        .table-order-id { font-weight: 700; color: var(--color-brand); }
+        .table-customer { font-weight: 500; }
+        .status-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-pill.delivered  { background: var(--green-badge-bg); color: var(--green-badge-text); }
+        .status-pill.processing { background: #fef5e4; color: #b7770d; }
+        .status-pill.shipped    { background: #e8f0fe; color: #1a56db; }
+        .status-pill.cancelled  { background: var(--red-badge-bg);   color: var(--red-badge-text); }
+        .status-pill.active     { background: var(--green-badge-bg); color: var(--green-badge-text); }
+        .status-pill.disabled   { background: var(--gray-badge-bg);  color: var(--gray-badge-text); }
+        .table-view-all {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+        .table-view-all a {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-brand);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .table-view-all a svg { width: 13px; height: 13px; stroke-width: 2.5; }
+        .dummy-note {
+            display: inline-block;
+            padding: 2px 7px;
+            background: #e8ece5;
+            color: var(--color-text-muted);
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        /* ============================================================
+           Export Modal
+           ============================================================ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(9, 26, 16, 0.55);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 28px 28px 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(9,26,16,0.22);
+        }
+        .modal-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            margin-bottom: 6px;
+        }
+        .modal-desc {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .modal-formats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+        .format-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border: 2px solid var(--card-border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            user-select: none;
+        }
+        .format-card:hover { border-color: #8aab90; }
+        .format-card.selected {
+            border-color: var(--color-brand);
+            background: #f2f8f3;
+        }
+        .format-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            flex-shrink: 0;
+        }
+        .format-icon.pdf   { background: #fdecea; color: #c0392b; }
+        .format-icon.excel { background: #e8f5e9; color: #2e7d32; }
+        .format-info { flex: 1; min-width: 0; }
+        .format-name { font-size: 13px; font-weight: 700; color: var(--color-text-main); }
+        .format-ext  { font-size: 11px; color: var(--color-text-muted); }
+        .format-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .format-card.selected .format-check {
+            border-color: var(--color-brand);
+            background: var(--color-brand);
+        }
+        .format-check svg {
+            width: 11px;
+            height: 11px;
+            stroke: #fff;
+            stroke-width: 3;
+            display: none;
+        }
+        .format-card.selected .format-check svg { display: block; }
+
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-modal-cancel {
+            padding: 9px 20px;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+        }
+        .btn-modal-cancel:hover { background: #f4f6f2; }
+        .btn-modal-export {
+            padding: 9px 22px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--color-brand);
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-modal-export:hover { background: #1f4129; }
+        .btn-modal-export:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ============================================================
+           Responsive
+           ============================================================ */
+        @media (max-width: 1100px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .grid-2col { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .admin-sidebar { width: 100%; min-width: 100%; height: auto; position: relative; }
+            .dashboard-container { padding: 20px 16px; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .grid-2col-even { grid-template-columns: 1fr; }
+            .page-head { flex-direction: column; align-items: flex-start; }
+            .page-head-controls { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+
+<!-- ================================================================
+     Sidebar
+     ================================================================ -->
+{% include "adminpanel/includes/admin_sidebar.html" with active_menu="sales_report" %}
+
+<!-- ================================================================
+     Main Content
+     ================================================================ -->
+<main class="admin-main">
+
+    <!-- Top Header -->
+    <header class="admin-header">
+        <h1 class="header-title">Sales &amp; Revenue</h1>
+        <div class="header-actions">
+            <button class="header-icon-btn" aria-label="Search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+            <button class="header-icon-btn" aria-label="Notifications">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </button>
+            <div class="header-user">
+                <div class="header-avatar">A</div>
+                <span>Admin</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+
+        <!-- ── Greeting + Controls ────────────────────────────── -->
+        <div class="page-head">
+            <div class="page-head-text">
+                <h2>Good morning, Aswin.</h2>
+                <p>Detailed financial performance and botanical sales analytics.</p>
+            </div>
+
+            <div class="page-head-controls">
+                <!-- Period quick-filter tabs (Day / Week / Year) -->
+                <nav class="period-tabs" aria-label="Report period">
+                    <a href="?period=day"
+                       class="period-tab {% if period == 'day' %}active{% endif %}">Day</a>
+                    <a href="?period=week"
+                       class="period-tab {% if period == 'week' %}active{% endif %}">Week</a>
+                    <a href="?period=year"
+                       class="period-tab {% if period == 'year' %}active{% endif %}">Year</a>
+                </nav>
+
+                <!-- Custom date-range form -->
+                <form method="get" class="date-range-form">
+                    <input type="hidden" name="period" value="custom">
+                    <input type="date"
+                           name="start_date"
+                           value="{{ start_date|date:'Y-m-d' }}"
+                           aria-label="Start date"
+                           required>
+                    <span class="date-sep">–</span>
+                    <input type="date"
+                           name="end_date"
+                           value="{{ end_date|date:'Y-m-d' }}"
+                           aria-label="End date"
+                           required>
+                    <button type="submit" class="btn-generate">Generate</button>
+                </form>
+
+                <!-- Export button — opens modal -->
+                <button class="btn-export" id="exportBtn" aria-haspopup="dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Error banner -->
+        {% if error %}
+        <div class="error-banner" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <!-- Active period display -->
+        <p style="font-size:12px;color:var(--color-text-muted);margin-top:-10px;">
+            Showing data for
+            <strong>{{ start_date|date:"d M Y" }}</strong> –
+            <strong>{{ end_date|date:"d M Y" }}</strong>
+        </p>
+
+        <!-- ── KPI Cards ──────────────────────────────────────── -->
+        <div class="kpi-grid">
+            <!-- REAL: Total Revenue -->
+            <div class="kpi-card">
+                <span class="kpi-label">Total Revenue</span>
+                <div class="kpi-value">&#8377;{{ net_revenue|floatformat:2 }}</div>
+                <!-- Trend comparison: needs backend chart_data — placeholder -->
+                <span class="kpi-badge positive">
+                    +10.5% <span class="dummy-tag">(sample)</span>
+                </span>
+            </div>
+            <!-- REAL: Total Sales -->
+            <div class="kpi-card">
+                <span class="kpi-label">Total Sales</span>
+                <div class="kpi-value">{{ sales_count }}</div>
+                <span class="kpi-badge positive">
+                    +4.2% <span class="dummy-tag">(sample)</span>
+                </span>
+            </div>
+            <!-- REAL: Total Orders -->
+            <div class="kpi-card">
+                <span class="kpi-label">Total Orders</span>
+                <div class="kpi-value">{{ sales_count }}</div>
+                <span class="kpi-badge neutral">
+                    –1.3% <span class="dummy-tag">(sample)</span>
+                </span>
+            </div>
+            <!-- REAL: Avg Order Value -->
+            <div class="kpi-card">
+                <span class="kpi-label">Avg. Order Value</span>
+                <div class="kpi-value">
+                    &#8377;{% if sales_count %}{{ order_amount|floatformat:0 }}{% else %}0{% endif %}
+                </div>
+                <span class="kpi-badge positive">
+                    +2.1% <span class="dummy-tag">(sample)</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- ── Sales Performance + Revenue Breakdown ─────────── -->
+        <div class="grid-2col">
+            <!-- Sales Performance Chart Card -->
+            <div class="card">
+                <div class="chart-header">
+                    <h3 class="card-heading">Sales Performance</h3>
+                    <div class="time-filter-tabs">
+                        <a href="?period=day"
+                           class="tab-btn{% if period == 'day' %} active{% endif %}"
+                           aria-pressed="{% if period == 'day' %}true{% else %}false{% endif %}">Day</a>
+                        <a href="?period=week"
+                           class="tab-btn{% if period == 'week' %} active{% endif %}"
+                           aria-pressed="{% if period == 'week' %}true{% else %}false{% endif %}">Week</a>
+                        <a href="?period=year"
+                           class="tab-btn{% if period == 'year' %} active{% endif %}"
+                           aria-pressed="{% if period == 'year' %}true{% else %}false{% endif %}">Year</a>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-bars-wrap">
+                        {% if chart_data %}
+                            {% for item in chart_data %}
+                            <div class="chart-bar-col"
+                                 title="&#8377;{{ item.sales|floatformat:2 }}">
+                                <div class="chart-bar"
+                                     style="height: {{ item.height }}%;"></div>
+                                <span class="chart-label">{{ item.label }}</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div style="display:flex;align-items:center;justify-content:center;width:100%;font-size:12px;color:var(--color-text-muted);">
+                                No sales data for this period.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Breakdown — REAL data -->
+            <div class="card">
+                <div class="card-heading">Revenue Breakdown</div>
+                <div class="breakdown-list">
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Product Sales</span>
+                        <span class="breakdown-value">&#8377;{{ gross_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Discounts</span>
+                        <span class="breakdown-value negative">–&#8377;{{ discount_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Coupon Discounts</span>
+                        <span class="breakdown-value negative">–&#8377;{{ coupon_discount|floatformat:2 }}</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Refunds</span>
+                        <span class="breakdown-value negative">–&#8377;{{ refund_amount|floatformat:2 }}</span>
+                    </div>
+                    <hr class="breakdown-divider">
+                    <div class="breakdown-item">
+                        <span class="breakdown-net-label">Net Revenue</span>
+                        <span class="breakdown-net-value">&#8377;{{ net_revenue|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Best Selling Category + Best Selling Products ──── -->
+        <div class="grid-2col-even">
+            <!-- Best Selling Category -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h3 class="card-heading" style="margin-bottom:0;">Best Selling Category</h3>
+                </div>
+                <div class="category-chart-list">
+                    {% if best_selling_categories %}
+                        {% with max_units=best_selling_categories.0.units_sold %}
+                            {% for cat in best_selling_categories %}
+                            <div class="category-chart-row" title="{{ cat.product__category__name|default:'Uncategorized' }}: {{ cat.units_sold }} unit{{ cat.units_sold|pluralize }}">
+                                <div class="category-chart-head">
+                                    <span class="category-chart-name">
+                                        <span class="category-chart-rank">{{ forloop.counter }}</span>
+                                        {{ cat.product__category__name|default:"Uncategorized" }}
+                                    </span>
+                                    <span class="category-chart-units">{{ cat.units_sold }} unit{{ cat.units_sold|pluralize }}</span>
+                                </div>
+                                <div class="category-bar-track">
+                                    <div class="category-bar-fill" style="width: {% if max_units %}{% widthratio cat.units_sold max_units 100 %}{% else %}0{% endif %}%;"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endwith %}
+                    {% else %}
+                        <div style="display:flex;align-items:center;justify-content:center;width:100%;min-height:140px;font-size:12px;color:var(--color-text-muted);">
+                            No category sales recorded for this period.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Best Selling Products -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h3 class="card-heading" style="margin-bottom:0;">Best Selling Products</h3>
+                </div>
+                <div class="best-list">
+                    {% for product in best_selling_products %}
+                    <div class="best-row">
+                        <div class="best-rank">{{ forloop.counter }}</div>
+                        <div class="best-img">
+                            {% if product.image_url %}
+                                <img src="{% if product.image_url|slice:':4' == 'http' or product.image_url|slice:':1' == '/' %}{{ product.image_url }}{% else %}/media/{{ product.image_url }}{% endif %}"
+                                     alt="{{ product.product_name }}"
+                                     loading="lazy"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                                    <path d="M12 2L12 22"></path>
+                                    <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                                </svg>
+                            {% else %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2L12 22"></path>
+                                    <path d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="best-info">
+                            <div class="best-name" title="{{ product.product_name }}">{{ product.product_name }}</div>
+                            <div class="best-units">{{ product.units_sold }} unit{{ product.units_sold|pluralize }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="display:flex;align-items:center;justify-content:center;width:100%;min-height:140px;font-size:12px;color:var(--color-text-muted);">
+                        No product sales recorded for this period.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Operations Summary + Payment Methods ───────────── -->
+        <div class="grid-2col-even">
+            <!-- Operations Summary -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span class="card-heading" style="margin-bottom:0;">Operations Summary</span>
+                </div>
+                <div class="ops-grid">
+                    <div class="ops-tile">
+                        <div class="ops-tile-label">Delivered</div>
+                        <div class="ops-tile-value">{{ operations_summary.delivered|default:0 }}</div>
+                    </div>
+                    <div class="ops-tile">
+                        <div class="ops-tile-label">Placed</div>
+                        <div class="ops-tile-value">{{ operations_summary.placed|default:0 }}</div>
+                    </div>
+                    <div class="ops-tile">
+                        <div class="ops-tile-label">Shipped</div>
+                        <div class="ops-tile-value">{{ operations_summary.shipped|default:0 }}</div>
+                    </div>
+                    <div class="ops-tile accent-red">
+                        <div class="ops-tile-label">Returns / Refunds</div>
+                        <div class="ops-tile-value">{{ operations_summary.returned|default:0 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span class="card-heading" style="margin-bottom:0;">Payment Methods</span>
+                </div>
+                <div class="payment-list">
+                    {% for item in payment_summary %}
+                    <div class="payment-row">
+                        <div class="payment-row-head">
+                            <span class="payment-name">
+                                <span class="payment-icon">
+                                    {% if "razorpay" in item.payment_method|lower %}RP
+                                    {% elif "wallet" in item.payment_method|lower %}W
+                                    {% elif "cash" in item.payment_method|lower or "cod" in item.payment_method|lower %}COD
+                                    {% else %}{{ item.payment_method|slice:":2"|upper }}{% endif %}
+                                </span>
+                                {{ item.payment_method }}
+                            </span>
+                            <span class="payment-pct">{{ item.order_count }} order{{ item.order_count|pluralize }}{% if sales_count %} ({% widthratio item.order_count sales_count 100 %}%){% endif %}</span>
+                        </div>
+                        <div class="payment-bar-track">
+                            <div class="payment-bar-fill" style="width: {% if sales_count %}{% widthratio item.order_count sales_count 100 %}{% else %}0{% endif %}%;"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="padding: 24px 0; text-align: center; color: var(--color-text-muted); font-size: 13px;">
+                        No payment method data recorded for this period.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Coupon Details + Referral Summary (Placeholders) ── -->
+        <div class="grid-2col-even">
+            <!-- Coupon Details -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h3 class="card-heading" style="margin-bottom:0;">Coupon Details</h3>
+                    <span style="font-size:12px;color:var(--color-text-muted);">
+                        Total: <strong style="color:var(--color-text-main);font-size:13px;">&#8377;{{ coupon_discount|floatformat:2 }}</strong>
+                    </span>
+                </div>
+                <div class="table-wrap coupon-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Coupon Code</th>
+                                <th>Coupon Name</th>
+                                <th>Usage Count</th>
+                                <th>Total Discount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in coupon_details %}
+                            <tr>
+                                <td><strong>{{ item.coupon__code }}</strong></td>
+                                <td>{{ item.coupon__coupon_name|default:"—" }}</td>
+                                <td>{{ item.usage_count }} use{{ item.usage_count|pluralize:"s" }}</td>
+                                <td>&#8377;{{ item.total_discount|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align:center;padding:32px 0;color:var(--color-text-muted);font-size:12px;">
+                                    No coupon usage recorded for this period.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Referral Summary — Placeholder -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <span class="card-heading" style="margin-bottom:0;">Referral Summary</span>
+                    <span class="placeholder-label">Illustrative / Placeholder</span>
+                </div>
+                <div class="ops-grid">
+                    <div class="ops-tile">
+                        <div class="ops-tile-label">Referral Count</div>
+                        <div class="ops-tile-value">142 <span class="dummy-note">sample</span></div>
+                    </div>
+                    <div class="ops-tile">
+                        <div class="ops-tile-label">Successful Referrals</div>
+                        <div class="ops-tile-value">38 <span class="dummy-note">sample</span></div>
+                    </div>
+                    <div class="ops-tile">
+                        <div class="ops-tile-label">Rewards Distributed</div>
+                        <div class="ops-tile-value">&#8377;3,800 <span class="dummy-note">sample</span></div>
+                    </div>
+                    <div class="ops-tile">
+                        <div class="ops-tile-label">Referral Status</div>
+                        <div class="ops-tile-value" style="font-size:16px;display:flex;align-items:center;height:26px;">
+                            <span class="status-pill active">&bull; Active (sample)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Recent Sales ────────────────────────────────────── -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <span class="card-heading" style="margin-bottom:0;">Recent Sales</span>
+                <a href="{% url 'orders:admin_order_list' %}" style="font-size:12px;font-weight:600;color:var(--color-brand);display:flex;align-items:center;gap:4px;">
+                    View All
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;stroke-width:2.5;">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if orders %}
+                            {% for order in orders|slice:":7" %}
+                            <tr>
+                                <td class="table-order-id">{{ order.order_number }}</td>
+                                <td class="table-customer">
+                                    {% if order.user %}
+                                        {{ order.user.get_full_name|default:order.user.email }}
+                                    {% else %}
+                                        Guest
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                <td><strong>&#8377;{{ order.total_amount|floatformat:2 }}</strong></td>
+                                <td>
+                                    <span class="status-pill
+                                        {% if order.status == 'DELIVERED' %}delivered
+                                        {% elif order.status == 'PROCESSING' %}processing
+                                        {% elif order.status == 'SHIPPED' %}shipped
+                                        {% elif order.status == 'CANCELLED' %}cancelled
+                                        {% else %}processing{% endif %}">
+                                        &bull; {{ order.status|capfirst }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Sample Preview Rows Matching Figma Design (Placeholder) -->
+                            <tr>
+                                <td class="table-order-id">#ORD-12567 <span class="dummy-note">sample</span></td>
+                                <td class="table-customer">Rahul Verma</td>
+                                <td>Aug 10, 2026</td>
+                                <td><strong>&#8377;2,450.00</strong></td>
+                                <td><span class="status-pill delivered">&bull; Delivered</span></td>
+                            </tr>
+                            <tr>
+                                <td class="table-order-id">#ORD-12566 <span class="dummy-note">sample</span></td>
+                                <td class="table-customer">Priya Sharma</td>
+                                <td>Aug 10, 2026</td>
+                                <td><strong>&#8377;1,200.00</strong></td>
+                                <td><span class="status-pill processing">&bull; Processing</span></td>
+                            </tr>
+                            <tr>
+                                <td class="table-order-id">#ORD-12565 <span class="dummy-note">sample</span></td>
+                                <td class="table-customer">Amit Patel</td>
+                                <td>Aug 09, 2026</td>
+                                <td><strong>&#8377;5,600.00</strong></td>
+                                <td><span class="status-pill delivered">&bull; Delivered</span></td>
+                            </tr>
+                            <tr>
+                                <td class="table-order-id">#ORD-12564 <span class="dummy-note">sample</span></td>
+                                <td class="table-customer">Neha Gupta</td>
+                                <td>Aug 08, 2026</td>
+                                <td><strong>&#8377;2,100.00</strong></td>
+                                <td><span class="status-pill shipped">&bull; Shipped</span></td>
+                            </tr>
+                            <tr>
+                                <td class="table-order-id">#ORD-12563 <span class="dummy-note">sample</span></td>
+                                <td class="table-customer">Vikram Singh</td>
+                                <td>Aug 08, 2026</td>
+                                <td><strong>&#8377;8,450.00</strong></td>
+                                <td><span class="status-pill delivered">&bull; Delivered</span></td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /.dashboard-container -->
+</main>
+
+<!-- ================================================================
+     Export Modal
+     ================================================================ -->
+<div class="modal-overlay" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+        <h2 class="modal-title" id="modalTitle">Export Report</h2>
+        <p class="modal-desc">
+            Choose your preferred format for the sales and revenue data
+            ({{ start_date|date:"d M Y" }} – {{ end_date|date:"d M Y" }}).
+        </p>
+
+        <div class="modal-formats" role="radiogroup" aria-label="Export format">
+            <!-- PDF option -->
+            <div class="format-card selected"
+                 id="fmtPdf"
+                 role="radio"
+                 aria-checked="true"
+                 tabindex="0"
+                 data-format="pdf"
+                 onclick="selectFormat(this)"
+                 onkeydown="if(event.key==='Enter'||event.key===' ')selectFormat(this)">
+                <div class="format-icon pdf">PDF</div>
+                <div class="format-info">
+                    <div class="format-name">PDF Document</div>
+                    <div class="format-ext">.pdf</div>
+                </div>
+                <div class="format-check" aria-hidden="true">
+                    <svg viewBox="0 0 12 12" fill="none">
+                        <polyline points="2,6 5,9 10,3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Excel option -->
+            <div class="format-card"
+                 id="fmtExcel"
+                 role="radio"
+                 aria-checked="false"
+                 tabindex="0"
+                 data-format="excel"
+                 onclick="selectFormat(this)"
+                 onkeydown="if(event.key==='Enter'||event.key===' ')selectFormat(this)">
+                <div class="format-icon excel">XLS</div>
+                <div class="format-info">
+                    <div class="format-name">Excel Spreadsheet</div>
+                    <div class="format-ext">.xlsx</div>
+                </div>
+                <div class="format-check" aria-hidden="true">
+                    <svg viewBox="0 0 12 12" fill="none">
+                        <polyline points="2,6 5,9 10,3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" id="cancelExportBtn">Cancel</button>
+            <button class="btn-modal-export" id="confirmExportBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke-width:2;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     Scripts
+     ================================================================ -->
+<script>
+    // Download URLs built server-side and exposed to JS — no HTML attribute escaping needed
+    const EXPORT_URLS = {
+        pdf:   "{% url 'sales_reports:download_pdf' %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}",
+        excel: "{% url 'sales_reports:download_excel' %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}",
+    };
+
+    // ── Export Modal ──────────────────────────────────────────────
+    const modal       = document.getElementById('exportModal');
+    const exportBtn   = document.getElementById('exportBtn');
+    const cancelBtn   = document.getElementById('cancelExportBtn');
+    const confirmBtn  = document.getElementById('confirmExportBtn');
+    const formatCards = document.querySelectorAll('.format-card');
+
+    let selectedFormat = 'pdf';   // default: PDF pre-selected
+
+    function openModal() {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        cancelBtn.focus();
+    }
+
+    function closeModal() {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        exportBtn.focus();
+    }
+
+    function selectFormat(card) {
+        formatCards.forEach(c => {
+            c.classList.remove('selected');
+            c.setAttribute('aria-checked', 'false');
+        });
+        card.classList.add('selected');
+        card.setAttribute('aria-checked', 'true');
+        selectedFormat = card.dataset.format;
+    }
+
+    exportBtn.addEventListener('click', openModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    confirmBtn.addEventListener('click', function () {
+        const url = EXPORT_URLS[selectedFormat];
+        if (url) {
+            window.location.href = url;
+            closeModal();
+        }
+    });
+
+    // Close on overlay click
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    });
+</script>
+
+</body>
+</html>

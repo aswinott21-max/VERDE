@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 
 from catalog.models import Category
-from orders.models import Order, OrderItem, Refund, Return
+from orders.models import Order, OrderItem, Refund,OrderStatusHistory, Return
 from orders.services.order_service import (cancel_order,cancel_order_item,return_order, return_order_item, update_return_status,mark_cod_payment_collected,process_approved_return_refund,)
 from products.models import Product
 from users.models import User
@@ -57,6 +57,12 @@ class ReturnRefundCalculationTests(TestCase):
             total_amount=subtotal + tax_amount + shipping_amount - discount_amount,
             status=status,
         )
+        # Create delivery history for orders marked as delivered.
+        if status == "DELIVERED":
+            OrderStatusHistory.objects.create(
+                order=order,
+                status="DELIVERED",
+            )
         items = [
             OrderItem.objects.create(
                 order=order,

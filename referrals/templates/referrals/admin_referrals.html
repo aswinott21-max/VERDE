@@ -1,0 +1,1382 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral Management — VERDÉ Admin</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* VERDÉ Admin Brand Palette */
+            --bg-sidebar: #091a10;
+            --sidebar-hover: rgba(255, 255, 255, 0.06);
+            --sidebar-active: #142a1d;
+            --sidebar-text: #8ea896;
+            --sidebar-text-active: #ffffff;
+            --sidebar-heading: #4b6854;
+
+            --bg-main: #f5f3f0;
+            --bg-header: #ffffff;
+            --bg-card: #ffffff;
+            --card-border: #edf0eb;
+            --border-light: #f0f3ef;
+
+            --color-text-main: #141715;
+            --color-text-muted: #64746a;
+            --color-text-light: #94a399;
+
+            --badge-code-bg: #d8e5dc;
+            --badge-code-text: #1e452c;
+
+            --badge-rewarded-bg: #eaf6ed;
+            --badge-rewarded-text: #23834c;
+            --badge-pending-bg: #fef7ea;
+            --badge-pending-text: #b7791f;
+            --badge-eligible-bg: #e8f4fd;
+            --badge-eligible-text: #1976d2;
+            --badge-ineligible-bg: #fdebee;
+            --badge-ineligible-text: #d32f2f;
+            --badge-review-bg: #fff3e0;
+            --badge-review-text: #e65100;
+
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+            --shadow-subtle: 0 2px 10px rgba(16, 37, 24, 0.03);
+            --shadow-card: 0 4px 20px rgba(16, 37, 24, 0.04);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+
+        /* Base Reset */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-main);
+            color: var(--color-text-main);
+            min-height: 100vh;
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ==========================================================================
+           Sidebar Navigation
+           ========================================================================== */
+        .admin-sidebar {
+            width: 230px;
+            min-width: 230px;
+            background-color: var(--bg-sidebar);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 30;
+        }
+
+        .admin-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        /* Brand Logo */
+        .sidebar-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 24px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+        }
+
+        .brand-logo-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .brand-title {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .brand-subtitle {
+            font-size: 9px;
+            letter-spacing: 3.5px;
+            color: #6b8a74;
+            font-weight: 600;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Navigation Groups */
+        .nav-section {
+            margin-top: 14px;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--sidebar-heading);
+            padding: 6px 12px 4px;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--sidebar-text);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            color: var(--sidebar-text-active);
+            background-color: var(--sidebar-hover);
+        }
+
+        .nav-item.active a {
+            color: var(--sidebar-text-active);
+            background-color: var(--sidebar-active);
+            font-weight: 600;
+        }
+
+        .nav-item svg {
+            width: 17px;
+            height: 17px;
+            stroke-width: 1.8;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+
+        .nav-item.active svg {
+            opacity: 1;
+            stroke: #72ba88;
+        }
+
+        /* ==========================================================================
+           Main Layout & Content Area
+           ========================================================================== */
+        .admin-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+        }
+
+        /* Top Bar Header */
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+            padding: 14px 44px;
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        /* Header Search Field */
+        .header-search-form {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-search-icon {
+            position: absolute;
+            left: 12px;
+            width: 15px;
+            height: 15px;
+            color: #8fa095;
+            pointer-events: none;
+        }
+
+        .header-search-input {
+            height: 38px;
+            width: 250px;
+            padding: 0 32px 0 34px;
+            background: #fafbfa;
+            border: 1px solid #dce4dd;
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            color: var(--color-text-main);
+            transition: all 0.2s ease;
+        }
+
+        .header-search-input::placeholder {
+            color: #94a399;
+            font-size: 12.5px;
+        }
+
+        .header-search-input:focus {
+            background: #ffffff;
+            border-color: #2e593d;
+            outline: none;
+            width: 280px;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.12);
+        }
+
+        .header-search-clear {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #8ea094;
+            font-size: 18px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 2px;
+        }
+
+        .header-search-clear:hover {
+            color: var(--color-text-main);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #434e46;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 6px;
+            border-radius: 50%;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .header-icon-btn:hover {
+            color: var(--color-text-main);
+            background-color: #f0f4f1;
+        }
+
+        .header-icon-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 6px;
+            height: 6px;
+            background-color: #e53935;
+            border-radius: 50%;
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 22px;
+            background-color: #e2e8e3;
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown-wrapper {
+            position: relative;
+        }
+
+        .admin-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: none;
+            border: none;
+            padding: 4px 6px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .admin-profile-btn:hover {
+            background-color: #f0f4f1;
+        }
+
+        .admin-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #2b4533;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12.5px;
+            font-weight: 600;
+            border: 1px solid #142a1d;
+            overflow: hidden;
+        }
+
+        .chevron-icon {
+            color: #728477;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-profile-btn[aria-expanded="true"] .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 10px);
+            width: 200px;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 28px rgba(16, 37, 24, 0.08);
+            padding: 6px 0;
+            z-index: 50;
+        }
+
+        .dropdown-header {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f3ef;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .dropdown-user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .dropdown-user-role {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #38453d;
+            transition: background-color 0.15s ease;
+            width: 100%;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f5f8f5;
+            color: var(--color-text-main);
+        }
+
+        .dropdown-item svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 1.8;
+            color: #64746a;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-btn {
+            color: #c93434;
+        }
+
+        .logout-btn:hover {
+            background-color: #fdebee;
+            color: #b71c1c;
+        }
+
+        .logout-btn svg {
+            color: inherit;
+        }
+
+        /* ==========================================================================
+           Page Body Content
+           ========================================================================== */
+        .content-container {
+            padding: 38px 48px 48px;
+            flex: 1;
+        }
+
+        /* Header Row: Title on Left, Global Reward Form on Right */
+        .page-title-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 28px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .title-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-title {
+            font-family: var(--font-serif);
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--color-text-main);
+            line-height: 1.15;
+        }
+
+        .page-subtitle {
+            margin-top: 6px;
+            font-size: 13.5px;
+            color: var(--color-text-muted);
+            font-weight: 400;
+        }
+
+        /* Global Reward Amount Card / Form */
+        .reward-config-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .reward-config-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            text-align: right;
+            margin-bottom: 6px;
+            line-height: 1.25;
+        }
+
+        .reward-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reward-input-wrap {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #d4ded6;
+            border-radius: var(--radius-md);
+            padding: 0 12px;
+            height: 38px;
+            width: 120px;
+            box-shadow: 0 1px 3px rgba(16, 37, 24, 0.04);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .reward-input-wrap:focus-within {
+            border-color: #2e593d;
+            box-shadow: 0 0 0 3px rgba(46, 89, 61, 0.12);
+        }
+
+        .reward-currency-symbol {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--color-text-main);
+            margin-right: 6px;
+            user-select: none;
+        }
+
+        .reward-amount-input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: var(--font-sans);
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            width: 100%;
+        }
+
+        /* Hide spinner controls for cleaner appearance */
+        .reward-amount-input::-webkit-outer-spin-button,
+        .reward-amount-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .reward-amount-input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        .btn-update-reward {
+            height: 38px;
+            padding: 0 20px;
+            background-color: #102518;
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+
+        .btn-update-reward:hover {
+            background-color: #1a3c27;
+        }
+
+        .btn-update-reward:active {
+            transform: scale(0.98);
+        }
+
+        /* ==========================================================================
+           Django Messages / Feedback Alerts
+           ========================================================================== */
+        .messages-container {
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .alert svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .alert-success {
+            background-color: #eaf6ed;
+            color: #23834c;
+            border: 1px solid #c2e5cc;
+        }
+
+        .alert-error {
+            background-color: #fdebee;
+            color: #d32f2f;
+            border: 1px solid #f9c6cd;
+        }
+
+        .alert-warning {
+            background-color: #fef7ea;
+            color: #b7791f;
+            border: 1px solid #fae1ba;
+        }
+
+        .alert-info {
+            background-color: #e8f4fd;
+            color: #1976d2;
+            border: 1px solid #bedef8;
+        }
+
+        /* ==========================================================================
+           Referral Records Table Card
+           ========================================================================== */
+        .table-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-subtle);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .referrals-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .referrals-table thead tr {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .referrals-table th {
+            padding: 18px 24px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            white-space: nowrap;
+        }
+
+        .referrals-table tbody tr {
+            border-bottom: 1px solid var(--border-light);
+            transition: background-color 0.15s ease;
+        }
+
+        .referrals-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .referrals-table tbody tr:hover td {
+            background-color: #fafbfa;
+        }
+
+        .referrals-table td {
+            padding: 18px 24px;
+            font-size: 13px;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        /* Column Specific Styling */
+        .cell-id {
+            color: #8a958e;
+            font-size: 12.5px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .cell-referrer {
+            font-weight: 700;
+            color: var(--color-text-main);
+            font-size: 13.5px;
+        }
+
+        .cell-customer {
+            font-weight: 400;
+            color: #2e3a32;
+            font-size: 13px;
+        }
+
+        .code-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: var(--badge-code-bg);
+            color: var(--badge-code-text);
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .cell-date {
+            color: #4b564e;
+            font-size: 13px;
+        }
+
+        .cell-reward {
+            font-weight: 600;
+            color: var(--color-text-main);
+            font-size: 13.5px;
+        }
+
+        /* Status Pills */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .status-rewarded {
+            background-color: var(--badge-rewarded-bg);
+            color: var(--badge-rewarded-text);
+        }
+
+        .status-pending {
+            background-color: var(--badge-pending-bg);
+            color: var(--badge-pending-text);
+        }
+
+        .status-eligible {
+            background-color: var(--badge-eligible-bg);
+            color: var(--badge-eligible-text);
+        }
+
+        .status-ineligible {
+            background-color: var(--badge-ineligible-bg);
+            color: var(--badge-ineligible-text);
+        }
+
+        .status-manual_review {
+            background-color: var(--badge-review-bg);
+            color: var(--badge-review-text);
+        }
+
+        .review-reason {
+            max-width: 260px;
+            margin-top: 8px;
+            color: var(--color-text-muted);
+            font-size: 12px;
+            line-height: 1.45;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .review-note-form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            width: min(260px, 100%);
+            margin-top: 10px;
+            white-space: normal;
+        }
+
+        .review-note-textarea {
+            width: 100%;
+            min-height: 72px;
+            padding: 9px 10px;
+            border: 1px solid #dce4dd;
+            border-radius: var(--radius-sm);
+            background: #fafbfa;
+            color: var(--color-text-main);
+            font: inherit;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .review-note-textarea:focus {
+            outline: 2px solid #72ba88;
+            outline-offset: 1px;
+        }
+
+        .btn-save-review-note {
+            padding: 8px 12px;
+            border: 0;
+            border-radius: var(--radius-sm);
+            background: #235133;
+            color: #ffffff;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-save-review-note:hover {
+            background: #1a4028;
+        }
+
+        /* Empty State */
+        .empty-state-cell {
+            text-align: center;
+            padding: 56px 24px;
+        }
+
+        .empty-state-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        .empty-state-icon {
+            width: 44px;
+            height: 44px;
+            color: #94a399;
+            margin-bottom: 4px;
+        }
+
+        .empty-state-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .empty-state-text {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            line-height: 1.45;
+        }
+
+        .btn-reset-search {
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background-color: #f0f4f1;
+            color: #2b4533;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+
+        .btn-reset-search:hover {
+            background-color: #e2ebe4;
+            color: #142a1d;
+        }
+
+        /* ==========================================================================
+           Pagination Bar
+           ========================================================================== */
+        .pagination-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 36px;
+            margin-bottom: 24px;
+        }
+
+        .pagination-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 34px;
+            padding: 0 8px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: #4b564e;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .page-num:hover:not(.active) {
+            background-color: #e5ebe6;
+            color: #141715;
+        }
+
+        .page-num.active {
+            background-color: #091a10;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .page-nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            height: 34px;
+            padding: 0 12px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #141715;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .page-nav-link:hover {
+            color: #235133;
+        }
+
+        /* ==========================================================================
+           Footer
+           ========================================================================== */
+        .admin-footer {
+            background-color: #ffffff;
+            border-top: 1px solid var(--card-border);
+            padding: 20px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #7a8a80;
+            margin-top: auto;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: #7a8a80;
+            transition: color 0.15s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-text-main);
+        }
+
+        /* ==========================================================================
+           Responsive Adjustments
+           ========================================================================== */
+        @media (max-width: 1024px) {
+            .content-container {
+                padding: 28px 24px 36px;
+            }
+            .admin-header {
+                padding: 14px 24px;
+            }
+            .admin-footer {
+                padding: 18px 24px;
+            }
+            .header-search-input {
+                width: 200px;
+            }
+            .header-search-input:focus {
+                width: 230px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .admin-sidebar {
+                width: 100%;
+                min-width: 100%;
+                height: auto;
+                min-height: auto;
+                position: relative;
+                padding: 16px 20px;
+            }
+            .nav-list {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .nav-section {
+                margin-top: 10px;
+            }
+            .page-title-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 18px;
+            }
+            .reward-config-container {
+                align-items: flex-start;
+                width: 100%;
+            }
+            .reward-config-label {
+                text-align: left;
+            }
+            .admin-header {
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .header-search-input {
+                width: 100%;
+            }
+            .admin-footer {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+    <!-- ========================================================================
+       Left Sidebar Navigation
+       ======================================================================== -->
+    {% include "adminpanel/includes/admin_sidebar.html" with active_menu="referrals" %}
+
+    <!-- ========================================================================
+       Main Content Area
+       ======================================================================== -->
+    <main class="admin-main">
+        <!-- Top Navigation Header -->
+        <header class="admin-header">
+            <!-- Search Form in Top Header -->
+            <form method="GET" action="" class="header-search-form" role="search">
+                <div class="header-search-wrap">
+                    <svg class="header-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input
+                        type="search"
+                        name="search"
+                        class="header-search-input"
+                        placeholder="Search referrals..."
+                        value="{{ search }}"
+                        aria-label="Search referrals"
+                    >
+                    {% if search %}
+                        <a href="{% url 'referrals:admin_referrals_page' %}" class="header-search-clear" title="Clear search" aria-label="Clear search">&times;</a>
+                    {% endif %}
+                </div>
+            </form>
+
+            <div class="header-actions">
+                <!-- Notifications Icon -->
+                <button class="header-icon-btn" aria-label="Notifications" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="notification-dot"></span>
+                </button>
+
+                <!-- Vertical Divider -->
+                <div class="header-divider"></div>
+
+                <!-- Admin Profile Dropdown -->
+                <div class="profile-dropdown-wrapper" id="profileDropdown">
+                    <button class="admin-profile-btn" id="profileToggleBtn" aria-expanded="false" aria-haspopup="true" onclick="toggleProfileDropdown(event)" type="button">
+                        <div class="admin-avatar">
+                            {% if request.user.full_name %}
+                                {{ request.user.full_name|slice:":2"|upper }}
+                            {% else %}
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <span class="admin-name">{{ request.user.full_name|default:"Aswin Admin" }}</span>
+                        <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu List -->
+                    <div class="profile-dropdown-menu" id="profileMenu">
+                        <div class="dropdown-header">
+                            <span class="dropdown-user-name">{{ request.user.full_name|default:"Aswin Admin" }}</span>
+                            <span class="dropdown-user-role">Administrator</span>
+                        </div>
+                        <a href="/adminpanel/admin-dashboard/" class="dropdown-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <form action="/adminpanel/admin-logout/" method="POST" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item logout-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>Sign Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Referral Management Body Container -->
+        <div class="content-container">
+
+            <!-- Title & Global Reward Amount Configuration Section -->
+            <div class="page-title-row">
+                <div class="title-column">
+                    <h1 class="page-title">REFERRAL MANAGEMENT</h1>
+                    <p class="page-subtitle">Manage VERDÉ's customer referral program.</p>
+                </div>
+
+                <!-- Global Reward Amount Form -->
+                <div class="reward-config-container">
+                    <label class="reward-config-label" for="reward_amount">
+                        GLOBAL REWARD<br>AMOUNT (₹)
+                    </label>
+                    <form method="POST" action="" class="reward-form">
+                        {% csrf_token %}
+                        <div class="reward-input-wrap">
+                            <span class="reward-currency-symbol">₹</span>
+                            <input
+                                type="number"
+                                id="reward_amount"
+                                name="reward_amount"
+                                min="0.01"
+                                step="0.01"
+                                class="reward-amount-input"
+                                value="{% if active_offer %}{{ active_offer.reward_amount|stringformat:'g' }}{% else %}100{% endif %}"
+                                required
+                                aria-label="Global Referral Reward Amount in Rupees"
+                            >
+                        </div>
+                        <button type="submit" class="btn-update-reward">Update</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Django Flash Feedback Messages -->
+            {% if messages %}
+                <div class="messages-container" role="region" aria-label="Notification messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">
+                            {% if message.tags == 'success' %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            {% elif message.tags == 'error' %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                </svg>
+                            {% else %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Referral Records Table Card -->
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="referrals-table" aria-label="Customer Referral Records">
+                        <thead>
+                            <tr>
+                                <th scope="col">REFERRAL ID</th>
+                                <th scope="col">REFERRER</th>
+                                <th scope="col">REFERRED CUSTOMER</th>
+                                <th scope="col">REFERRAL CODE</th>
+                                <th scope="col">JOINED DATE</th>
+                                <th scope="col">REWARD</th>
+                                <th scope="col">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for referral in referrals %}
+                                <tr>
+                                    <td>
+                                        <span class="cell-id">{% if referral.id|stringformat:"s"|slice:":3" == "REF" %}{{ referral.id }}{% else %}REF{{ referral.id|stringformat:"05d" }}{% endif %}</span>
+                                    </td>
+                                    <td>
+                                        <span class="cell-referrer">{{ referral.referrer.full_name|default:referral.referrer.email }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="cell-customer">{{ referral.referred_user.full_name|default:referral.referred_user.email }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="code-badge">{{ referral.referral_code }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="cell-date">{{ referral.created_at|date:"d/m/Y" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="cell-reward">₹{{ referral.reward_amount|stringformat:"g" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-{{ referral.status|lower }}">
+                                            {{ referral.get_status_display }}
+                                        </span>
+                                        {% if referral.status == "MANUAL_REVIEW" %}
+                                            {% if referral.disqualification_reason %}
+                                                <p class="review-reason">{{ referral.disqualification_reason }}</p>
+                                            {% endif %}
+                                            <form method="POST" action="" class="review-note-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="save_review_note">
+                                                <input type="hidden" name="referral_id" value="{{ referral.id }}">
+                                                <textarea
+                                                    name="review_note"
+                                                    class="review-note-textarea"
+                                                    required
+                                                    aria-label="Manual review note for referral {{ referral.id }}"
+                                                ></textarea>
+                                                <button type="submit" class="btn-save-review-note">Save Note</button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="empty-state-cell">
+                                        <div class="empty-state-wrap">
+                                            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="18" cy="5" r="3"></circle>
+                                                <circle cx="6" cy="12" r="3"></circle>
+                                                <circle cx="18" cy="19" r="3"></circle>
+                                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                            </svg>
+                                            <div class="empty-state-title">No referrals found</div>
+                                            <p class="empty-state-text">
+                                                {% if search %}
+                                                    No referral records match your search query "{{ search }}".
+                                                {% else %}
+                                                    There are no referral signups recorded in the program yet.
+                                                {% endif %}
+                                            </p>
+                                            {% if search %}
+                                                <a href="{% url 'referrals:admin_referrals_page' %}" class="btn-reset-search">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                    </svg>
+                                                    <span>Clear Search</span>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination Bar Matching Figma Design -->
+            {% if referrals.paginator.num_pages > 1 %}
+                <nav class="pagination-wrapper" aria-label="Referrals pagination">
+                    <div class="pagination-container">
+                        {% if referrals.has_previous %}
+                            <a href="?page={{ referrals.previous_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="page-nav-link" aria-label="Previous page">
+                                &larr; PREV
+                            </a>
+                        {% endif %}
+
+                        {% for p in referrals.paginator.page_range %}
+                            {% if p == referrals.number %}
+                                <span class="page-num active" aria-current="page">{{ p }}</span>
+                            {% elif p >= referrals.number|add:"-3" and p <= referrals.number|add:"3" %}
+                                <a href="?page={{ p }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="page-num">
+                                    {{ p }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if referrals.has_next %}
+                            <a href="?page={{ referrals.next_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="page-nav-link" aria-label="Next page">
+                                NEXT &rarr;
+                            </a>
+                        {% endif %}
+                    </div>
+                </nav>
+            {% endif %}
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="admin-footer">
+            <span class="footer-copy">&copy; 2024 VERDÉ Botanical. All rights reserved.</span>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookies</a>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Interactive Scripts -->
+    <script>
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const btn = document.getElementById('profileToggleBtn');
+            const menu = document.getElementById('profileMenu');
+            const isCurrentlyOpen = menu.style.display === 'block';
+
+            menu.style.display = isCurrentlyOpen ? 'none' : 'block';
+            btn.setAttribute('aria-expanded', !isCurrentlyOpen);
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('profileMenu');
+            const btn = document.getElementById('profileToggleBtn');
+            if (menu && menu.style.display === 'block') {
+                if (!menu.contains(event.target) && !btn.contains(event.target)) {
+                    menu.style.display = 'none';
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
