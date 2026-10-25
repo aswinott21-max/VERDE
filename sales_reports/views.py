@@ -11,7 +11,9 @@ from django.utils import timezone
 from django.shortcuts import render
 
 from adminpanel.decorators import admin_required
-from .services import get_sales_report
+from .services import get_sales_report,get_referral_summary
+
+
 
 # Create your views here.
 
@@ -55,7 +57,7 @@ def sales_report_page(request):
     #reuse the central service for report calculations
     report = get_sales_report(start_date, end_date, period=period)
 
-    context = {**report, "period" : period, "error":error,}
+    context = {**report, "period" : period, "error":error,"referral_summery":get_referral_summary(),}
     #**report, - to unpack the dictionary returned by  get_sales_report()
     return render (request, "sales_reports/sales_report.html",context)
 

@@ -24,13 +24,5 @@ class Migration(migrations.Migration):
             old_name="is_acticve",
             new_name="is_active",
         ),
-        migrations.AlterField(
-            model_name="wallet",
-            name="balance",
-            field=models.DecimalField(
-                max_digits=12,
-                decimal_places=2,
-                default=0,
-            ),
-        ),
+        
     ]

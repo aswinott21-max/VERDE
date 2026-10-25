@@ -1337,32 +1337,64 @@
                 </div>
             </div>
 
-            <!-- Referral Summary — Placeholder -->
+            <!-- Referral Summary -->
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
                     <span class="card-heading" style="margin-bottom:0;">Referral Summary</span>
-                    <span class="placeholder-label">Illustrative / Placeholder</span>
                 </div>
-                <div class="ops-grid">
-                    <div class="ops-tile">
-                        <div class="ops-tile-label">Referral Count</div>
-                        <div class="ops-tile-value">142 <span class="dummy-note">sample</span></div>
-                    </div>
-                    <div class="ops-tile">
-                        <div class="ops-tile-label">Successful Referrals</div>
-                        <div class="ops-tile-value">38 <span class="dummy-note">sample</span></div>
-                    </div>
-                    <div class="ops-tile">
-                        <div class="ops-tile-label">Rewards Distributed</div>
-                        <div class="ops-tile-value">&#8377;3,800 <span class="dummy-note">sample</span></div>
-                    </div>
-                    <div class="ops-tile">
-                        <div class="ops-tile-label">Referral Status</div>
-                        <div class="ops-tile-value" style="font-size:16px;display:flex;align-items:center;height:26px;">
-                            <span class="status-pill active">&bull; Active (sample)</span>
+                {% if referral_summery and not referral_summary %}
+                    {% with referral_summary=referral_summery %}
+                    <div class="ops-grid">
+                        <div class="ops-tile">
+                            <div class="ops-tile-label">Referral Count</div>
+                            <div class="ops-tile-value">{{ referral_summary.total }}</div>
+                        </div>
+                        <div class="ops-tile">
+                            <div class="ops-tile-label">Successful Referrals</div>
+                            <div class="ops-tile-value">{{ referral_summary.successful }}</div>
+                        </div>
+                        <div class="ops-tile">
+                            <div class="ops-tile-label">Rewards Distributed</div>
+                            <div class="ops-tile-value">&#8377;{{ referral_summary.rewards_distributed|floatformat:2 }}</div>
+                        </div>
+                        <div class="ops-tile">
+                            <div class="ops-tile-label">Referral Offer</div>
+                            <div class="ops-tile-value" style="font-size:16px;display:flex;align-items:center;height:26px;">
+                                {% if referral_summary.offer_active %}
+                                    <span class="status-pill active">&bull; Active</span>
+                                {% else %}
+                                    <span class="status-pill disabled">&bull; Inactive</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
+                    {% endwith %}
+                {% else %}
+                    <div class="ops-grid">
+                        <div class="ops-tile">
+                            <div class="ops-tile-label">Referral Count</div>
+                            <div class="ops-tile-value">{{ referral_summary.total }}</div>
+                        </div>
+                        <div class="ops-tile">
+                            <div class="ops-tile-label">Successful Referrals</div>
+                            <div class="ops-tile-value">{{ referral_summary.successful }}</div>
+                        </div>
+                        <div class="ops-tile">
+                            <div class="ops-tile-label">Rewards Distributed</div>
+                            <div class="ops-tile-value">&#8377;{{ referral_summary.rewards_distributed|floatformat:2 }}</div>
+                        </div>
+                        <div class="ops-tile">
+                            <div class="ops-tile-label">Referral Offer</div>
+                            <div class="ops-tile-value" style="font-size:16px;display:flex;align-items:center;height:26px;">
+                                {% if referral_summary.offer_active %}
+                                    <span class="status-pill active">&bull; Active</span>
+                                {% else %}
+                                    <span class="status-pill disabled">&bull; Inactive</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
 

@@ -7,6 +7,8 @@ from django.db.models import OuterRef, Subquery
 from orders.models import Order, OrderItem,Refund,Return
 from coupons.models import CouponUsage
 from products.models import ProductImage
+from referrals.models import Referral, ReferralOffer, ReferralReward
+
 
 def get_sales_report(start_date, end_date, period=None):
     #calculate sales totals for the selected date range
@@ -156,4 +158,28 @@ def get_sales_report(start_date, end_date, period=None):
         "net_revenue": order_amount - refunds,
         "start_date": start_date,
         "end_date": end_date,  
+    }
+
+def get_referral_summary():
+    """Return all-time referral metrics for the admin sales report."""
+
+    referral_counts = Referral.objects.aggregate(
+        total=Count("id"),
+        successful=Count(
+            "id",
+            filter=Q(status=Referral.Status.REWARDED),
+        ),
+    )
+
+    rewards_distributed = (
+        ReferralReward.objects.filter(
+            status=ReferralReward.Status.CREDITED,
+        ).aggregate(total=Sum("amount"))["total"]
+        or Decimal("0.00")
+    )
+
+    return {
+        **referral_counts,
+        "rewards_distributed": rewards_distributed,
+        "offer_active": ReferralOffer.objects.filter(is_active=True).exists(),
     }
