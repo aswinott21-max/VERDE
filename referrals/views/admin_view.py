@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
+from django.utils import timezone
 
 from adminpanel.decorators import admin_required
 from referrals.models import Referral, ReferralOffer
@@ -36,7 +37,51 @@ def admin_referrals_page(request):
 
     active_offer = ReferralOffer.objects.filter(is_active=True).first()
 
+    
+
     if request.method == "POST":
+
+        if request.POST.get("action") == "save_review_note":
+            referral_id = request.POST.get("referral_id", "").strip()
+            note = request.POST.get("review_note", "").strip()
+
+            if not note:
+                messages.error(request, "Enter a review note.")
+                return redirect("referrals:admin_referrals_page")
+
+            try:
+                with transaction.atomic():
+                    referral = Referral.objects.select_for_update().get(
+                        pk=referral_id,
+                        status=Referral.Status.MANUAL_REVIEW,
+                    )
+
+                    timestamp = timezone.localtime().strftime(
+                        "%Y-%m-%d %H:%M"
+                    )
+                    reviewer = request.user.email or str(request.user)
+                    entry = f"[Admin review: {timestamp} by {reviewer}] {note}"
+
+                    existing = referral.disqualification_reason.strip()
+                    referral.disqualification_reason = (
+                        f"{existing}\n\n{entry}" if existing else entry
+                    )
+                    referral.save(
+                        update_fields=[
+                            "disqualification_reason",
+                            "updated_at",
+                        ]
+                    )
+
+                messages.success(request, "Review note saved.")
+
+            except Referral.DoesNotExist:
+                messages.error(
+                    request,
+                    "Manual-review referral not found.",
+                )
+
+            return redirect("referrals:admin_referrals_page")
         reward_amount = request.POST.get("reward_amount", "").strip()
 
         try:

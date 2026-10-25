@@ -785,6 +785,60 @@
             color: var(--badge-review-text);
         }
 
+        .review-reason {
+            max-width: 260px;
+            margin-top: 8px;
+            color: var(--color-text-muted);
+            font-size: 12px;
+            line-height: 1.45;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .review-note-form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            width: min(260px, 100%);
+            margin-top: 10px;
+            white-space: normal;
+        }
+
+        .review-note-textarea {
+            width: 100%;
+            min-height: 72px;
+            padding: 9px 10px;
+            border: 1px solid #dce4dd;
+            border-radius: var(--radius-sm);
+            background: #fafbfa;
+            color: var(--color-text-main);
+            font: inherit;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .review-note-textarea:focus {
+            outline: 2px solid #72ba88;
+            outline-offset: 1px;
+        }
+
+        .btn-save-review-note {
+            padding: 8px 12px;
+            border: 0;
+            border-radius: var(--radius-sm);
+            background: #235133;
+            color: #ffffff;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-save-review-note:hover {
+            background: #1a4028;
+        }
+
         /* Empty State */
         .empty-state-cell {
             text-align: center;
@@ -1202,6 +1256,23 @@
                                         <span class="status-badge status-{{ referral.status|lower }}">
                                             {{ referral.get_status_display }}
                                         </span>
+                                        {% if referral.status == "MANUAL_REVIEW" %}
+                                            {% if referral.disqualification_reason %}
+                                                <p class="review-reason">{{ referral.disqualification_reason }}</p>
+                                            {% endif %}
+                                            <form method="POST" action="" class="review-note-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="save_review_note">
+                                                <input type="hidden" name="referral_id" value="{{ referral.id }}">
+                                                <textarea
+                                                    name="review_note"
+                                                    class="review-note-textarea"
+                                                    required
+                                                    aria-label="Manual review note for referral {{ referral.id }}"
+                                                ></textarea>
+                                                <button type="submit" class="btn-save-review-note">Save Note</button>
+                                            </form>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% empty %}
