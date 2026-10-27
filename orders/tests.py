@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.test import TestCase
+from django.urls import reverse
 
 from catalog.models import Category
 from orders.models import Order, OrderItem, Refund,OrderStatusHistory, Return
@@ -34,6 +35,7 @@ class ReturnRefundCalculationTests(TestCase):
         include_second_item=True,
         status="DELIVERED",
         payment_status="PENDING",
+        payment_method="Cash on Delivery",
         stock_deducted=False,
     ):
         item_prices = [Decimal("100.00")]
@@ -48,7 +50,7 @@ class ReturnRefundCalculationTests(TestCase):
             user=self.user,
             order_number=order_number,
             delivery_method="Standard",
-            payment_method="Cash on Delivery",
+            payment_method=payment_method,
             payment_status=payment_status,
             discount_amount=discount_amount,
             shipping_amount=shipping_amount,
@@ -83,6 +85,24 @@ class ReturnRefundCalculationTests(TestCase):
 
     def create_wallet(self, balance=Decimal("25.00")):
         return Wallet.objects.create(user=self.user, balance=balance)
+
+    def create_admin(self):
+        return User.objects.create_user(
+            email="orders-admin@example.com",
+            full_name="Orders Admin",
+            phone="1234567899",
+            password="test-password",
+            is_staff=True,
+        )
+
+    def post_admin_cancellation(self, order):
+        return self.client.post(
+            reverse(
+                "orders:admin_update_order_status",
+                kwargs={"order_number": order.order_number},
+            ),
+            {"status": "CANCELLED"},
+        )
 
     def test_bulk_return_calculates_tax_and_proportional_coupon_discount(self):
         order, item_100, item_200 = self.create_order("ORDER-BULK-RETURN")
@@ -156,7 +176,181 @@ class ReturnRefundCalculationTests(TestCase):
         self.product.refresh_from_db()
         self.assertEqual(wallet.balance, Decimal("499.00"))
         self.assertEqual(WalletTransaction.objects.filter(wallet=wallet).count(), 1)
+        self.assertEqual(
+            WalletTransaction.objects.get(wallet=wallet).amount,
+            Decimal("474.00"),
+        )
         self.assertEqual(self.product.stock_quantity, 10)
+
+    def test_admin_cancels_wallet_paid_order_refunds_once_and_restores_stock(self):
+        order, item_100, item_200 = self.create_order(
+            "ORDER-ADMIN-WALLET-CANCEL",
+            status="PROCESSING",
+            payment_status="PAID",
+            payment_method="Wallet",
+            stock_deducted=True,
+        )
+        wallet = self.create_wallet()
+        self.client.force_login(self.create_admin())
+
+        response = self.post_admin_cancellation(order)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["order_number"], order.order_number)
+        self.assertEqual(response.json()["status"], "CANCELLED")
+        order.refresh_from_db()
+        wallet.refresh_from_db()
+        self.product.refresh_from_db()
+        self.assertEqual(order.status, "CANCELLED")
+        self.assertEqual(wallet.balance, Decimal("499.00"))
+        self.assertEqual(self.product.stock_quantity, 10)
+        item_100.refresh_from_db()
+        self.assertFalse(item_100.stock_deducted)
+        item_200.refresh_from_db()
+        self.assertFalse(item_200.stock_deducted)
+        self.assertEqual(
+            WalletTransaction.objects.filter(
+                transaction_id=f"CANCEL-REFUND-{order.pk}"
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            WalletTransaction.objects.get(
+                transaction_id=f"CANCEL-REFUND-{order.pk}"
+            ).amount,
+            Decimal("474.00"),
+        )
+        self.assertEqual(
+            OrderStatusHistory.objects.filter(
+                order=order,
+                status="CANCELLED",
+            ).count(),
+            1,
+        )
+
+    def test_admin_cancels_razorpay_paid_order_to_internal_wallet(self):
+        order, _, _ = self.create_order(
+            "ORDER-ADMIN-RAZORPAY-CANCEL",
+            status="PROCESSING",
+            payment_status="PAID",
+            payment_method="Razorpay",
+        )
+        wallet = self.create_wallet()
+        self.client.force_login(self.create_admin())
+
+        response = self.post_admin_cancellation(order)
+
+        self.assertEqual(response.status_code, 200)
+        wallet.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal("499.00"))
+        self.assertTrue(
+            WalletTransaction.objects.filter(
+                transaction_id=f"CANCEL-REFUND-{order.pk}",
+                transaction_type="CREDIT",
+                amount=order.total_amount,
+            ).exists()
+        )
+
+    def test_admin_cancels_unpaid_cod_without_wallet_refund(self):
+        order, _, _ = self.create_order(
+            "ORDER-ADMIN-COD-UNPAID",
+            status="PROCESSING",
+            payment_status="PENDING",
+            payment_method="Cash on Delivery",
+            stock_deducted=True,
+        )
+        wallet = self.create_wallet()
+        self.client.force_login(self.create_admin())
+
+        response = self.post_admin_cancellation(order)
+
+        self.assertEqual(response.status_code, 200)
+        order.refresh_from_db()
+        wallet.refresh_from_db()
+        self.product.refresh_from_db()
+        self.assertEqual(order.status, "CANCELLED")
+        self.assertEqual(wallet.balance, Decimal("25.00"))
+        self.assertFalse(
+            WalletTransaction.objects.filter(
+                transaction_id=f"CANCEL-REFUND-{order.pk}"
+            ).exists()
+        )
+        self.assertEqual(self.product.stock_quantity, 10)
+
+    def test_admin_cancels_collected_cod_order_to_wallet(self):
+        order, _, _ = self.create_order(
+            "ORDER-ADMIN-COD-PAID",
+            status="PROCESSING",
+            payment_status="PAID",
+            payment_method="Cash on Delivery",
+        )
+        wallet = self.create_wallet()
+        self.client.force_login(self.create_admin())
+
+        response = self.post_admin_cancellation(order)
+
+        self.assertEqual(response.status_code, 200)
+        wallet.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal("499.00"))
+        self.assertTrue(
+            WalletTransaction.objects.filter(
+                transaction_id=f"CANCEL-REFUND-{order.pk}"
+            ).exists()
+        )
+
+    def test_admin_repeat_cancellation_does_not_duplicate_refund_or_stock(self):
+        order, _, _ = self.create_order(
+            "ORDER-ADMIN-REPEAT-CANCEL",
+            status="PROCESSING",
+            payment_status="PAID",
+            payment_method="Wallet",
+            stock_deducted=True,
+        )
+        wallet = self.create_wallet()
+        self.client.force_login(self.create_admin())
+
+        first_response = self.post_admin_cancellation(order)
+        second_response = self.post_admin_cancellation(order)
+
+        self.assertEqual(first_response.status_code, 200)
+        self.assertEqual(second_response.status_code, 400)
+        self.assertIn("cannot be cancelled", second_response.json()["message"])
+        wallet.refresh_from_db()
+        self.product.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal("499.00"))
+        self.assertEqual(self.product.stock_quantity, 10)
+        self.assertEqual(
+            WalletTransaction.objects.filter(
+                transaction_id=f"CANCEL-REFUND-{order.pk}"
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            OrderStatusHistory.objects.filter(
+                order=order,
+                status="CANCELLED",
+            ).count(),
+            1,
+        )
+
+    def test_admin_cancellation_requires_staff_authorization(self):
+        order, _, _ = self.create_order(
+            "ORDER-ADMIN-AUTH-CANCEL",
+            status="PROCESSING",
+            payment_status="PAID",
+            payment_method="Wallet",
+            stock_deducted=True,
+        )
+        self.client.force_login(self.user)
+
+        response = self.post_admin_cancellation(order)
+
+        self.assertEqual(response.status_code, 403)
+        order.refresh_from_db()
+        self.product.refresh_from_db()
+        self.assertEqual(order.status, "PROCESSING")
+        self.assertEqual(self.product.stock_quantity, 8)
+        self.assertFalse(WalletTransaction.objects.exists())
 
     def test_last_item_cancellation_refunds_tax_coupon_and_shipping_once(self):
         order, item_100, _ = self.create_order(

@@ -13,6 +13,13 @@ from wallet.services.wallet_service import credit_wallet
 
 logger = logging.getLogger(__name__)
 
+CANCELLABLE_ORDER_STATUSES = {
+    "PLACED",
+    "PROCESSING",
+    "SHIPPED",
+    "OUT_FOR_DELIVERY",
+}
+
 def _get_return_window_error(order):
     #Check whether an order is still within its 3-calendar-day return window
     delivery_history = (order.status_history.filter(status="DELIVERED").order_by("created_at").first())
@@ -49,10 +56,48 @@ def cancel_order(user, order_number, cancellation_reason=None):
     if not order:
         return None, "Order not found."
 
-    if order.status not in ["PLACED", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY"]:
+    return _cancel_locked_order(order, cancellation_reason=cancellation_reason)
+
+
+def _cancel_locked_order(order, cancellation_reason=None):
+    """Cancel an already locked order and apply its stock and wallet effects."""
+    if order.status not in CANCELLABLE_ORDER_STATUSES:
         return None, "This order cannot be cancelled."
 
-    #restore stock only for active items whose stock was deducted
+    # All paid methods follow VERDÉ's policy of refunding to its internal wallet.
+    # For COD, PAID is the system's collection indicator; pending COD is not refunded.
+    if order.payment_status == "PAID" and order.total_amount > 0:
+        if not order.user_id:
+            return None, "Order has no customer account for the wallet refund."
+
+        transaction_id = f"CANCEL-REFUND-{order.id}"
+        existing_credit = (
+            WalletTransaction.objects.select_for_update()
+            .select_related("wallet")
+            .filter(transaction_id=transaction_id)
+            .first()
+        )
+
+        if existing_credit:
+            if (
+                existing_credit.wallet.user_id != order.user_id
+                or existing_credit.amount != order.total_amount
+                or existing_credit.transaction_type != "CREDIT"
+                or existing_credit.reference_id != order.order_number
+            ):
+                return None, "Existing cancellation wallet transaction requires review."
+        else:
+            try:
+                credit_wallet(
+                    user=order.user,
+                    amount=order.total_amount,
+                    reference_id=order.order_number,
+                    transaction_id=transaction_id,
+                )
+            except ValueError as error:
+                return None, str(error)
+
+    # Restore stock once, only for active items whose stock was deducted.
     items = list(order.items.select_for_update().filter(item_status="ACTIVE", stock_deducted=True).order_by("id"))
 
     for item in items:
@@ -79,13 +124,9 @@ def cancel_order(user, order_number, cancellation_reason=None):
     order.cancellation_reason = cancellation_reason
     order.save(update_fields=["status", "cancellation_reason", "updated_at"])
 
-    if order.payment_status == "PAID" and order.total_amount > 0:
-        credit_wallet(user=user, amount=order.total_amount,reference_id=order.order_number,transaction_id=f"CANCEL-REFUND-{order.id}")
-
-
     OrderStatusHistory.objects.create(order=order,status="CANCELLED",)
 
-    logger.info("Order cancelled: %s | User: %s",order_number,user,)
+    logger.info("Order cancelled: %s | User: %s", order.order_number, order.user)
 
     return order, None
 
@@ -342,6 +383,9 @@ def update_order_status(order_number, new_status):
 
     if not order:
         return None, "Order not found."
+
+    if new_status == "CANCELLED":
+        return _cancel_locked_order(order)
 
     old_status = order.status
 
