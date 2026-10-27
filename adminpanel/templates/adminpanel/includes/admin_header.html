@@ -1,0 +1,311 @@
+<style>
+    .admin-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 36px;
+        background-color: #fff;
+        border-bottom: 1px solid var(--card-border, #edf0eb);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    .admin-header .header-title {
+        color: var(--color-text-main, #141715);
+        font-family: var(--font-sans, sans-serif);
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .admin-header .header-leading {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .admin-header .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-left: auto;
+    }
+
+    .admin-header .header-icon-btn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--card-border, #edf0eb);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--color-text-muted, #64746a);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .admin-header .header-icon-btn svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .admin-header .profile-dropdown-wrapper {
+        position: relative;
+    }
+
+    .admin-header .admin-profile-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 0;
+        background: transparent;
+        color: var(--color-text-main, #141715);
+        font: inherit;
+        cursor: pointer;
+    }
+
+    .admin-header .admin-name {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .admin-header .admin-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--color-brand, #102518);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex: 0 0 34px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .admin-header .admin-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .admin-header .chevron-icon {
+        transition: transform 0.2s ease;
+    }
+
+    .admin-header .admin-profile-btn[aria-expanded="true"] .chevron-icon {
+        transform: rotate(180deg);
+    }
+
+    .admin-header .profile-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        z-index: 50;
+        min-width: 210px;
+        padding: 8px 0;
+        background: #fff;
+        border: 1px solid var(--card-border, #edf0eb);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(16, 37, 24, 0.12);
+    }
+
+    .admin-header .profile-dropdown-menu.show {
+        display: block;
+    }
+
+    .admin-header .dropdown-header {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 10px 14px;
+    }
+
+    .admin-header .dropdown-user-name {
+        color: var(--color-text-main, #141715);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .admin-header .dropdown-user-role {
+        color: var(--color-text-muted, #64746a);
+        font-size: 11px;
+    }
+
+    .admin-header .dropdown-divider {
+        height: 1px;
+        margin: 5px 0;
+        background: var(--card-border, #edf0eb);
+    }
+
+    .admin-header .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 9px 14px;
+        border: 0;
+        background: transparent;
+        color: var(--color-text-main, #141715);
+        font: inherit;
+        font-size: 12px;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .admin-header .dropdown-item:hover {
+        background: #f5f7f4;
+    }
+
+    .admin-header .dropdown-item svg {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 16px;
+    }
+
+    .admin-header .logout-form {
+        margin: 0;
+    }
+
+    .admin-header > .header-search-form {
+        flex: 1;
+        max-width: 420px;
+    }
+
+    .admin-header .header-search-wrap {
+        position: relative;
+    }
+
+    .admin-header .header-search-icon {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        width: 16px;
+        height: 16px;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .admin-header .header-search-input {
+        width: 100%;
+        padding: 9px 12px 9px 36px;
+        border: 1px solid var(--card-border, #edf0eb);
+        border-radius: 8px;
+        font: inherit;
+        font-size: 12px;
+    }
+
+    .admin-header .header-search-clear {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+    }
+
+    .admin-header-back {
+        color: var(--color-text-muted, #64746a);
+        font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+        .admin-header {
+            padding: 14px 18px;
+        }
+
+        .admin-header .admin-name {
+            display: none;
+        }
+    }
+</style>
+
+<header class="admin-header">
+    <div class="header-leading">
+        <h1 class="header-title">{{ header_title|default:"Admin" }}</h1>
+        {% if header_back_orders %}
+            <a href="{% url 'orders:admin_order_list' %}" class="admin-header-back">← Back to Orders</a>
+        {% endif %}
+    </div>
+
+    {% if header_search_url %}
+        <form method="GET" action="{{ header_search_url }}" class="header-search-form" role="search">
+            <div class="header-search-wrap">
+                <svg class="header-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="search" name="search" class="header-search-input" placeholder="{{ header_search_placeholder }}" value="{{ header_search_value }}" aria-label="{{ header_search_placeholder }}">
+                {% if header_search_value %}
+                    <a href="{{ header_search_url }}" class="header-search-clear" title="Clear search" aria-label="Clear search">&times;</a>
+                {% endif %}
+            </div>
+        </form>
+    {% endif %}
+
+    <div class="header-actions">
+        {% if not header_search_url %}
+            <button class="header-icon-btn" aria-label="Search" type="button"{% if header_search_target %} onclick="document.querySelector('{{ header_search_target }}')?.focus()"{% endif %}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+        {% endif %}
+
+        <div class="profile-dropdown-wrapper" id="profileDropdown">
+            <button class="admin-profile-btn" id="profileToggleBtn" aria-expanded="false" aria-haspopup="true" onclick="toggleProfileDropdown(event)" type="button">
+                <span class="admin-name">{{ request.user.full_name|default:"Aswin Admin" }}</span>
+                <span class="admin-avatar">
+                    {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.full_name }}">
+                    {% else %}
+                        {{ request.user.full_name|default:"A"|slice:":1"|upper }}
+                    {% endif %}
+                </span>
+                <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+
+            <div class="profile-dropdown-menu" id="profileMenu">
+                <div class="dropdown-header">
+                    <span class="dropdown-user-name">{{ request.user.full_name|default:"Aswin Admin" }}</span>
+                    <span class="dropdown-user-role">{% if request.user.is_superuser %}Super Administrator{% elif request.user.is_staff %}Staff Administrator{% else %}Administrator{% endif %}</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'admin_dashboard_page' %}" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_settings:admin_settings' %}" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33H14a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82V14a1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 3.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H8a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09A1.65 1.65 0 0 0 14 3.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 18.4 8V9a1.65 1.65 0 0 0 1.51 1H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Settings</span>
+                </a>
+                <div class="dropdown-divider"></div>
+                <form action="{% url 'admin_logout' %}" method="POST" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item logout-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Sign Out</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>

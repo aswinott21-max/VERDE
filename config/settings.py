@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'wallet',
     'sales_reports',
     'referrals',
+    'admin_settings',
 
 
     "practice",
