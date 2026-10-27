@@ -990,13 +990,11 @@
           <div>
             <p class="ref-code-label">Grow Together</p>
             <p class="ref-reward-amount">
-              {% with referrals.first as first_ref %}
-                {% if first_ref %}
-                  &#8377;{{ first_ref.reward_amount|floatformat:0 }}
-                {% else %}
-                  &#8377;&#8212;
-                {% endif %}
-              {% endwith %}
+              {% if active_offer %}
+                &#8377;{{ active_offer.reward_amount|floatformat:0 }}
+              {% else %}
+                &#8377;&#8212;
+              {% endif %}
             </p>
             <p class="ref-reward-per">Reward Per Friend</p>
           </div>

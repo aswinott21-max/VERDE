@@ -4,8 +4,7 @@ from django.shortcuts import render
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 from decimal import Decimal
-
-from referrals.models import Referral, ReferralReward
+from referrals.models import Referral, ReferralReward,ReferralOffer
 from referrals.services import generate_referral_code
 
 
@@ -19,6 +18,8 @@ def user_referrals_page(request):
     ).select_related(
         "referred_user"
     ).order_by("-created_at")
+
+    active_offer = ReferralOffer.objects.filter(is_active=True).first()
     
     rewards = ReferralReward.objects.filter(recipient=request.user).select_related("referral").order_by("-created_at")
 
@@ -49,6 +50,8 @@ def user_referrals_page(request):
         {
             "referral_code": referral_code.code,
             "referrals": referrals,
+            "referrals": referrals,
+            "active_offer": active_offer,
             "rewards": rewards,
             "referral_stats": referral_stats,
             "earned_amount": earned_amount,
