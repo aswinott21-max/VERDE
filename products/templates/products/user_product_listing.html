@@ -1066,6 +1066,13 @@
               <span class="page-arrow-nav" style="color: #bbb; cursor: default;">‹ PREV</span>
               {% endif %}
 
+              {% if has_previous %}
+              <a
+                href="?page={{ page|add:'-1' }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_id %}&category={{ category_id }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                class="page-circle-btn"
+              >{{ page|add:'-1' }}</a>
+              {% endif %}
+
               <span class="page-circle-btn current">{{ page|default:'1' }}</span>
 
               {% if total_pages and total_pages > 1 %}
