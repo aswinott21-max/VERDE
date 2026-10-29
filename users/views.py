@@ -628,8 +628,13 @@ def change_password(request):
     
 @never_cache
 def home_page(request):
+    from catalog.models import Category
 
-    return render (request, "users/home.html")
+    categories = Category.objects.filter(is_active=True)
+
+    return render(request, "users/home.html", {
+        "categories": categories,
+    })
 
 
 def google_login(request):

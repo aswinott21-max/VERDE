@@ -303,12 +303,12 @@
 
         <div class="cards-grid">
           <!-- Card 1: Indoor Plants -->
-          <article
+          <a
             class="collection-card"
             data-category="Indoor Plants"
-            tabindex="0"
-            role="button"
+            href="{% url 'product_list' %}?category={% for category in categories %}{% if category.name == 'Indoor Plants' %}{{ category.id }}{% endif %}{% endfor %}"
             aria-label="Explore Indoor Plants"
+            style="color: inherit; text-decoration: none;"
           >
             <div class="card-img-wrapper">
               <img
@@ -319,15 +319,15 @@
               />
             </div>
             <span class="card-badge">Indoor Plants</span>
-          </article>
+          </a>
 
           <!-- Card 2: Outdoor Plants -->
-          <article
+          <a
             class="collection-card"
             data-category="Outdoor Plants"
-            tabindex="0"
-            role="button"
+            href="{% url 'product_list' %}?category={% for category in categories %}{% if category.name == 'Outdoor Plants' %}{{ category.id }}{% endif %}{% endfor %}"
             aria-label="Explore Outdoor Plants"
+            style="color: inherit; text-decoration: none;"
           >
             <div class="card-img-wrapper">
               <img
@@ -338,45 +338,45 @@
               />
             </div>
             <span class="card-badge">Outdoor Plants</span>
-          </article>
+          </a>
 
-          <!-- Card 3: Flowering Plants -->
-          <article
+          <!-- Card 3: Equipment -->
+          <a
             class="collection-card"
-            data-category="Flowering Plants"
-            tabindex="0"
-            role="button"
-            aria-label="Explore Flowering Plants"
+            data-category="Equipment"
+            href="{% url 'product_list' %}?category={% for category in categories %}{% if category.name == 'Equipments' %}{{ category.id }}{% endif %}{% endfor %}"
+            aria-label="Explore Equipment"
+            style="color: inherit; text-decoration: none;"
           >
             <div class="card-img-wrapper">
               <img
-                src="{% static 'assets/images/flowering-plants.jpg' %}"
-                alt="Blooming Peace Lily in a clean neutral ceramic pot"
+                src="https://media.fds.fi/decor_image/800/MENU_Pallares_Plant_Pruner_3_2023.jpg"
+                alt="Minimalist metal plant pruning shears on a light surface"
                 class="card-img"
                 loading="lazy"
               />
             </div>
-            <span class="card-badge">Flowering Plants</span>
-          </article>
+            <span class="card-badge">Equipment</span>
+          </a>
 
-          <!-- Card 4: Succulents -->
-          <article
+          <!-- Card 4: Pots -->
+          <a
             class="collection-card"
-            data-category="Succulents"
-            tabindex="0"
-            role="button"
-            aria-label="Explore Succulents"
+            data-category="Pots"
+            href="{% url 'product_list' %}?category={% for category in categories %}{% if category.name == 'Pots' %}{{ category.id }}{% endif %}{% endfor %}"
+            aria-label="Explore Pots"
+            style="color: inherit; text-decoration: none;"
           >
             <div class="card-img-wrapper">
               <img
-                src="{% static 'assets/images/succulents.jpg' %}"
-                alt="Artistic assortment of colorful succulents in a low charcoal dish"
+                src="https://www.kambagc.com.au/cdn/shop/files/MLItalianTerracottaPots.jpg?v=1762309670&amp;width=1260"
+                alt="Collection of Italian terracotta plant pots in varied sizes"
                 class="card-img"
                 loading="lazy"
               />
             </div>
-            <span class="card-badge">Succulents</span>
-          </article>
+            <span class="card-badge">Pots</span>
+          </a>
         </div>
       </section>
     </main>
