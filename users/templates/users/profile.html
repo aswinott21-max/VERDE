@@ -1243,7 +1243,9 @@
             return;
           }
           showMessage(messages.save, "Password changed successfully", "success");
-          setTimeout(closeModal, 1200);
+          setTimeout(() => {
+            window.location.href = "/login-page/";
+          }, 1200);
         } catch (error) {
           showMessage(messages.save, error.message);
         } finally {

@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth import logout as auth_logout
 
 from .services.auth_service import hash_user_password
 from django.core.mail import send_mail
@@ -623,6 +624,7 @@ def change_password(request):
     # Clear password-change session data
     request.session.pop("change_password_data", None)
     request.session.pop("change_password_verified", None)
+    auth_logout(request)
     return JsonResponse({"message" : "Password changed succefully"},status=200)
 
     
@@ -811,7 +813,9 @@ def verify_email_change(request):
     #Remone temp. OTP data
     request.session.pop("email_change_data", None)
 
-    return JsonResponse({"message" : "Email changed successfully"}, status=200)
+    auth_logout(request)
+
+    return JsonResponse({"message": "Email changed successfully"}, status=200)
 
 
 @login_required

@@ -7,6 +7,8 @@ from django.http import JsonResponse
 from django.shortcuts import redirect,render
 from adminpanel.decorators import admin_required
 from django.views.decorators.http import require_POST
+from django.contrib.auth import logout as auth_logout
+
 
 from users.models import User
 from users.services.validation_service import (validate_user_name,validate_user_phone,validate_user_email,validate_user_password)
@@ -190,6 +192,8 @@ def verify_admin_email_change(request):
 
     request.session.pop("admin_settings_email_change_data", None)
 
+    auth_logout(request)
+
     return JsonResponse({"message": "Email changed successfully"}, status=200)
 
 
@@ -354,11 +358,10 @@ def change_admin_password(request):
     user = request.user
     user.set_password(password)
     user.save()
-    # Keep the admin logged in after changing their password.
-    from django.contrib.auth import update_session_auth_hash
-    update_session_auth_hash(request, user)
-
+   
     request.session.pop("admin_settings_password_change_data", None)
     request.session.pop("admin_settings_password_change_verified", None)
+
+    auth_logout(request)
 
     return JsonResponse({"message": "Password changed successfully"}, status=200)

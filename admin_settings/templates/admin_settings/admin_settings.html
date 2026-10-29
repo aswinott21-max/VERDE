@@ -2134,14 +2134,7 @@
 
                 if (response.ok) {
                     clearInterval(emailTimerInterval);
-                    document.getElementById('finalEmailDisplay').textContent = pendingNewEmail;
-                    document.getElementById('adminEmailInput').value = pendingNewEmail;
-                    document.getElementById('summaryEmailDisplay').innerHTML = `
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22,6 12,13 2,6"></polyline>
-                        </svg> ${pendingNewEmail}`;
-                    showEmailStep(3);
+                    window.location.href = "/admin-login/";
                 } else {
                     showError(emailStep2Error, data.error || "Invalid verification code.", emailOtpInput);
                 }
@@ -2483,7 +2476,7 @@
 
                 if (response.ok) {
                     hideError(passwordStep3Error);
-                    showPasswordStep(4);
+                    window.location.href = "/admin-login/";
                 } else {
                     const errMsg = data.error || "Unable to update password. Please try again.";
                     if (errMsg.toLowerCase().includes("match")) {
