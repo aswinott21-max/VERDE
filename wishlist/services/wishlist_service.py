@@ -16,6 +16,16 @@ def get_user_wishlist_product_ids(user):
     return set(
         WishlistItem.objects.filter(wishlist__user=user,is_active=True,).values_list("product_id",flat=True,))
 
+#variant wise adding wishlist
+def get_user_wishlist_variant_ids(user, product_id):
+    return set(
+        WishlistItem.objects.filter(
+            wishlist__user=user,
+            product_id=product_id,
+            is_active=True,
+            product_variant__isnull=False,
+        ).values_list("product_variant_id", flat=True)
+    )
 
 def get_user_wishlist_count(user):
     return WishlistItem.objects.filter(wishlist__user=user,is_active=True,).count()

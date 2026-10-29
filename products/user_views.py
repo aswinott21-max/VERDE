@@ -4,8 +4,10 @@ from django.contrib.auth.decorators import login_required
 from products.models import Category
 
 from products.services.product_service import (get_active_products,get_product_modal_data,)
-from wishlist.services.wishlist_service import (get_user_wishlist_product_ids,get_user_wishlist_count,)
+from wishlist.services.wishlist_service import (get_user_wishlist_product_ids,get_user_wishlist_count,get_user_wishlist_variant_ids)
 from products.services.review_service import (get_reviewable_order_items, create_product_review)
+
+
 
 def product_list(request):
     search_query = request.GET.get("search", "")
@@ -65,9 +67,11 @@ def product_detail(request, product_id):
 
     if request.user.is_authenticated:
         wishlist_product_ids = get_user_wishlist_product_ids(request.user)
+        wishlist_variant_ids = get_user_wishlist_variant_ids(request.user,product_data["product"].id,)
         wishlist_count = get_user_wishlist_count(request.user)
     else:
         wishlist_product_ids = set()
+        wishlist_variant_ids = set()
         wishlist_count = 0
 
     context = {
@@ -78,6 +82,7 @@ def product_detail(request, product_id):
         "related_products": product_data["related_products"],
 
         "wishlist_product_ids": wishlist_product_ids,
+        "wishlist_variant_ids": wishlist_variant_ids,
         "wishlist_count": wishlist_count,
         }
 
