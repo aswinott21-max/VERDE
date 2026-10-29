@@ -534,7 +534,7 @@ def reset_password(request):
     
 
     
-
+#Change from Profile 
 @login_required
 @require_POST
 def send_change_password_otp(request):
@@ -627,7 +627,10 @@ def change_password(request):
     auth_logout(request)
     return JsonResponse({"message" : "Password changed succefully"},status=200)
 
-    
+
+
+
+
 @never_cache
 def home_page(request):
     from catalog.models import Category
