@@ -12,8 +12,8 @@ def validate_user_email(email):
         return False
 
 def validate_user_phone(phone):
-    # Phone number must contain exactly 10 digits
-    return phone.isdigit() and len(phone) == 10
+    #require 10 digits and reject numbers repeating one digit
+    return (phone.isdigit() and len(phone) == 10 and len(set(phone)) > 1)
 
 def validate_pin(pin):
     return pin.isdigit() and len(pin) ==6

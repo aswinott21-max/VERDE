@@ -83,7 +83,7 @@ def signup(request):
     #Phone validation
     if not validate_user_phone(phone):
         return JsonResponse({
-            "error" : "Phone number must contain exactly 10 digits"
+            "error" : "Please enter a valid phone number."
         }, status=400)
   
     

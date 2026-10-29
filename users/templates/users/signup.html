@@ -54,7 +54,12 @@
                 autocomplete="name"
                 required
               />
-              <span class="field-error" id="nameError" role="alert" aria-live="polite"></span>
+              <span
+                class="field-error"
+                id="nameError"
+                role="alert"
+                aria-live="polite"
+              ></span>
             </div>
 
             <div class="signup-field">
@@ -67,7 +72,12 @@
                 autocomplete="email"
                 required
               />
-              <span class="field-error" id="emailError" role="alert" aria-live="polite"></span>
+              <span
+                class="field-error"
+                id="emailError"
+                role="alert"
+                aria-live="polite"
+              ></span>
             </div>
 
             <div class="signup-field">
@@ -150,7 +160,12 @@
                   required
                 />
               </div>
-              <span class="field-error" id="phoneError" role="alert" aria-live="polite"></span>
+              <span
+                class="field-error"
+                id="phoneError"
+                role="alert"
+                aria-live="polite"
+              ></span>
             </div>
 
             <div class="signup-field">
@@ -178,7 +193,12 @@
                   </svg>
                 </button>
               </div>
-              <span class="field-error" id="passwordError" role="alert" aria-live="polite"></span>
+              <span
+                class="field-error"
+                id="passwordError"
+                role="alert"
+                aria-live="polite"
+              ></span>
             </div>
 
             <div class="signup-requirements">
@@ -221,7 +241,12 @@
                   </svg>
                 </button>
               </div>
-              <span class="field-error" id="confirmPasswordError" role="alert" aria-live="polite"></span>
+              <span
+                class="field-error"
+                id="confirmPasswordError"
+                role="alert"
+                aria-live="polite"
+              ></span>
             </div>
 
             <div class="signup-field">
@@ -233,7 +258,12 @@
                 placeholder="Enter referral code (optional)"
                 autocomplete="off"
               />
-              <span class="field-error" id="referralCodeError" role="alert" aria-live="polite"></span>
+              <span
+                class="field-error"
+                id="referralCodeError"
+                role="alert"
+                aria-live="polite"
+              ></span>
             </div>
 
             <p
@@ -298,7 +328,9 @@
       const emailError = document.getElementById("emailError");
       const phoneError = document.getElementById("phoneError");
       const passwordError = document.getElementById("passwordError");
-      const confirmPasswordError = document.getElementById("confirmPasswordError");
+      const confirmPasswordError = document.getElementById(
+        "confirmPasswordError",
+      );
       const referralCodeError = document.getElementById("referralCodeError");
 
       const requirementChecks = [
@@ -311,10 +343,7 @@
           document.getElementById("signupLower"),
           (value) => /[a-z]/.test(value),
         ],
-        [
-          document.getElementById("signupNumber"),
-          (value) => /\d/.test(value),
-        ],
+        [document.getElementById("signupNumber"), (value) => /\d/.test(value)],
         [
           document.getElementById("signupSpecial"),
           (value) => /[^A-Za-z0-9]/.test(value),
@@ -358,15 +387,25 @@
         if (signupError) signupError.textContent = "";
       }
 
-      [nameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput, referralCodeInput].forEach((input) => {
+      [
+        nameInput,
+        emailInput,
+        phoneInput,
+        passwordInput,
+        confirmPasswordInput,
+        referralCodeInput,
+      ].forEach((input) => {
         if (input) {
           input.addEventListener("input", () => {
             if (input === nameInput) clearFieldError(nameInput, nameError);
             if (input === emailInput) clearFieldError(emailInput, emailError);
             if (input === phoneInput) clearFieldError(phoneInput, phoneError);
-            if (input === passwordInput) clearFieldError(passwordInput, passwordError);
-            if (input === confirmPasswordInput) clearFieldError(confirmPasswordInput, confirmPasswordError);
-            if (input === referralCodeInput) clearFieldError(referralCodeInput, referralCodeError);
+            if (input === passwordInput)
+              clearFieldError(passwordInput, passwordError);
+            if (input === confirmPasswordInput)
+              clearFieldError(confirmPasswordInput, confirmPasswordError);
+            if (input === referralCodeInput)
+              clearFieldError(referralCodeInput, referralCodeError);
             if (signupError) signupError.textContent = "";
           });
         }
@@ -409,7 +448,9 @@
         const phoneVal = phoneInput.value.trim();
         const passwordVal = passwordInput.value;
         const confirmPasswordVal = confirmPasswordInput.value;
-        const referralCodeVal = referralCodeInput ? referralCodeInput.value.trim() : "";
+        const referralCodeVal = referralCodeInput
+          ? referralCodeInput.value.trim()
+          : "";
 
         let hasClientError = false;
         if (!nameVal) {
@@ -420,14 +461,22 @@
           setFieldError(emailInput, emailError, "Email address is required.");
           hasClientError = true;
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-          setFieldError(emailInput, emailError, "Please enter a valid email address.");
+          setFieldError(
+            emailInput,
+            emailError,
+            "Please enter a valid email address.",
+          );
           hasClientError = true;
         }
         if (!phoneVal) {
           setFieldError(phoneInput, phoneError, "Phone number is required.");
           hasClientError = true;
         } else if (!/^\d{10}$/.test(phoneVal.replace(/\s+/g, ""))) {
-          setFieldError(phoneInput, phoneError, "Phone number must contain exactly 10 digits.");
+          setFieldError(
+            phoneInput,
+            phoneError,
+            "Please enter a valid phone number",
+          );
           hasClientError = true;
         }
         if (!passwordVal) {
@@ -440,19 +489,36 @@
           !/\d/.test(passwordVal) ||
           !/[^A-Za-z0-9]/.test(passwordVal)
         ) {
-          setFieldError(passwordInput, passwordError, "Password does not meet the requirements.");
+          setFieldError(
+            passwordInput,
+            passwordError,
+            "Password does not meet the requirements.",
+          );
           hasClientError = true;
         }
         if (!confirmPasswordVal) {
-          setFieldError(confirmPasswordInput, confirmPasswordError, "Please confirm your password.");
+          setFieldError(
+            confirmPasswordInput,
+            confirmPasswordError,
+            "Please confirm your password.",
+          );
           hasClientError = true;
         } else if (passwordVal !== confirmPasswordVal) {
-          setFieldError(confirmPasswordInput, confirmPasswordError, "Passwords do not match.");
+          setFieldError(
+            confirmPasswordInput,
+            confirmPasswordError,
+            "Passwords do not match.",
+          );
           hasClientError = true;
         }
         if (hasClientError) {
-          const firstInvalid = [nameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput]
-            .find((input) => input.classList.contains("is-invalid"));
+          const firstInvalid = [
+            nameInput,
+            emailInput,
+            phoneInput,
+            passwordInput,
+            confirmPasswordInput,
+          ].find((input) => input.classList.contains("is-invalid"));
           if (firstInvalid) firstInvalid.focus();
           return;
         }
@@ -479,11 +545,32 @@
             const lowerErr = err.toLowerCase();
 
             if (lowerErr.includes("all fields are required")) {
-              if (!nameVal) setFieldError(nameInput, nameError, "Full name is required.");
-              if (!emailVal) setFieldError(emailInput, emailError, "Email address is required.");
-              if (!phoneVal) setFieldError(phoneInput, phoneError, "Phone number is required.");
-              if (!passwordVal) setFieldError(passwordInput, passwordError, "Password is required.");
-              if (!confirmPasswordVal) setFieldError(confirmPasswordInput, confirmPasswordError, "Please confirm your password.");
+              if (!nameVal)
+                setFieldError(nameInput, nameError, "Full name is required.");
+              if (!emailVal)
+                setFieldError(
+                  emailInput,
+                  emailError,
+                  "Email address is required.",
+                );
+              if (!phoneVal)
+                setFieldError(
+                  phoneInput,
+                  phoneError,
+                  "Phone number is required.",
+                );
+              if (!passwordVal)
+                setFieldError(
+                  passwordInput,
+                  passwordError,
+                  "Password is required.",
+                );
+              if (!confirmPasswordVal)
+                setFieldError(
+                  confirmPasswordInput,
+                  confirmPasswordError,
+                  "Please confirm your password.",
+                );
             } else if (lowerErr.includes("name")) {
               setFieldError(nameInput, nameError, err);
               nameInput.focus();
@@ -493,7 +580,10 @@
             } else if (lowerErr.includes("phone")) {
               setFieldError(phoneInput, phoneError, err);
               phoneInput.focus();
-            } else if (lowerErr.includes("passwords do not match") || lowerErr.includes("password do not match")) {
+            } else if (
+              lowerErr.includes("passwords do not match") ||
+              lowerErr.includes("password do not match")
+            ) {
               setFieldError(confirmPasswordInput, confirmPasswordError, err);
               confirmPasswordInput.focus();
             } else if (lowerErr.includes("password")) {
