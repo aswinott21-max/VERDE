@@ -1355,8 +1355,9 @@
                 id="categoryParent"
                 name="parent_id"
                 class="form-select"
+                required
               >
-                <option value="">None (Top-Level Category)</option>
+                <option value="" selected disabled>Choose Parent Category</option>
                 {% for pcat in parent_categories %}
                 <option value="{{ pcat.id }}">{{ pcat.name }}</option>
                 {% endfor %}
