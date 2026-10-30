@@ -44,6 +44,14 @@ def _get_unit_price(product, variant=None):
     # Normal products use the product sale price
     return Decimal(get_product_sale_price(product))
 
+#refresh stored cart prices using current product or variant prices
+def refresh_cart_item_prices(cart_items):
+    for item in cart_items:
+        item.unit_price = _get_unit_price(item.product,item.product_variant)
+        item.save(update_fields=["unit_price","updated_at"])
+    return cart_items
+
+
 
 # Add a product or variant to a logged-in user's cart
 def add_to_cart(user, product_id, product_variant_id=None, quantity=1):
@@ -157,10 +165,9 @@ def get_cart_details(user):
         }
 
     # Get cart items together with related product and image data
-    cart_items = (
-        CartItem.objects
-        .filter(cart=cart)
-        .select_related("product","product_variant","product__category",).prefetch_related("product__product_images","product_variant__images",))
+    cart_items = (CartItem.objects.filter(cart=cart).select_related("product","product_variant","product__category",).prefetch_related("product__product_images","product_variant__images",))
+    #refresh the prices
+    cart_items = refresh_cart_item_prices(cart_items)
 
     items = []
     subtotal = Decimal("0.00")

@@ -15,6 +15,7 @@ from orders.task import send_order_confirmation_email
 from coupons.models import Coupon,CouponUsage
 from coupons.services.coupon_service import (is_coupon_valid,is_coupon_usage_available,is_minimum_order_amount_met,calculate_coupon_discount,)
 from wallet.services.wallet_service import debit_wallet
+from cart.services.cart_service import refresh_cart_item_prices
 
 SHIPPING_CHARGE = Decimal("150.00")
 SUPPORTED_PAYMENT_METHODS = {"Cash on Delivery", "Razorpay", "Wallet"}
@@ -70,6 +71,8 @@ def create_pending_razorpay_order(user, address_id, delivery_method,coupon_id=No
         return None, "Your cart is empty."
 
     cart_items = list(CartItem.objects.filter(cart=cart).select_related("product", "product_variant").order_by("id"))
+    #refresh the prices
+    cart_items = refresh_cart_item_prices(cart_items)
     if not cart_items:
         return None, "Your cart is empty."
 
@@ -278,7 +281,8 @@ def create_order(user, address_id, delivery_method, payment_method,coupon_id=Non
         return None, "Your cart is empty."
 
     cart_items = list(CartItem.objects.filter(cart=cart).select_related("product", "product_variant").order_by("id"))
-
+    #refresh the prices
+    cart_items = refresh_cart_item_prices(cart_items)
 
     if not cart_items:
         return None, "Your cart is empty."
