@@ -32,7 +32,7 @@ def checkout_page(request):
         quantity = item["quantity"]
 
         if product.variants.exists():
-            variant = item.get("product_variant")
+            variant = item.get("variant")
 
             if not variant or not variant.is_active or variant.stock_quantity < quantity:
                 from django.contrib import messages
