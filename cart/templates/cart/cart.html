@@ -1186,7 +1186,7 @@
 
       function fmtCouponAmount(val) {
         var n = parseFloat(val) || 0;
-        return '\u20B9' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        return '\u20B9' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
 
       /* ─── Available coupons dropdown ─── */
@@ -1393,7 +1393,7 @@
         totalValue.textContent = fmt(cartSubtotal + shipping + cartTax - couponDiscount);
         couponDiscountRow.hidden = !appliedCouponCode;
         appliedCouponCodeEl.textContent = appliedCouponCode;
-        couponDiscountEl.textContent = '-' + fmt(couponDiscount);
+        couponDiscountEl.textContent = '-' + fmtCouponAmount(couponDiscount);
 
         if (cartCountBadge) {
           cartCountBadge.textContent = totalQty;
