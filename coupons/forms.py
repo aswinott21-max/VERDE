@@ -53,6 +53,19 @@ class CouponForm(forms.ModelForm):
         #this rule applies to both new and existing coupons.
         if start_date and expiry_date and expiry_date <= start_date:
             self.add_error("expiry_date", "Expiry date must be after the start date.",)
+
+        #Minimum order amount must be greater than the fixed discount value
+        discount_type = cleaned_data.get("discount_type")
+        discount_value = cleaned_data.get("discount_value")
+        minimum_order_amount = cleaned_data.get("minimum_order_amount")
+
+        if (
+            discount_type == "fixed"
+            and discount_value is not None
+            and minimum_order_amount is not None
+            and minimum_order_amount <= discount_value):
+
+            self.add_error("minimum_order_amount","Minimum order amount must be greater than the fixed discount value.")
         
         logger.info("Coupon date validation completed")
 
