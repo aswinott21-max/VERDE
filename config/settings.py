@@ -48,6 +48,10 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+#Groq
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -86,6 +90,7 @@ INSTALLED_APPS = [
     'sales_reports',
     'referrals',
     'admin_settings',
+    'chatbot',
 
 
     "practice",
