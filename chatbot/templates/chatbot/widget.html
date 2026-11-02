@@ -1,0 +1,219 @@
+{% load static %}
+
+{# CSRF token — read by chatbot.js via [name=csrfmiddlewaretoken] #}
+{% csrf_token %}
+
+<link rel="stylesheet" href="{% static 'chatbot/chatbot.css' %}">
+
+<div id="verde-chatbot-widget" role="region" aria-label="VERDÉ Botanical Concierge">
+
+  {# ── Floating launcher (concierge tooltip + luxury icon button) ──── #}
+  <div id="chatbot-launcher">
+    {# Elegant tooltip speech bubble #}
+    <div id="chatbot-tooltip" role="button" tabindex="0" aria-label="Open VERDÉ Concierge">
+      <div class="cb-tooltip-content">
+        <span class="cb-tooltip-title">VERDÉ Concierge</span>
+        <span class="cb-tooltip-sub">Botanical advice & assistance</span>
+      </div>
+      <div class="cb-tooltip-arrow" aria-hidden="true"></div>
+    </div>
+
+    {# Luxury Circular Launcher Button #}
+    <button
+      id="chatbot-toggle"
+      type="button"
+      aria-label="Toggle VERDÉ chat"
+      aria-expanded="false"
+      aria-controls="chatbot-window"
+    >
+      <span id="chatbot-badge" aria-hidden="true"></span>
+
+      {# Refined Botanical Emblem (visible when closed) #}
+      <svg class="cb-icon-botanical" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 22V11" stroke="#E6EDE8" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M12 11C12 7.5 15.5 4 20 4C20 8.5 16.5 11 12 11Z" fill="#A8C4B0" stroke="#E6EDE8" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M12 15C12 12 9 9.5 5 9.5C5 13.5 7.5 15 12 15Z" fill="#7C9D86" stroke="#E6EDE8" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+
+      {# Minimalist Close Icon (visible when open) #}
+      <svg class="cb-icon-close" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  {# ── Chat window ────────────────────────────────────────── #}
+  <div id="chatbot-window" role="dialog" aria-label="VERDÉ Botanical Concierge" aria-modal="false">
+
+    {# Top Header in Deep Forest Green #}
+    <div class="cb-header">
+      <div class="cb-header-left">
+        {# Fine-line Botanical Branch Emblem #}
+        <div class="cb-header-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21V9" stroke="#E4ECE6" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 9C12 5.5 15 3 19 3C19 7 15.5 9 12 9Z" fill="rgba(168, 196, 176, 0.4)" stroke="#E4ECE6" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M12 13C12 10.5 9.5 8.5 6 8.5C6 12 8.5 13 12 13Z" fill="rgba(168, 196, 176, 0.4)" stroke="#E4ECE6" stroke-width="1.4" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="cb-header-titles">
+          <div class="cb-header-name">VERDÉ</div>
+          <div class="cb-header-status">
+            <span class="cb-status-dot" aria-hidden="true"></span>
+            <span>Online Concierge</span>
+          </div>
+        </div>
+      </div>
+
+      {# Sleek Minimalist Close Button #}
+      <button class="cb-header-close" id="chatbot-close" type="button" aria-label="Close concierge window">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    {# Messages & Welcome Area (Scrolls independently) #}
+    <div class="cb-messages-scroll" id="chatbot-messages" aria-live="polite" aria-relevant="additions">
+
+      {# Sophisticated Minimal Botanical Illustration Card #}
+      <div class="cb-welcome-container" id="chatbot-welcome-container">
+        
+        <div class="cb-botanical-graphic" aria-hidden="true">
+          <svg viewBox="0 0 260 120" width="100%" height="92" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Subtle baseline -->
+            <line x1="36" y1="112" x2="224" y2="112" stroke="rgba(18, 38, 30, 0.1)" stroke-width="1" stroke-dasharray="3 3"/>
+
+            <!-- Small ceramic fluted pot on left -->
+            <path d="M 50 82 L 53 108 C 53 110 55 112 57 112 L 73 112 C 75 112 77 110 77 108 L 80 82 Z" fill="#EAE2DC" stroke="#12261E" stroke-width="1.2"/>
+            <ellipse cx="65" cy="82" rx="15" ry="3.2" fill="#DDD1CA" stroke="#12261E" stroke-width="1.2"/>
+            <path d="M 65 82 Q 62 65 54 58" stroke="#12261E" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M 65 82 Q 69 70 76 66" stroke="#12261E" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M 54 58 C 49 60 51 68 57 66 Z" fill="#B3C4B8" stroke="#12261E" stroke-width="1.1"/>
+            <path d="M 76 66 C 81 68 79 74 73 72 Z" fill="#9EB3A4" stroke="#12261E" stroke-width="1.1"/>
+
+            <!-- Center architectural terracotta planter -->
+            <path d="M 108 72 L 112 108 C 112 110 115 112 118 112 L 142 112 C 145 112 148 110 148 108 L 152 72 Z" fill="#F4EFEA" stroke="#12261E" stroke-width="1.3"/>
+            <ellipse cx="130" cy="72" rx="22" ry="4.5" fill="#E7DED6" stroke="#12261E" stroke-width="1.3"/>
+            <line x1="124" y1="80" x2="124" y2="105" stroke="rgba(18, 38, 30, 0.12)" stroke-width="1"/>
+            <line x1="130" y1="80" x2="130" y2="105" stroke="rgba(18, 38, 30, 0.12)" stroke-width="1"/>
+            <line x1="136" y1="80" x2="136" y2="105" stroke="rgba(18, 38, 30, 0.12)" stroke-width="1"/>
+
+            <!-- Elegant fine-line Monstera foliage -->
+            <path d="M 130 72 Q 130 40 120 20" stroke="#12261E" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M 130 72 Q 115 48 94 36" stroke="#12261E" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M 130 72 Q 146 48 166 30" stroke="#12261E" stroke-width="1.3" stroke-linecap="round"/>
+
+            <!-- Center Monstera leaf with subtle tint -->
+            <g transform="translate(108, 12)">
+              <path d="M 12 0 C 4 8 0 20 6 28 C 12 34 22 34 28 28 C 34 20 30 8 22 2 Z" fill="#8CA394" fill-opacity="0.22" stroke="#12261E" stroke-width="1.2"/>
+              <line x1="12" y1="2" x2="18" y2="28" stroke="#12261E" stroke-width="1" stroke-linecap="round"/>
+              <path d="M 6 12 Q 13 15 15 17" stroke="#12261E" stroke-width="1" stroke-linecap="round"/>
+              <path d="M 24 16 Q 18 18 16 20" stroke="#12261E" stroke-width="1" stroke-linecap="round"/>
+            </g>
+
+            <!-- Left Leaf -->
+            <g transform="translate(85, 28) rotate(-22)">
+              <path d="M 10 0 C 2 6 0 16 5 22 C 10 28 18 28 23 22 C 28 16 25 6 18 2 Z" fill="#758E7E" fill-opacity="0.18" stroke="#12261E" stroke-width="1.2"/>
+              <line x1="10" y1="2" x2="14" y2="22" stroke="#12261E" stroke-width="1" stroke-linecap="round"/>
+            </g>
+
+            <!-- Right Leaf -->
+            <g transform="translate(153, 20) rotate(24)">
+              <path d="M 10 0 C 2 6 0 16 5 22 C 10 28 18 28 23 22 C 28 16 25 6 18 2 Z" fill="#758E7E" fill-opacity="0.18" stroke="#12261E" stroke-width="1.2"/>
+              <line x1="10" y1="2" x2="14" y2="22" stroke="#12261E" stroke-width="1" stroke-linecap="round"/>
+            </g>
+
+            <!-- Minimalist Brass Watering Pitcher on right -->
+            <path d="M 194 86 L 192 108 C 192 110 194 112 196 112 L 214 112 C 216 112 218 110 218 108 L 216 86 Z" fill="#ECE5D6" stroke="#12261E" stroke-width="1.2"/>
+            <path d="M 192 98 L 176 84" stroke="#12261E" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M 216 90 C 225 90 228 100 224 107 C 222 109 219 110 216 110" stroke="#12261E" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+            <path d="M 198 86 C 198 75 212 75 212 86" stroke="#12261E" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+
+        {# Welcome message bubble with serif heading #}
+        <div class="cb-welcome-bubble">
+          <h3 class="cb-welcome-heading">Welcome to VERDÉ</h3>
+          <p class="cb-welcome-text">
+            I am your personal botanical concierge. Whether you are exploring our curated indoor greenery, seeking plant care wisdom, or tracking an order, I am here to assist you.
+          </p>
+        </div>
+      </div>
+
+      {# Quick Reply Interactive Chips (styled with delicate micro-icons) #}
+      <div class="cb-suggestions-stack" id="chatbot-suggestions" aria-label="Quick questions">
+        {# Rendered dynamically by chatbot.js with refined SVG micro-icons #}
+      </div>
+
+      {# Dynamic messages thread (user and assistant messages appended here) #}
+      <div id="chatbot-dynamic-messages" class="cb-dynamic-thread"></div>
+
+    </div>{# /cb-messages-scroll #}
+
+    {# Polished Bottom Input Area with Rounded Pill Bar #}
+    <div class="cb-input-bar-container">
+      <div class="cb-input-pill">
+        <textarea
+          id="chatbot-input"
+          rows="1"
+          placeholder="Type your question here…"
+          aria-label="Ask your question"
+          autocomplete="off"
+          spellcheck="true"
+        ></textarea>
+
+        <button id="chatbot-send" type="button" aria-label="Send message">
+          {# Crisp minimal angled arrow #}
+          <svg class="cb-icon-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div>{# /chatbot-window #}
+</div>{# /verde-chatbot-widget #}
+
+{# ── Fast Toggle Wiring ────────────────────────────────────── #}
+<script>
+(function () {
+  var closeBtn = document.getElementById("chatbot-close");
+  var toggle   = document.getElementById("chatbot-toggle");
+  var tooltip  = document.getElementById("chatbot-tooltip");
+  var win      = document.getElementById("chatbot-window");
+  if (!closeBtn || !toggle || !win) return;
+
+  function closeWindow() {
+    toggle.classList.remove("cb-open");
+    win.classList.remove("cb-open");
+    toggle.setAttribute("aria-expanded", "false");
+    if (tooltip) tooltip.classList.remove("cb-hidden");
+    toggle.focus();
+  }
+
+  function openWindow() {
+    toggle.classList.add("cb-open");
+    win.classList.add("cb-open");
+    toggle.setAttribute("aria-expanded", "true");
+    if (tooltip) tooltip.classList.add("cb-hidden");
+    var inp = document.getElementById("chatbot-input");
+    if (inp) inp.focus();
+  }
+
+  closeBtn.addEventListener("click", closeWindow);
+
+  if (tooltip) {
+    tooltip.addEventListener("click", function () {
+      if (!win.classList.contains("cb-open")) {
+        openWindow();
+      }
+    });
+  }
+}());
+</script>
+
+<script src="{% static 'chatbot/chatbot.js' %}"></script>

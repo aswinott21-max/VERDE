@@ -39,6 +39,7 @@ urlpatterns = [
     path("wallet/", include("wallet.urls")),
     path("admin-sales-report/", include("sales_reports.urls")),
     path("admin-settings/",include("admin_settings.urls")),
+    path("chatbot/",include("chatbot.urls")),
 
 
 
