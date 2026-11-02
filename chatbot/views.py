@@ -1,5 +1,6 @@
 import json
 
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -11,6 +12,37 @@ from chatbot.services.order_service import get_customer_order_context
 @ensure_csrf_cookie
 def chatbot_csrf(request):
     return JsonResponse({"message": "CSRF cookie set."})
+
+def is_chatbot_rate_limited(request):
+    if request.user.is_authenticated:
+        identifier = f"user:{request.user.id}"
+        limit = 10
+    else:
+        identifier = f"ip:{request.META.get('REMOTE_ADDR', 'unknown')}"
+        limit = 5
+
+    cache_key = f"chatbot:rate_limit:{identifier}"
+
+    try:
+        # Start a new 60-second counting window.
+        if cache.add(cache_key, 1, timeout=60):
+            return False
+
+        # Increment the existing request count.
+        try:
+            request_count = cache.incr(cache_key)
+        except ValueError:
+            # The key may have expired between the operations.
+            if cache.add(cache_key, 1, timeout=60):
+                return False
+            request_count = cache.incr(cache_key)
+
+        return request_count > limit
+
+    except Exception:
+        # Do not allow requests through if rate-limit storage fails.
+        return None
+
 
 @require_POST
 def chat_api(request):
@@ -35,6 +67,21 @@ def chat_api(request):
         return JsonResponse(
             {"error": "Message must contain 1–1000 characters."},
             status=400,
+        )
+
+    # Check the customer's chatbot request limit.
+    rate_limited = is_chatbot_rate_limited(request)
+
+    if rate_limited is None:
+        return JsonResponse(
+            {"error": "Chatbot is temporarily unavailable."},
+            status=503,
+        )
+
+    if rate_limited:
+        return JsonResponse(
+            {"error": "Too many requests. Please try again later."},
+            status=429,
         )
 
     # Get the conversation from the current session

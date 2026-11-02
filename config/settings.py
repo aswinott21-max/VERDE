@@ -47,6 +47,13 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 900.0,  # Run every 15 minutes.
     },
 }
+#use Redis as Django's shared cache for chatbot rate limiting
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+    }
+}
 
 #Groq
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")

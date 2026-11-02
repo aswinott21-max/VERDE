@@ -135,12 +135,26 @@ def get_product_catalogue_context(user_message, limit=5):
                 else "Currently out of stock"
             )
 
-        results.append(
-            f"Product: {product.name}\n"
-            f"Category: {product.category.name}\n"
-            f"Price: ₹{get_product_sale_price(product)}\n"
-            f"Availability: {availability}\n"
-            f"Description: {product.description}"
-        )
+
+
+        # Build the product details shared by all products.
+        product_details = [
+            f"Product: {product.name}",
+            f"Category: {product.category.name}",
+        ]
+
+        # Products without variants use the calculated product sale price.
+        if not variants:
+            product_details.append(
+                f"Price: ₹{get_product_sale_price(product)}"
+            )
+
+        # Variant products display their individual variant prices instead.
+        product_details.extend([
+            f"Availability: {availability}",
+            f"Description: {product.description}",
+        ])
+
+        results.append("\n".join(product_details))
 
     return "\n\n".join(results)
