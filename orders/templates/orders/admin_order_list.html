@@ -732,6 +732,14 @@
             cursor: default;
         }
 
+        .payment-status-label {
+            display: block;
+            margin-top: 4px;
+            color: var(--color-text-muted);
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
         .status-badge-btn .badge-chevron {
             width: 12px;
             height: 12px;
@@ -1444,6 +1452,20 @@
 
                                                 {% endif %}
                                             </div>
+                                        {% endif %}
+
+                                        {% if order.payment_method == "Razorpay" %}
+                                            {% if order.payment_status == "PENDING" %}
+                                                <span class="payment-status-label">Awaiting Payment</span>
+                                            {% elif order.payment_status == "FAILED" %}
+                                                <span class="payment-status-label">Payment Failed</span>
+                                            {% elif order.payment_status == "PAID" %}
+                                                <span class="payment-status-label">Paid</span>
+                                            {% endif %}
+                                        {% elif order.payment_method == "Cash on Delivery" and order.payment_status == "PENDING" %}
+                                            <span class="payment-status-label">Cash on Delivery / Payment Due</span>
+                                        {% elif order.payment_method == "Wallet" and order.payment_status == "PAID" %}
+                                            <span class="payment-status-label">Paid</span>
                                         {% endif %}
                                     </div>
                                 </td>

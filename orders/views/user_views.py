@@ -24,7 +24,12 @@ def order_list(request):
     search = request.GET.get("search","").strip()
 
 
-    orders = (Order.objects.filter(user=request.user).order_by("-created_at"))
+    # Exclude unpaid Razorpay orders from the customer's normal order list.
+    # COD and Wallet orders remain visible as before.
+    visible_orders = Order.objects.filter(user=request.user).exclude(payment_method="Razorpay",payment_status="PENDING",)
+
+
+    orders = visible_orders.order_by("-created_at")
 
     if search:
         orders = orders.filter(Q(order_number__icontains=search) | Q(items__product_name__icontains=search)).distinct()
@@ -36,12 +41,11 @@ def order_list(request):
 
     logger.info("Order list opened by user: %s | Search: %s | Orders : %s", request.user,search,orders.count(),)
 
-    all_orders_count = Order.objects.filter(user=request.user).count()
-    processing_count = Order.objects.filter(user=request.user,status__in =["PLACED","PROCESSING","SHIPPED","OUT_FOR_DELIVERY"]).count()
-    delivered_count = Order.objects.filter(user=request.user,status="DELIVERED").count()
-    returned_count = Order.objects.filter(user=request.user,status="RETURNED",).count()
-    print("ORDERS:", list(orders.values("order_number", "status", "created_at")))
-
+    # Use the same filtered queryset for all dashboard counts.
+    all_orders_count = visible_orders.count()
+    processing_count = visible_orders.filter(status__in=["PLACED", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY"]).count()
+    delivered_count = visible_orders.filter(status="DELIVERED").count()
+    returned_count = visible_orders.filter(status="RETURNED").count()
     cancellable_statuses =  ["PLACED","PROCESSING","SHIPPED", "OUT_FOR_DELIVERY"]
 
     returnable_statuses = ["DELIVERED"]
@@ -132,7 +136,7 @@ def return_order_item_api(request,order_number, order_item_id):
         {
             "message": "Item return request submitted successfully.",
             "order_number": order_number,
-            "order_item_id": order_item_id, 
+            "order_item_id": order_item_id,
         },status=200)
 
 @login_required

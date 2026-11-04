@@ -17,7 +17,9 @@ from orders.services.invoice_service import generate_invoice_pdf
 def admin_order_list(request):
 
     search =request.GET.get("search","").strip()
-    orders = (Order.objects.select_related("user"))
+    # Exclude unpaid Razorpay orders from the normal admin order list.
+    # COD and Wallet orders retain their existing visibility.
+    orders = Order.objects.select_related("user").exclude(payment_method="Razorpay",payment_status="PENDING",)
     if search:
         orders = orders.filter(
             Q(order_number__icontains=search)
