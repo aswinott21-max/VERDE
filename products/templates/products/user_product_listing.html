@@ -459,7 +459,8 @@
         margin-left: 6px;
         font-weight: 400;
       }
-      .btn-quick-plus {
+      .btn-quick-plus,
+      .btn-view-details {
         width: auto;
         height: 32px;
         padding: 0 10px;
@@ -476,7 +477,8 @@
         cursor: pointer;
         transition: background-color 0.15s ease;
       }
-      .btn-quick-plus:hover {
+      .btn-quick-plus:hover,
+      .btn-view-details:hover {
         background-color: #e3dfd6;
       }
 
@@ -1038,13 +1040,22 @@
                       <span class="price-regular-val">₹{{ product.regular_price }}</span>
                     {% endif %}
                   </div>
-                  <button
-                    type="button"
-                    class="btn-quick-plus"
-                    data-product-id="{{ product.id }}"
-                    aria-label="Add {{ product.name }} to cart"
-                    title="Add to cart"
-                  >Add to cart</button>
+                  {% if 'pot' in product.category.name.lower or 'pot' in product.category.parent.name.lower %}
+                    <a
+                      class="btn-view-details"
+                      href="{% url 'product_detail' product.id %}"
+                      aria-label="View details for {{ product.name }}"
+                      title="View details"
+                    >View Details</a>
+                  {% else %}
+                    <button
+                      type="button"
+                      class="btn-quick-plus"
+                      data-product-id="{{ product.id }}"
+                      aria-label="Add {{ product.name }} to cart"
+                      title="Add to cart"
+                    >Add to cart</button>
+                  {% endif %}
                 </div>
               </article>
               {% empty %}
