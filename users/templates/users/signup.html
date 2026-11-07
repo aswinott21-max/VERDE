@@ -316,6 +316,8 @@
 
     <script>
       const signupForm = document.getElementById("signupForm");
+      const signupSubmitButton = signupForm.querySelector('button[type="submit"]');
+      let signupSubmitting = false;
       const signupError = document.getElementById("signupError");
       const nameInput = document.getElementById("name");
       const emailInput = document.getElementById("email");
@@ -441,6 +443,7 @@
 
       signupForm.addEventListener("submit", async function (event) {
         event.preventDefault();
+        if (signupSubmitting) return;
         clearAllErrors();
 
         const nameVal = nameInput.value.trim();
@@ -523,6 +526,10 @@
           return;
         }
 
+        signupSubmitting = true;
+        signupSubmitButton.disabled = true;
+        signupSubmitButton.textContent = "Creating Account...";
+
         try {
           const response = await fetch("/signup/", {
             method: "POST",
@@ -595,9 +602,15 @@
             } else {
               signupError.textContent = err;
             }
+            signupSubmitting = false;
+            signupSubmitButton.disabled = false;
+            signupSubmitButton.textContent = "Create Account";
           }
         } catch (error) {
           signupError.textContent = "Unable to connect. Please try again.";
+          signupSubmitting = false;
+          signupSubmitButton.disabled = false;
+          signupSubmitButton.textContent = "Create Account";
         }
       });
       // Start Google sign-in when the button is clicked
