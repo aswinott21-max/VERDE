@@ -39,14 +39,7 @@ urlpatterns = [
     path("wallet/", include("wallet.urls")),
     path("admin-sales-report/", include("sales_reports.urls")),
     path("admin-settings/",include("admin_settings.urls")),
-    path("chatbot/",include("chatbot.urls")),
-
-
-
-    path("practice/",include("practice.urls")),
-
-    
-    
+    path("chatbot/", include("chatbot.urls")),
 ]
 # Serve uploaded media files during development
 urlpatterns += static(

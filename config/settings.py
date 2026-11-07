@@ -64,8 +64,12 @@ GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cwl7&1*e#sj$_so1^awtol^6ta$so*u*y%ngmc+dd1kap=!j1v'
+# Load the Django secret key from the environment.
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+# Stop startup if the secret key is missing.
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY is not configured.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -99,9 +103,6 @@ INSTALLED_APPS = [
     'admin_settings',
     'chatbot',
 
-
-    "practice",
-    
 ]
 
 MIDDLEWARE = [
