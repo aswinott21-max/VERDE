@@ -243,7 +243,7 @@
             verifyStatus.textContent =
               result.message || "Account created successfully.";
             verifyStatus.className = "verify-status success";
-            window.location.href = "/login-page/";
+            window.location.href = result.redirect_url || "/";
           } else {
             verifyStatus.textContent =
               result.error || "Unable to create account.";

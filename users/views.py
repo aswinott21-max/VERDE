@@ -53,6 +53,10 @@ oauth.register(
 @csrf_exempt
 @require_POST
 def signup(request):
+    # A new signup invalidates verification from any earlier signup in this session.
+    request.session.pop("email_verified", None)
+    request.session.pop("verified_signup_email", None)
+
     data = json.loads(request.body)
 
     name = data.get("name", "").strip()
@@ -182,7 +186,7 @@ def verify_otp(request):
         }, status=400)
 
     #marking email as verified
-    request.session["email_verified"] = True
+    request.session["verified_signup_email"] = signup_data["email"]
 
     #remove the OTP
     signup_data.pop("otp",None)
@@ -237,7 +241,7 @@ def resend_otp(request):
 def create_account(request):
 
     signup_data = request.session.get("signup_data")
-    email_verified = request.session.get("email_verified")
+    verified_signup_email = request.session.get("verified_signup_email")
 
     #Check signup session
     if not signup_data:
@@ -246,7 +250,7 @@ def create_account(request):
         }, status=400)
 
     #Check email verification
-    if not email_verified:
+    if verified_signup_email != signup_data.get("email"):
         return JsonResponse({
             "error" : "Please verify your email first"
         }, status=400)
@@ -295,13 +299,17 @@ def create_account(request):
                 reward_amount=referral_offer.reward_amount,
             )
 
+    # Sign the new customer in only after account creation has committed.
+    auth_login(request, user)
+
     #Clear signup data from session
     request.session.pop("signup_data", None)
-    request.session.pop("email_verified", None)
+    request.session.pop("verified_signup_email", None)
 
     return JsonResponse({
         "message" : "Account created successfully",
-        "email" : user.email
+        "email" : user.email,
+        "redirect_url": "/",
     }, status=201)
 
 def signup_page(request):
