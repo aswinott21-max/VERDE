@@ -59,13 +59,15 @@ def add_category(request):
             "message": error,
         }, status=400)
 
+    if not parent_id:
+        return JsonResponse({
+            "success": False,
+            "message": "A parent category must be selected.",
+        }, status=400)
 
     # If a parent category was selected, make sure it exists
-    parent = None
-
-    if parent_id:
-        #Only top-level categories can be selected as parents.
-        parent = get_object_or_404(Category,id=parent_id, parent__isnull=True)
+    # Only existing top-level categories can be selected as parents.
+    parent = get_object_or_404(Category,id=parent_id, parent__isnull=True)
 
 
     #create catg
