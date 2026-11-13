@@ -10,7 +10,6 @@ from users.models import Address
 from products.models import Product, ProductVariant
 
 from products.services.tax_service import calculate_tax
-from products.services.product_price_service import get_effective_discount_percentage
 from orders.task import send_order_confirmation_email
 from coupons.models import Coupon,CouponUsage
 from coupons.services.coupon_service import (is_coupon_valid,is_coupon_usage_available,is_minimum_order_amount_met,calculate_coupon_discount,)
@@ -24,13 +23,11 @@ SUPPORTED_PAYMENT_METHODS = {"Cash on Delivery", "Razorpay", "Wallet"}
 logger = logging.getLogger(__name__)
 
 def calculate_coupon_eligible_subtotal(items):
-    #Sum item totals only for products without an active offer
-    eligible_subtotal =Decimal("0.00")
-
-    for product, item_total in items:
-        if get_effective_discount_percentage(product) <=0:
-            eligible_subtotal += Decimal(str(item_total))
-    return eligible_subtotal
+    # Cart item totals already reflect active product and category offer prices.
+    return sum(
+        (Decimal(str(item_total)) for _product, item_total in items),
+        Decimal("0.00"),
+    )
 
 
 
@@ -45,7 +42,7 @@ def validate_checkout_coupon(coupon_code, subtotoal,user):
         return None, Decimal("0.00"), "This coupon is inactive or expired"
     if not is_coupon_usage_available(coupon):
         return None, Decimal("0.00"), "This coupon has reached its usage limit"
-    # Reject coupons when no products are eligible for a discount.
+    # A zero product subtotal cannot receive a coupon discount.
     if subtotoal <= 0:
         return None, Decimal("0.00"), "No eligible products remain for this coupon."
 
