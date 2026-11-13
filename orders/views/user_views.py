@@ -75,7 +75,8 @@ def order_detail(request,order_number):
 def download_invoice(request, order_number):
     order = (Order.objects.filter(order_number = order_number, user=request.user,).prefetch_related("items").select_related("address").first())
     if not order:
-        return render(request, "order/order_not_found.html",status=404)
+        # Render the existing customer order-not-found page.
+        return render(request, "orders/order_not_found.html", status=404)
     return generate_invoice_pdf(order)
 
 @login_required

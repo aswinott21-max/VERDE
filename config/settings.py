@@ -71,10 +71,15 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is not configured.")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Read DEBUG from the environment; default to True for local development.
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = []
+# Read allowed hostnames from a comma-separated environment variable.
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+]
 
 
 # Application definition

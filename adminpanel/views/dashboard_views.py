@@ -7,13 +7,13 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
-from adminpanel.decorators import admin_required
+from adminpanel.decorators import admin_page_required
 from users.models import User
 from orders.models import Order, OrderItem, Return, Refund
 from products.models import Product,ProductImage
 
 @never_cache
-@admin_required
+@admin_page_required
 def admin_dashboard_page(request):
 
     #Use paid, non-cancelled orders as the basis for sales figures
