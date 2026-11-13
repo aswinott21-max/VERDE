@@ -837,7 +837,7 @@ def add_address(request):
 
     full_name = data.get("full_name", "").strip()
     phone = data.get("phone", "").strip()
-    pin = data.get("pin", "").strip()
+    pin = data.get("pin", "")
     address_line1 = data.get("address_line1", "").strip()
     city = data.get("city", "").strip()
     is_default = data.get("is_default", False)
@@ -939,7 +939,7 @@ def edit_address(request, address_id):
 
     full_name = data.get("full_name", "").strip()
     phone = data.get("phone", "").strip()
-    pin = data.get("pin", "").strip()
+    pin = data.get("pin", "")
     address_line1 = data.get("address_line1", "").strip()
     city = data.get("city", "").strip()
     is_default = data.get("is_default", False)

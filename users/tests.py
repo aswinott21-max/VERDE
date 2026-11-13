@@ -7,8 +7,107 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from users.models import User
+from users.models import Address, User
 from users.services.auth_service import hash_user_password
+
+
+class AddressPinValidationTests(TestCase):
+    address_payload = {
+        "address_label": "Home",
+        "full_name": "Test Customer",
+        "phone": "9876543210",
+        "address_line1": "123 Garden Road",
+        "address_line2": "",
+        "city": "Mumbai",
+        "state": "Maharashtra",
+        "country": "India",
+        "is_default": False,
+    }
+    invalid_pins = (
+        "ABCDEF",
+        "12#456",
+        " 12345",
+        "12345 ",
+        "123 45",
+        "12345",
+        "1234567",
+        "١٢٣٤٥٦",
+        "²²²²²²",
+        None,
+        123456,
+    )
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="address-pin@example.test",
+            full_name="Address Pin Customer",
+            phone="9876543211",
+            password="test-password-123",
+        )
+        self.client.force_login(self.user)
+
+    def post_json(self, url, payload):
+        return self.client.post(
+            url,
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+    def test_valid_ascii_pin_can_be_used_to_add_and_edit_address(self):
+        add_response = self.post_json(
+            reverse("add_address"),
+            {**self.address_payload, "pin": "400001"},
+        )
+
+        self.assertEqual(add_response.status_code, 201)
+        address = Address.objects.get(pk=add_response.json()["address_id"])
+        self.assertEqual(address.pin, "400001")
+
+        edit_response = self.post_json(
+            reverse("edit_address", args=[address.pk]),
+            {**self.address_payload, "pin": "560001"},
+        )
+
+        self.assertEqual(edit_response.status_code, 200)
+        address.refresh_from_db()
+        self.assertEqual(address.pin, "560001")
+
+    def test_invalid_pins_are_rejected_without_creating_address(self):
+        for pin in self.invalid_pins:
+            with self.subTest(pin=repr(pin)):
+                response = self.post_json(
+                    reverse("add_address"),
+                    {**self.address_payload, "pin": pin},
+                )
+
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(
+                    response.json()["error"],
+                    "PIN code must contain exactly 6 digits",
+                )
+                self.assertFalse(Address.objects.filter(user=self.user).exists())
+
+    def test_invalid_pins_are_rejected_without_updating_address(self):
+        address = Address.objects.create(
+            user=self.user,
+            **self.address_payload,
+            pin="400001",
+        )
+
+        for pin in self.invalid_pins:
+            with self.subTest(pin=repr(pin)):
+                response = self.post_json(
+                    reverse("edit_address", args=[address.pk]),
+                    {**self.address_payload, "pin": pin},
+                )
+
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(
+                    response.json()["error"],
+                    "PIN code must contain exactly 6 digits",
+                )
+                address.refresh_from_db()
+                self.assertEqual(address.pin, "400001")
 
 
 class SignupOtpFlowTests(TestCase):

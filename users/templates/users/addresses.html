@@ -2107,7 +2107,7 @@
         const city = document.getElementById("addrCity").value.trim();
         const state = document.getElementById("addrState").value;
         const country = document.getElementById("addrCountry").value;
-        const pin = document.getElementById("addrPin").value.trim();
+        const pin = document.getElementById("addrPin").value;
         const customLabel = document
           .getElementById("addrCustomLabel")
           .value.trim();
@@ -2141,7 +2141,7 @@
         if (!pin) {
           setAddressFieldError("addrPin", "addrPinError", "Please enter your postal code.");
           hasError = true;
-        } else if (!/^[0-9A-Za-z\s\-]{3,10}$/.test(pin)) {
+        } else if (!/^[0-9]{6}$/.test(pin)) {
           setAddressFieldError("addrPin", "addrPinError", "Please enter a valid postal code.");
           hasError = true;
         }
