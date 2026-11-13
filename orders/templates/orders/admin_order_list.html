@@ -828,6 +828,19 @@
             animation: dropdownFadeIn 0.12s ease-out;
         }
 
+        /* Open status menus are portaled to the page layer to escape table clipping. */
+        .status-menu.status-menu-floating {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1100;
+            min-width: min(160px, calc(100vw - 16px));
+            max-height: calc(100vh - 16px);
+            max-height: calc(100dvh - 16px);
+            max-width: calc(100vw - 16px);
+            overflow-y: auto;
+        }
+
         .status-menu-header {
             padding: 6px 12px 4px;
             font-size: 10px;
@@ -1591,6 +1604,7 @@
         let currentTargetOrder = null;
         let currentOldStatus = null;
         let currentNewStatus = null;
+        let openStatusMenuOverlay = null;
 
         // Toggle Profile Dropdown
         function toggleProfileDropdown(event) {
@@ -1612,19 +1626,74 @@
             event.stopPropagation();
             const menu = document.getElementById(`statusMenu-${orderNumber}`);
             const btn = document.getElementById(`statusBtn-${orderNumber}`);
+            if (!menu || !btn) return;
             const isOpen = menu.classList.contains('show');
 
             closeAllDropdowns();
 
             if (!isOpen) {
+                const parent = menu.parentNode;
+                const nextSibling = menu.nextSibling;
+                menu.addEventListener('click', stopStatusMenuClickPropagation);
+                document.body.appendChild(menu);
+                menu.classList.add('status-menu-floating');
                 menu.classList.add('show');
-                if (btn) btn.setAttribute('aria-expanded', 'true');
+                btn.setAttribute('aria-expanded', 'true');
+                openStatusMenuOverlay = { menu, btn, parent, nextSibling };
+                positionStatusMenuOverlay();
             }
+        }
+
+        function stopStatusMenuClickPropagation(event) {
+            event.stopPropagation();
+        }
+
+        // Fixed coordinates follow the badge as the page or its scrollable table moves.
+        function positionStatusMenuOverlay() {
+            if (!openStatusMenuOverlay) return;
+
+            const { menu, btn } = openStatusMenuOverlay;
+            const anchor = btn.getBoundingClientRect();
+            const menuRect = menu.getBoundingClientRect();
+            const edgePadding = 8;
+            const gap = 4;
+            const viewportWidth = document.documentElement.clientWidth;
+            const viewportHeight = window.innerHeight;
+
+            let left = anchor.left;
+            if (left + menuRect.width > viewportWidth - edgePadding) {
+                left = viewportWidth - menuRect.width - edgePadding;
+            }
+            left = Math.max(edgePadding, left);
+
+            let top = anchor.bottom + gap;
+            if (top + menuRect.height > viewportHeight - edgePadding) {
+                top = anchor.top - menuRect.height - gap;
+            }
+            top = Math.max(edgePadding, Math.min(top, viewportHeight - menuRect.height - edgePadding));
+
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+        }
+
+        function restoreStatusMenuOverlay() {
+            if (!openStatusMenuOverlay) return;
+
+            const { menu, btn, parent, nextSibling } = openStatusMenuOverlay;
+            menu.classList.remove('show', 'status-menu-floating');
+            menu.style.removeProperty('left');
+            menu.style.removeProperty('top');
+            if (parent && parent.isConnected) {
+                parent.insertBefore(menu, nextSibling && nextSibling.parentNode === parent ? nextSibling : null);
+            }
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+            openStatusMenuOverlay = null;
         }
 
         // Close all open menus & dropdowns
         function closeAllDropdowns() {
             document.querySelectorAll('.profile-dropdown-menu.show').forEach(el => el.classList.remove('show'));
+            restoreStatusMenuOverlay();
             document.querySelectorAll('.status-menu.show').forEach(el => el.classList.remove('show'));
             document.querySelectorAll('.admin-profile-btn[aria-expanded="true"]').forEach(el => el.setAttribute('aria-expanded', 'false'));
             document.querySelectorAll('.status-badge-btn[aria-expanded="true"]').forEach(el => el.setAttribute('aria-expanded', 'false'));
@@ -1633,6 +1702,13 @@
         document.addEventListener('click', function () {
             closeAllDropdowns();
         });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeAllDropdowns();
+        });
+
+        window.addEventListener('scroll', positionStatusMenuOverlay, true);
+        window.addEventListener('resize', positionStatusMenuOverlay);
 
         // Open Confirmation Modal
         function confirmStatusChange(orderNumber, oldStatus, newStatus) {

@@ -1754,7 +1754,7 @@
     var city     = document.getElementById('coCity').value.trim();
     var state    = document.getElementById('coState').value.trim();
     var country  = document.getElementById('coCountry').value.trim();
-    var pin      = document.getElementById('coPin').value.trim();
+    var pin      = document.getElementById('coPin').value;
     var label    = document.getElementById('coAddrLabel').value;
     var custom   = document.getElementById('coCustomLabel').value.trim();
     var isDef    = document.getElementById('coIsDefault').checked;
@@ -1767,7 +1767,7 @@
     if (!city)     { setFieldError('coCity','coCityErr','Please enter your city.'); hasErr = true; }
     if (!state)    { setFieldError('coState','coStateErr','Please enter your state.'); hasErr = true; }
     if (!pin)      { setFieldError('coPin','coPinErr','Please enter your PIN code.'); hasErr = true; }
-    else if (!/^[0-9A-Za-z\s\-]{3,10}$/.test(pin)) { setFieldError('coPin','coPinErr','Enter a valid PIN code.'); hasErr = true; }
+    else if (!/^[0-9]{6}$/.test(pin)) { setFieldError('coPin','coPinErr','Enter a valid PIN code.'); hasErr = true; }
     if (!country)  { setFieldError('coCountry','coCountryErr','Please enter your country.'); hasErr = true; }
     if (hasErr) return;
 

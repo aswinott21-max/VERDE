@@ -606,10 +606,12 @@
             color: #991b1b;
         }
 
-        .dropdown-menu-item.disabled {
+        .dropdown-menu-item.disabled,
+        .dropdown-menu-item:disabled {
             color: #9ca3af;
             cursor: not-allowed;
             pointer-events: none;
+            opacity: 0.65;
         }
 
         .item-price {
@@ -1399,7 +1401,6 @@
 
                                         <!-- Item Return Action -->
                                         {% if order.status == "DELIVERED" and item.item_status == "ACTIVE" %}
-                                            {% if not return_request %}
                                             <button
                                                 type="button"
                                                 class="dropdown-menu-item js-return-item-btn"
@@ -1407,12 +1408,10 @@
                                                 data-item-id="{{ item.id }}"
                                                 data-item-name="{{ item.product_name|escapejs }}"
                                                 data-return-url="{% url 'orders:return_order_item' order.order_number item.id %}"
+                                                {% if return_request %}disabled aria-disabled="true" title="Return {{ return_request.status|title }}"{% endif %}
                                             >
                                                 Return Item
                                             </button>
-                                            {% else %}
-                                            <span class="dropdown-menu-item disabled">Return {{ return_request.status|title }}</span>
-                                            {% endif %}
                                         {% endif %}
 
                                         <!-- Review Action if Delivered -->
@@ -2046,7 +2045,6 @@
                     }
 
                     const itemId = currentReturnItemData.itemId;
-                    const itemRow = document.getElementById(`order-item-row-${itemId}`);
                     const statusContainer = document.getElementById(`item-status-${itemId}`);
                     if (statusContainer) {
                         statusContainer.style.display = "block";
@@ -2057,14 +2055,9 @@
                         statusContainer.appendChild(statusTag);
                     }
 
-                    currentReturnItemData.btnElement.remove();
-                    const dropdownMenu = itemRow?.querySelector(".actions-dropdown-menu");
-                    if (dropdownMenu) {
-                        const requestedLabel = document.createElement("span");
-                        requestedLabel.className = "dropdown-menu-item disabled";
-                        requestedLabel.textContent = "Return Requested";
-                        dropdownMenu.appendChild(requestedLabel);
-                    }
+                    currentReturnItemData.btnElement.disabled = true;
+                    currentReturnItemData.btnElement.setAttribute("aria-disabled", "true");
+                    currentReturnItemData.btnElement.title = "Return Requested";
 
                     confirmBtn.disabled = false;
                     confirmBtn.textContent = "Submit Return";

@@ -16,7 +16,7 @@ def validate_user_phone(phone):
     return (phone.isdigit() and len(phone) == 10 and len(set(phone)) > 1)
 
 def validate_pin(pin):
-    return pin.isdigit() and len(pin) ==6
+    return isinstance(pin, str) and re.fullmatch(r"[0-9]{6}", pin) is not None
 
 
 def validate_user_name(name):
