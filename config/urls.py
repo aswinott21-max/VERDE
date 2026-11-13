@@ -20,6 +20,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from adminpanel.views.auth_views import admin_login_page
+from config import error_handlers
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -46,3 +47,8 @@ urlpatterns += static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT
 )
+# Register custom handlers for HTTP errors.
+handler400 = error_handlers.handler400
+handler403 = error_handlers.handler403
+handler404 = error_handlers.handler404
+handler500 = error_handlers.handler500

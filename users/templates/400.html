@@ -1,0 +1,336 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>400 — Bad Request | VERDÉ</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/components.css' %}" />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23102518'><path d='M12 2C6.5 2 2 6.5 2 12c0 4.2 2.6 7.8 6.4 9.3-.1-.9-.1-1.8.1-2.6l1.2-4.9c-.3-.6-.5-1.4-.5-2.2 0-2.1 1.2-3.6 2.7-3.6 1.3 0 1.9 1 1.9 2.1 0 1.3-.8 3.2-1.2 5-.4 1.5.8 2.8 2.3 2.8 2.7 0 4.6-3.5 4.6-7.6 0-3.1-2.1-5.5-6-5.5z'/></svg>"
+    />
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <header class="site-header" role="banner">
+      <div class="header-container">
+        <!-- Brand Logo -->
+        <a href="/" class="brand-logo" aria-label="VERDÉ Home">
+          <svg
+            class="logo-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 2L12 22"></path>
+            <path
+              d="M12 7C14.5 4.5 18 5 19 6C20 7 20.5 10.5 18 13C15.5 15.5 12 15 12 15"
+            ></path>
+            <path
+              d="M12 12C9.5 9.5 6 10 5 11C4 12 3.5 15.5 6 18C8.5 20.5 12 20 12 20"
+            ></path>
+            <circle cx="12" cy="3" r="1.5" fill="currentColor"></circle>
+          </svg>
+          <span class="logo-text">VERDÉ</span>
+        </a>
+
+        <!-- Center: Navigation -->
+        <nav class="main-nav" aria-label="Primary Navigation">
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="/" class="nav-link">Home</a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'product_list' %}" class="nav-link">Shop</a>
+            </li>
+            <li class="nav-item">
+              <a href="/#offers" class="nav-link">Offers</a>
+            </li>
+            <li class="nav-item">
+              <a href="/#about" class="nav-link">About</a>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Right: Utility Actions & Sign In -->
+        <div class="header-actions">
+          <button
+            type="button"
+            class="action-btn"
+            id="searchBtn"
+            aria-label="Search botanicals"
+            title="Search"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+
+          <a href="/wishlist/" class="action-btn" id="wishlistBtn" aria-label="Wishlist" title="Wishlist">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              ></path>
+            </svg>
+          </a>
+
+          <a href="{% url 'cart:cart_page' %}" class="action-btn" aria-label="Cart" title="Cart">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path
+                d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
+              ></path>
+            </svg>
+          </a>
+
+          {% if user.is_authenticated %}
+          <a href="/profile/" class="profile-avatar" aria-label="Profile" title="My Profile">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.full_name }}" />
+            {% else %}
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+            </svg>
+            {% endif %}
+          </a>
+          {% else %}
+          <a href="/login-page/" class="btn-signin">Sign In</a>
+          {% endif %}
+
+          <button
+            class="mobile-menu-toggle"
+            id="mobileMenuToggle"
+            aria-label="Toggle navigation menu"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="error-page-wrapper" role="main">
+      <div class="error-card">
+        <!-- Status Badge -->
+        <div class="error-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Error 400 • Bad Request</span>
+        </div>
+
+        <!-- 400 Visual Indicator with Botanical Leaf Flourish -->
+        <div class="error-visual">
+          <div class="error-code" aria-label="400">
+            <span>4</span>
+            <span class="error-code-leaf" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2C6.5 2 2 6.5 2 12c0 4.2 2.6 7.8 6.4 9.3-.1-.9-.1-1.8.1-2.6l1.2-4.9c-.3-.6-.5-1.4-.5-2.2 0-2.1 1.2-3.6 2.7-3.6 1.3 0 1.9 1 1.9 2.1 0 1.3-.8 3.2-1.2 5-.4 1.5.8 2.8 2.3 2.8 2.7 0 4.6-3.5 4.6-7.6 0-3.1-2.1-5.5-6-5.5z"></path>
+              </svg>
+            </span>
+            <span>0</span>
+          </div>
+        </div>
+
+        <!-- Headline & Friendly Narrative -->
+        <h1 class="error-title">Invalid Request</h1>
+        <p class="error-description">
+          We couldn’t process that request. Please check the information and try again, or use one of the links below to continue browsing VERDÉ.
+        </p>
+
+        <!-- Navigation Actions (Home, Shop) -->
+        <nav class="error-actions" aria-label="Recovery navigation actions">
+          <a href="{% url 'home' %}" class="btn-error-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Return to Home</span>
+          </a>
+
+          <a href="{% url 'product_list' %}" class="btn-error-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            <span>Explore Shop</span>
+          </a>
+        </nav>
+
+      </div>
+    </main>
+
+    <!-- Site Footer -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer-container">
+        <!-- Left Column: Brand & Tagline -->
+        <div class="footer-brand">
+          <h2 class="footer-logo">VERDÉ</h2>
+          <p class="footer-tagline">
+            &copy; 2024 VERDÉ. Curating botanical elegance for your domestic spaces.
+          </p>
+        </div>
+
+        <!-- Right Column: Navigation Groups -->
+        <div class="footer-nav-groups">
+          <div class="footer-group">
+            <h3 class="footer-heading">Shop</h3>
+            <ul class="footer-links">
+              <li><a href="{% url 'product_list' %}?search=Indoor" class="footer-link">Indoor</a></li>
+              <li><a href="{% url 'product_list' %}?search=Outdoor" class="footer-link">Outdoor</a></li>
+              <li><a href="{% url 'product_list' %}" class="footer-link">All Botanicals</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Account</h3>
+            <ul class="footer-links">
+              <li><a href="{% url 'orders:order_list' %}" class="footer-link">My Orders</a></li>
+              <li><a href="/profile/" class="footer-link">Profile</a></li>
+              <li><a href="/wishlist/" class="footer-link">Wishlist</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-group">
+            <h3 class="footer-heading">Connect</h3>
+            <ul class="footer-links">
+              <li>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="footer-link">Instagram</a>
+              </li>
+              <li>
+                <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" class="footer-link">Pinterest</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Global Backdrop for Mobile Drawer -->
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
+
+    <!-- Existing Product Search Overlay -->
+    <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Botanical Search">
+      <form method="GET" action="{% url 'product_list' %}" class="search-box-wrapper">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="search"
+          name="search"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search for plants, pots, accessories..."
+          autocomplete="off"
+        />
+        <button type="button" class="btn-close" id="searchCloseBtn" aria-label="Close search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </form>
+      <div class="search-suggestions">
+        <p class="search-sugg-title">Popular Searches</p>
+        <div class="sugg-chips">
+          <a href="{% url 'product_list' %}?search=Monstera" class="sugg-chip">Monstera</a>
+          <a href="{% url 'product_list' %}?search=Peace+Lily" class="sugg-chip">Peace Lily</a>
+          <a href="{% url 'product_list' %}?search=Fern" class="sugg-chip">Fern</a>
+          <a href="{% url 'product_list' %}?search=Succulent" class="sugg-chip">Succulents</a>
+          <a href="{% url 'product_list' %}?search=Planter" class="sugg-chip">Planter</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="Mobile Navigation Drawer">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="logo-text">VERDÉ</span>
+        <button class="btn-close" id="mobileNavCloseBtn" aria-label="Close menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <ul class="mobile-nav-links">
+        <li><a href="/" class="mobile-nav-link">Home</a></li>
+        <li><a href="{% url 'product_list' %}" class="mobile-nav-link">Shop</a></li>
+        <li><a href="{% url 'orders:order_list' %}" class="mobile-nav-link">My Orders</a></li>
+        <li><a href="/wishlist/" class="mobile-nav-link">Wishlist</a></li>
+        <li><a href="/profile/" class="mobile-nav-link">Account</a></li>
+      </ul>
+    </aside>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% static 'js/cart-badge.js' %}" defer></script>
+
+    {% include "chatbot/widget.html" %}
+  </body>
+</html>

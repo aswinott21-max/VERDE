@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   modalBackdrop?.addEventListener('click', () => {
     closeAuthModal();
     closeSearchModal();
+    mobileNavDrawer?.classList.remove('open');
   });
 
   authTabs.forEach(tab => {

@@ -1,0 +1,174 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}500 — Internal Server Error | VERDÉ Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+    .admin-error-page {
+        flex: 1;
+        display: grid;
+        place-items: center;
+        padding: clamp(24px, 5vw, 64px);
+    }
+
+    .admin-error-card {
+        width: min(100%, 720px);
+        padding: clamp(28px, 5vw, 56px);
+        background: var(--bg-card);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        text-align: center;
+    }
+
+    .admin-error-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 13px;
+        border: 1px solid rgba(75, 104, 84, 0.2);
+        border-radius: 999px;
+        background: rgba(75, 104, 84, 0.08);
+        color: var(--sidebar-heading);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .admin-error-code {
+        margin: 20px 0 8px;
+        color: var(--bg-sidebar);
+        font-family: var(--font-serif);
+        font-size: clamp(76px, 14vw, 132px);
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+    }
+
+    .admin-error-title {
+        margin: 0 0 12px;
+        color: var(--color-text-main);
+        font-family: var(--font-serif);
+        font-size: clamp(25px, 4vw, 36px);
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .admin-error-description {
+        max-width: 500px;
+        margin: 0 auto;
+        color: var(--color-text-muted);
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .admin-error-actions {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+    }
+
+    .admin-error-button {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 0 20px;
+        border: 1px solid var(--bg-sidebar);
+        border-radius: var(--radius-md);
+        background: var(--bg-sidebar);
+        color: #fff;
+        font-family: var(--font-sans);
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .admin-error-button:hover {
+        transform: translateY(-1px);
+        border-color: var(--sidebar-active);
+        background: var(--sidebar-active);
+        color: #fff;
+    }
+
+    .admin-error-button:focus-visible {
+        outline: 3px solid rgba(114, 186, 136, 0.55);
+        outline-offset: 3px;
+    }
+
+    .admin-error-button--secondary {
+        border-color: var(--card-border);
+        background: #fff;
+        color: var(--color-text-main);
+    }
+
+    .admin-error-button--secondary:hover {
+        border-color: var(--sidebar-heading);
+        background: #f5f7f4;
+        color: var(--color-text-main);
+    }
+
+    .admin-error-button svg {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 17px;
+    }
+
+    @media (max-width: 600px) {
+        .admin-error-page {
+            padding: 24px 16px;
+        }
+
+        .admin-error-card {
+            padding: 28px 20px;
+        }
+
+        .admin-error-actions {
+            flex-direction: column;
+        }
+
+        .admin-error-button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="admin-error-page" aria-labelledby="admin-error-title">
+    <div class="admin-error-card">
+        <span class="admin-error-label">500 · Internal Server Error</span>
+        <div class="admin-error-code" aria-hidden="true">500</div>
+        <h2 class="admin-error-title" id="admin-error-title">Internal Server Error</h2>
+        <p class="admin-error-description">
+            An unexpected problem occurred while processing your request. Please try again
+            in a little while, or return to the dashboard or Orders.
+        </p>
+
+        <nav class="admin-error-actions" aria-label="Admin recovery links">
+            <a class="admin-error-button" href="{% url 'admin_dashboard_page' %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Admin Dashboard</span>
+            </a>
+            <a class="admin-error-button admin-error-button--secondary" href="{% url 'orders:admin_order_list' %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <path d="M3 6h18"></path>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span>Orders</span>
+            </a>
+        </nav>
+    </div>
+</section>
+{% endblock %}
